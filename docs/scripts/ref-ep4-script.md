@@ -15,20 +15,20 @@ Swearing: four swears, each on a big beat. Jimmy is played deadpan: calm and qui
 | 13.0-15.6 | Close-up. He takes out his earpiece and drops it in a puddle of the streaker's beer. | "FUCK YOUR CALL. I'M TAKING THIS OVER." | Jimmy (calm): "Fuck your call. I'm taking this over." |
 | 15.6-17.4 | Red card held up to the pitch-side camera; static. | VAR: SENT OFF | Static buzz |
 | 17.4-19.4 | Blue players swarm him; he raises one finger and they freeze. | RETAKE. | Jimmy: "Retake." |
-| 19.4-21.4 | Orange's retake: top corner. Dots 1-1. | 1-1 | Net swish, Orange crowd erupts |
-| 21.4-23.2 | Final kick: Blue #9 (whose pen the streaker stole) steps up to win it. | SCORE TO WIN | Narrator: "Blue's number nine, to win it..." |
-| 23.2-25.2 | A grey-haired man in a jumper vaults out of the crowd and sprints onto the pitch. | JEFFREY EPSTEIN?! | Crowd gasps |
-| 25.2-26.6 | He shoves the pink keeper clean out of the goal and takes his spot on the line. | | Thud + "OI!" from the keeper |
-| 26.6-28.4 | #9 shoots; full-stretch slow-mo dive, fingertip save round the post. | SAVED?! | Crowd erupts |
-| 28.4-29.6 | Jimmy looks at him, shrugs, points for a goal kick. | SAVE STANDS | Narrator: "Jimmy does what the fuck he wants." |
+| 19.4-21.2 | Still round one: Orange #10 steps up for the retake. | RETAKE | Narrator: "Orange retake their first penalty..." |
+| 21.2-23.0 | A grey-haired man in a jumper vaults out of the crowd and sprints onto the pitch. | JEFFREY EPSTEIN?! | Crowd gasps |
+| 23.0-24.4 | He shoves the Blue keeper clean out of the goal and takes his spot on the line. | | Thud + "OI!" from the keeper |
+| 24.4-26.2 | #10 shoots; full-stretch slow-mo dive, fingertip save round the post. | SAVED?! | Crowd erupts |
+| 26.2-28.4 | He jogs over to Jimmy, hands him a gold-edged invitation card, winks, and sprints back into the crowd. | YOU'RE INVITED: THE ISLAND (palm tree) | Jimmy reads it. Silence. |
+| 28.4-29.6 | Jimmy slips the invitation into his top pocket, points for a goal kick. | SAVE STANDS | Narrator: "Jimmy does what the fuck he wants." |
 | 29.6-35.6 | Vote ending: A vs B panels, live vote bar, comments, TAP TO COMMENT. Last shot: streaker twinkling in the sky (loops to the open). | DOES THE SAVE COUNT? A: YES (ref's decision is final) / B: NO (fans can't play: retake) / ANSWER IN EPISODE 5 | Narrator: "So, ref... does the save count? A or B in the comments." |
 
 Fake comments:
 - "Jimmy does what the fuck he wants is my new life motto"
 - "Did not have him on the team sheet"
+- "Jimmy pocketing the invite 💀"
 - "B. Outside agent, retake the pen"
 - "A. Ref's decision is final, always has been"
-- "Best save of the tournament and he's not even registered"
 
 Answer for Episode 5: B, it doesn't count. A spectator is an outside agent; if one interferes with a penalty kick, the kick is retaken. Episode 5 can also list Jimmy's other mistakes: the streaker's goal can't count, the keeper was on his line so there was no retake, and VAR can't be sent off.
 
