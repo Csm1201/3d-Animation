@@ -1,6 +1,6 @@
 # You're the Ref, Episode 4: "Jimmy Does What He Wants" (script, latest)
 
-About 33 s, vertical. Continues straight from Episode 3's penalty shootout. Scoreboard: BLU 1-1 ORA, PENS, with shootout dots.
+About 35 s, vertical. Continues straight from Episode 3's penalty shootout. Scoreboard: BLU 1-1 ORA, PENS, with shootout dots.
 Swearing: four swears, each on a big beat. Jimmy is played deadpan: calm and quiet while everything around him goes mad.
 
 | Time | Visual | On-screen text | Voiceover / sound |
@@ -16,19 +16,21 @@ Swearing: four swears, each on a big beat. Jimmy is played deadpan: calm and qui
 | 15.6-17.4 | Red card held up to the pitch-side camera; static. | VAR: SENT OFF | Static buzz |
 | 17.4-19.4 | Blue players swarm him; he raises one finger and they freeze. | RETAKE. | Jimmy: "Retake." |
 | 19.4-21.4 | Orange's retake: top corner. Dots 1-1. | 1-1 | Net swish, Orange crowd erupts |
-| 21.4-23.8 | Final kick: Blue #9 (whose pen the streaker stole) scores to win it. Blue bench floods on. | BLUE WIN?! | Narrator: "Blue score to win it..." |
-| 23.8-26.4 | Jimmy blows, points at the big screen replaying the streaker's strike, then at #9, shakes his head. | NO GOAL | Jimmy: "Nah. Not as good as the fat lad's." |
-| 26.4-27.6 | Slow push-in on 22 silent players staring at him. | | Narrator: "Jimmy does what the fuck he wants." |
-| 27.6-33.6 | Vote ending: A vs B panels, live vote bar, comments, TAP TO COMMENT. Last shot: streaker twinkling in the sky (loops to the open). | CAN JIMMY IGNORE VAR? A: YES (the ref has the final say) / B: NO (VAR overrules the ref) / ANSWER IN EPISODE 5 | Narrator: "So, ref... can Jimmy ignore VAR? A or B in the comments." |
+| 21.4-23.2 | Final kick: Blue #9 (whose pen the streaker stole) steps up to win it. | SCORE TO WIN | Narrator: "Blue's number nine, to win it..." |
+| 23.2-25.2 | A grey-haired man in a jumper vaults out of the crowd and sprints onto the pitch. | JEFFREY EPSTEIN?! | Crowd gasps |
+| 25.2-26.6 | He shoves the pink keeper clean out of the goal and takes his spot on the line. | | Thud + "OI!" from the keeper |
+| 26.6-28.4 | #9 shoots; full-stretch slow-mo dive, fingertip save round the post. | SAVED?! | Crowd erupts |
+| 28.4-29.6 | Jimmy looks at him, shrugs, points for a goal kick. | SAVE STANDS | Narrator: "Jimmy does what the fuck he wants." |
+| 29.6-35.6 | Vote ending: A vs B panels, live vote bar, comments, TAP TO COMMENT. Last shot: streaker twinkling in the sky (loops to the open). | DOES THE SAVE COUNT? A: YES (ref's decision is final) / B: NO (fans can't play: retake) / ANSWER IN EPISODE 5 | Narrator: "So, ref... does the save count? A or B in the comments." |
 
 Fake comments:
 - "Jimmy does what the fuck he wants is my new life motto"
-- "Disallowed it for not being as good as the fat lad's"
-- "B. That's literally what VAR is for"
+- "Did not have him on the team sheet"
+- "B. Outside agent, retake the pen"
 - "A. Ref's decision is final, always has been"
-- "Jimmy for World Cup final ref"
+- "Best save of the tournament and he's not even registered"
 
-Answer for Episode 5: A, yes. VAR only advises; the referee always has the final say. Episode 5 can then list everything Jimmy still got wrong: the streaker's goal can't count, the keeper was on his line, VAR can't be sent off, and you can't disallow a goal for being "not as good".
+Answer for Episode 5: B, it doesn't count. A spectator is an outside agent; if one interferes with a penalty kick, the kick is retaken. Episode 5 can also list Jimmy's other mistakes: the streaker's goal can't count, the keeper was on his line so there was no retake, and VAR can't be sent off.
 
 Title: "Ref drop-kicks streaker, then ignores VAR | You're the Ref Ep 4"
 Thumbnail: freeze of the drop kick, streaker mid-air, text "REF WENT ROGUE".
