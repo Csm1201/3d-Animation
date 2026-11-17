@@ -1,0 +1,36 @@
+{
+  "name": "office-walk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Animated vertical shorts (Remotion + three.js) with a shared walk cycle, plus a review tool",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:sleep": "node scripts/render.mjs SleepExperiment sleep-experiment --gl=angle",
+    "render:scene1": "node scripts/render.mjs Scene1Trapped scene1-trapped --gl=angle",
+    "render:side": "node scripts/render.mjs SleepExperimentSide sleep-experiment-side --gl=angle",
+    "render:chase": "node scripts/render.mjs SleepExperimentChase sleep-experiment-chase --gl=angle",
+    "render:3d": "node scripts/render.mjs OfficeWalk3D office-walk-3d --gl=angle",
+    "render:flat": "node scripts/render.mjs OfficeWalk office-walk-flat",
+    "build:review": "esbuild src/review/App.tsx --bundle --minify --format=iife --target=es2020 --jsx=automatic --define:process.env.NODE_ENV='\"production\"' --banner:js='var process=globalThis.process||{env:{NODE_ENV:\"production\"}};' --outfile=review-tool/app.js",
+    "check": "tsx scripts/check-walk.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.17.14",
+    "@remotion/cli": "4.0.543",
+    "@remotion/player": "^4.0.543",
+    "@remotion/three": "^4.0.543",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.543",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.170.0",
+    "esbuild": "^0.24.0",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  }
+}
