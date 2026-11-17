@@ -290,96 +290,188 @@ const Clouds: React.FC<{t: number}> = ({t}) => {
   );
 };
 
-// ---------------------------------------------------------------- the plane
-const red = new MeshStandardMaterial({color: '#d8262f', roughness: 0.32, metalness: 0.05});
-const white = new MeshStandardMaterial({color: '#f6f4ee', roughness: 0.35});
-const dark = new MeshStandardMaterial({color: '#25272d', roughness: 0.5});
-const chrome = new MeshStandardMaterial({color: '#d6dbe2', roughness: 0.18, metalness: 0.9});
+// ---------------------------------------------------------------- the planes
+const matCache = new Map<string, MeshStandardMaterial>();
+const paint = (color: string, roughness = 0.32, metalness = 0.05) => {
+  const key = `${color}|${roughness}|${metalness}`;
+  if (!matCache.has(key)) matCache.set(key, new MeshStandardMaterial({color, roughness, metalness}));
+  return matCache.get(key)!;
+};
+const dark = paint('#25272d', 0.5, 0);
+const chrome = paint('#d6dbe2', 0.18, 0.9);
 const glass = new MeshStandardMaterial({color: '#bfe3ff', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.35, side: DoubleSide});
 const ghostBlade = new MeshBasicMaterial({color: '#2a2c32', transparent: true, opacity: 0.18, depthWrite: false});
 const blurMat = new MeshBasicMaterial({color: '#e8eef4', transparent: true, opacity: 0.22, side: DoubleSide, depthWrite: false});
-const scarfMat = new MeshStandardMaterial({color: '#f2c230', roughness: 0.6, side: DoubleSide});
 
 const fuselageGeo = new CapsuleGeometry(0.62, 4.2, 6, 20);
 const box = new BoxGeometry(1, 1, 1);
 const cowlGeo = new CylinderGeometry(0.66, 0.7, 0.7, 24);
 const spinnerGeo = new ConeGeometry(0.24, 0.5, 20);
+const noseConeGeo = new ConeGeometry(0.62, 1.4, 24);
 const wheelGeo = new CylinderGeometry(0.28, 0.28, 0.16, 18);
 const canopyGeo = new BoxGeometry(0.06, 0.42, 0.9);
 const discGeo = new CylinderGeometry(1.45, 1.45, 0.02, 40);
 
-const PILOT: Style = {
-  outfit: 'kit',
-  skin: '#f1bf98',
-  hair: '#6b4a2f',
-  hairStyle: 'short',
-  goggles: 'forehead',
-  kit: {shirt: '#7b4a2b', shorts: '#4a3a2c', socks: '#3a2c22', trim: '#e9dcc4', longSleeves: true},
+type Wing = 'low' | 'bi' | 'high' | 'racer';
+type PlaneKind = {body: string; trim: string; tips: string; wing: Wing; scarf: string; pilot: Style; pilotY?: number};
+
+const LEAD: PlaneKind = {
+  body: '#d8262f',
+  trim: '#f6f4ee',
+  tips: '#d8262f',
+  wing: 'low',
+  scarf: '#f2c230',
+  pilot: {outfit: 'kit', skin: '#f1bf98', hair: '#6b4a2f', hairStyle: 'short', goggles: 'forehead', kit: {shirt: '#7b4a2b', shorts: '#4a3a2c', socks: '#3a2c22', trim: '#e9dcc4', longSleeves: true}},
 };
-// seated: thighs forward, shins down, hands on the stick
+const BIPLANE: PlaneKind = {
+  body: '#f2c12e',
+  trim: '#1f5fbf',
+  tips: '#1f5fbf',
+  wing: 'bi',
+  scarf: '#e8e8e8',
+  pilot: {outfit: 'kit', skin: '#c98f6b', hair: '#1f1714', hairStyle: 'bun', goggles: 'forehead', kit: {shirt: '#2d3e63', shorts: '#2d3e63', socks: '#222', trim: '#e9dcc4', longSleeves: true}},
+};
+const BUSH: PlaneKind = {
+  body: '#2f8f5b',
+  trim: '#f4efe2',
+  tips: '#f08a24',
+  wing: 'high',
+  scarf: '#d8262f',
+  pilot: {outfit: 'kit', skin: '#8d5a3c', hair: '#151110', hairStyle: 'buzz', goggles: 'forehead', kit: {shirt: '#5b6b3a', shorts: '#3d4628', socks: '#222', trim: '#e9dcc4', longSleeves: true}},
+};
+const RACER: PlaneKind = {
+  body: '#f06a1c',
+  trim: '#1c1d22',
+  tips: '#1c1d22',
+  wing: 'racer',
+  scarf: '#3fb6e8',
+  pilot: {outfit: 'kit', skin: '#f6c7a8', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'forehead', kit: {shirt: '#3a3a40', shorts: '#2a2a2e', socks: '#222', trim: '#e9dcc4', longSleeves: true}},
+};
+
+// seated: thighs forward, shins level inside the fuselage, hands on the stick
 const PLANE_SCALE = 0.62;
 const PILOT_Y = -0.3; // straight-leg seat: pelvis sits lower in the pose, so lift him back up
 const SEATED: BodySpec = {lean: -4, headTilt: -6, near: {thigh: 86, knee: 8, foot: 0}, far: {thigh: 84, knee: 6, foot: 0}, nearArm: [52, 46], farArm: [48, 50]};
 
-const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, whoop}) => {
-  const prop = t * 70; // radians
+const Wings: React.FC<{k: PlaneKind}> = ({k}) => {
+  const trim = paint(k.trim, 0.35, 0.02);
+  const tips = paint(k.tips);
+  const one = (y: number, x: number, span: number, chord: number, key: string) => (
+    <group key={key}>
+      <mesh geometry={box} material={trim} position={[x, y, 0]} scale={[chord, 0.16, span]} castShadow />
+      {[-1, 1].map((s) => (
+        <mesh key={s} geometry={box} material={tips} position={[x, y + 0.01, s * (span / 2 - 0.35)]} scale={[chord + 0.02, 0.18, 0.7]} />
+      ))}
+    </group>
+  );
+  if (k.wing === 'bi')
+    return (
+      <>
+        {one(-0.42, 0.7, 9.4, 1.5, 'lo')}
+        {one(1.55, 1.35, 9.8, 1.5, 'hi')}
+        {[-1, 1].map((s) => (
+          <group key={s}>
+            <mesh geometry={box} material={chrome} position={[1.0, 0.56, s * 3.4]} rotation={[0, 0, -0.3]} scale={[0.07, 2.0, 0.07]} />
+            <mesh geometry={box} material={chrome} position={[0.4, 0.56, s * 3.4]} rotation={[0, 0, -0.3]} scale={[0.07, 2.0, 0.07]} />
+          </group>
+        ))}
+      </>
+    );
+  if (k.wing === 'high')
+    return (
+      <>
+        {one(1.55, 0.9, 11.2, 1.6, 'hi')}
+        {[-1, 1].map((s) => (
+          <group key={s}>
+            <mesh geometry={box} material={chrome} position={[0.9, 0.55, s * 1.9]} rotation={[s * 0.75, 0, 0]} scale={[0.07, 2.5, 0.07]} />
+            <mesh geometry={box} material={chrome} position={[1.5, 0.9, s * 0.45]} scale={[0.07, 1.3, 0.07]} />
+          </group>
+        ))}
+      </>
+    );
+  if (k.wing === 'racer') return one(-0.42, 0.5, 7.2, 1.3, 'lo');
+  return one(-0.42, 0.6, 10.4, 1.6, 'lo');
+};
+
+const Plane: React.FC<{kind: PlaneKind; frame: number; t: number; wave: number; headYaw: number; phase: number}> = ({kind, frame, t, wave, headYaw, phase}) => {
+  const prop = t * 70 + phase * 3;
+  const body = paint(kind.body);
+  const trim = paint(kind.trim, 0.35, 0.02);
+  const scarfMat = paint(kind.scarf, 0.6, 0);
+  const racer = kind.wing === 'racer';
   return (
     <group>
       <group scale={PLANE_SCALE}>
-      {/* fuselage along +x (nose forward) */}
-      <mesh geometry={fuselageGeo} material={red} rotation={[0, 0, Math.PI / 2]} scale={[1, 1, 0.92]} castShadow />
-      {/* white cheat line */}
-      <mesh geometry={box} material={white} position={[0.2, -0.05, 0]} scale={[4.6, 0.16, 1.17]} />
-      <mesh geometry={cowlGeo} material={white} position={[2.65, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow />
-      <mesh geometry={spinnerGeo} material={red} position={[3.25, 0, 0]} rotation={[0, 0, -Math.PI / 2]} />
-      {/* propeller: two blades + a motion-blur disc */}
-      <group position={[3.08, 0, 0]} rotation={[prop, 0, 0]}>
-        <mesh geometry={box} material={ghostBlade} scale={[0.04, 2.7, 0.2]} />
-      </group>
-      <mesh geometry={discGeo} material={blurMat} position={[3.1, 0, 0]} rotation={[0, 0, Math.PI / 2]} />
-      {/* low wing with red tips, and fixed landing gear */}
-      <mesh geometry={box} material={white} position={[0.6, -0.42, 0]} scale={[1.6, 0.16, 10.4]} castShadow />
-      {[-1, 1].map((s) => (
-        <group key={s}>
-          <mesh geometry={box} material={red} position={[0.6, -0.41, s * 4.9]} scale={[1.62, 0.18, 0.7]} />
-          <mesh geometry={box} material={chrome} position={[1.1, -0.85, s * 0.9]} rotation={[-s * 0.3, 0, 0]} scale={[0.08, 0.75, 0.08]} />
-          <mesh geometry={wheelGeo} material={dark} position={[1.1, -1.2, s * 1.0]} rotation={[Math.PI / 2, 0, 0]} />
+        {/* fuselage along +x (nose forward) */}
+        <mesh geometry={fuselageGeo} material={body} rotation={[0, 0, Math.PI / 2]} scale={[1, 1, 0.92]} castShadow />
+        <mesh geometry={box} material={trim} position={[0.2, -0.05, 0]} scale={[4.6, 0.16, 1.17]} />
+        {racer ? (
+          // racer: long pointed nose instead of a round cowl, checker band behind it
+          <>
+            <mesh geometry={noseConeGeo} material={body} position={[3.05, 0, 0]} rotation={[0, 0, -Math.PI / 2]} castShadow />
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <mesh key={i} geometry={box} material={i % 2 ? body : trim} position={[2.1, 0, 0]} rotation={[(i * Math.PI) / 3, 0, 0]} scale={[0.35, 1.28, 0.36]} />
+            ))}
+          </>
+        ) : (
+          <>
+            <mesh geometry={cowlGeo} material={trim} position={[2.65, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow />
+            <mesh geometry={spinnerGeo} material={body} position={[3.25, 0, 0]} rotation={[0, 0, -Math.PI / 2]} />
+          </>
+        )}
+        <group position={[racer ? 3.7 : 3.08, 0, 0]} rotation={[prop, 0, 0]}>
+          <mesh geometry={box} material={ghostBlade} scale={[0.04, 2.7, 0.2]} />
         </group>
-      ))}
-      {/* tail */}
-      <mesh geometry={box} material={white} position={[-2.75, 0.15, 0]} scale={[0.9, 0.1, 3.6]} castShadow />
-      <mesh geometry={box} material={red} position={[-2.8, 0.75, 0]} rotation={[0, 0, -0.35]} scale={[1.0, 1.25, 0.1]} castShadow />
-      {/* windscreen / canopy */}
-      <mesh geometry={canopyGeo} material={glass} position={[0.95, 0.72, 0]} rotation={[0, 0, -0.45]} />
-      {/* cockpit rim */}
-      <mesh geometry={box} material={dark} position={[0.15, 0.6, 0]} scale={[1.5, 0.06, 0.95]} />
+        <mesh geometry={discGeo} material={blurMat} position={[racer ? 3.72 : 3.1, 0, 0]} rotation={[0, 0, Math.PI / 2]} />
+        <Wings k={kind} />
+        {[-1, 1].map((s) => (
+          <group key={s}>
+            <mesh geometry={box} material={chrome} position={[1.1, -0.85, s * 0.9]} rotation={[-s * 0.3, 0, 0]} scale={[0.08, 0.75, 0.08]} />
+            <mesh geometry={wheelGeo} material={dark} position={[1.1, -1.2, s * 1.0]} rotation={[Math.PI / 2, 0, 0]} />
+          </group>
+        ))}
+        {/* tail */}
+        <mesh geometry={box} material={trim} position={[-2.75, 0.15, 0]} scale={[0.9, 0.1, 3.6]} castShadow />
+        <mesh geometry={box} material={body} position={[-2.8, 0.75, 0]} rotation={[0, 0, -0.35]} scale={[1.0, 1.25, 0.1]} castShadow />
+        {racer ? <mesh geometry={box} material={trim} position={[-2.9, 1.05, 0]} rotation={[0, 0, -0.35]} scale={[0.5, 0.4, 0.12]} /> : null}
+        <mesh geometry={canopyGeo} material={glass} position={[0.95, 0.72, 0]} rotation={[0, 0, -0.45]} />
+        <mesh geometry={box} material={dark} position={[0.15, 0.6, 0]} scale={[1.5, 0.06, 0.95]} />
       </group>
-      {/* pilot: sitting in the open cockpit, waving at the camera as he pulls up */}
       <Actor
-        style={PILOT}
+        style={kind.pilot}
         x={0.05}
         z={0}
         yaw={0}
-        y={PILOT_Y}
+        y={kind.pilotY ?? PILOT_Y}
         shadow={false}
         frame={frame}
-        spec={{...SEATED, nearArm: [lerp(52, 165, whoop), lerp(46, 18, whoop)]}}
-        look={{tired: 0, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'open', mouthOpen: 0.45 + 0.4 * whoop, noBlink: true, yaw: lerp(-20, -38, whoop)}}
+        spec={{...SEATED, nearArm: [lerp(52, 165 + Math.sin(t * 12 + phase) * 10 * wave, wave), lerp(46, 18, wave)]}}
+        look={{tired: 0, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'open', mouthOpen: 0.4 + 0.45 * wave, noBlink: true, yaw: headYaw}}
       />
-      {/* scarf streaming back in the wind: two overlapping flapping strips */}
+      {/* scarf streaming back in the wind */}
       {[0, 1].map((i) => (
         <mesh
           key={i}
           geometry={box}
           material={scarfMat}
-          position={[-0.45 - i * 0.5, 0.64 + i * 0.05 + Math.sin(t * 24 + i) * 0.04, 0.14 + Math.sin(t * 19 + i * 1.7) * 0.05]}
-          rotation={[Math.sin(t * 21 + i * 1.3) * 0.35, Math.sin(t * 15 + i) * 0.15, 0.1]}
+          position={[-0.45 - i * 0.5, 0.64 + i * 0.05 + Math.sin(t * 24 + i + phase) * 0.04, 0.14 + Math.sin(t * 19 + i * 1.7 + phase) * 0.05]}
+          rotation={[Math.sin(t * 21 + i * 1.3 + phase) * 0.35, Math.sin(t * 15 + i) * 0.15, 0.1]}
           scale={[0.62, 0.025, 0.15 - i * 0.03]}
         />
       ))}
     </group>
   );
 };
+
+// loose formation around the lead: offsets (m) behind/beside, own bob and bank, wave timing
+type Slot = {kind: PlaneKind; off: [number, number, number]; phase: number; waveAt: number};
+const FORMATION: Slot[] = [
+  {kind: LEAD, off: [0, 0, 0], phase: 0, waveAt: 0.45},
+  // stacked mostly in height and depth so the formation fits a tall 9:16 frame
+  {kind: BIPLANE, off: [-9, 4.6, -2.5], phase: 1.7, waveAt: 0.8},
+  {kind: BUSH, off: [-7, -4.2, 1.5], phase: 3.1, waveAt: 1.1},
+  {kind: RACER, off: [-18, 8.8, 0.5], phase: 4.4, waveAt: 1.35},
+];
 
 // ---------------------------------------------------------------- flight path
 // Already up above the ice: he has just cleared the lip, so the cliff edge and the sea are right
@@ -397,15 +489,14 @@ export const IceWallFlight: React.FC = () => {
   const {fps} = useVideoConfig();
   const t = frame / fps;
   const f = flight(t);
-  const whoop = smooth(clamp01((t - 0.45) / 0.35)); // waves at the camera from ~half a second
 
-  // camera flies just ahead of the plane, off the near wing, looking back at his face;
-  // the cliff edge and the ocean far below fill the background, and it slowly swings round
+  // camera flies ahead of the formation, off the lead's near wing, looking back at the pilots;
+  // wide enough to see the whole lead plane and the wingmen, with the cliff edge and sea behind
   const k = smooth(clamp01(t / 2));
   const cam: Cam = {
-    position: v3(f.pos.x + lerp(3.4, 4.0, k), f.pos.y + lerp(2.1, 1.8, k), f.pos.z + lerp(2.6, 2.0, k)),
-    target: v3(f.pos.x - 1.6, f.pos.y - 0.3, f.pos.z),
-    fov: 54,
+    position: v3(f.pos.x + lerp(14, 15, k), f.pos.y + lerp(3.6, 3.0, k), f.pos.z + lerp(7.0, 5.6, k)),
+    target: v3(f.pos.x - 6.5, f.pos.y + 1.6, f.pos.z - 1.6),
+    fov: 56,
     far: 1200,
   };
 
@@ -416,7 +507,7 @@ export const IceWallFlight: React.FC = () => {
         <fog attach="fog" args={['#d4e4f2', 220, 1100]} />
         <Environment intensity={0.4} />
         {/* Daylight's offset y is absolute: key ~12 m above and in front of the plane so his face is lit */}
-        <Daylight center={f.pos} extent={9} offset={[9, f.pos.y + 12, 7]} color="#fff1dc" intensity={2.2} sky="#a9cdf2" ground="#6f9cc0" fill={0.6} />
+        <Daylight center={v3(f.pos.x - 7, f.pos.y, f.pos.z)} extent={16} offset={[9, f.pos.y + 12, 7]} color="#fff1dc" intensity={2.2} sky="#a9cdf2" ground="#6f9cc0" fill={0.6} />
         {/* low sun raking along the cliff face: gold rib facets, blue recesses */}
         <directionalLight position={[-80, 70, 300]} intensity={1.4} color="#ffd6a8" />
         <Sky />
@@ -426,9 +517,19 @@ export const IceWallFlight: React.FC = () => {
         <Plateau />
         <Nunataks />
         <Clouds t={t} />
-        <group position={f.pos} rotation={[f.roll, 0, f.pitch]}>
-          <Plane frame={frame} t={t} whoop={whoop} />
-        </group>
+        {FORMATION.map((slot, i) => {
+          const bob = Math.sin(t * 2.3 + slot.phase) * 0.35 * (i ? 1 : 0);
+          const p = v3(f.pos.x + slot.off[0], f.pos.y + slot.off[1] + bob, f.pos.z + slot.off[2]);
+          const roll = f.roll + (i ? Math.sin(t * 1.9 + slot.phase) * 5 * DEG : 0);
+          const wave = smooth(clamp01((t - slot.waveAt) / 0.35));
+          // head turned toward the camera (negative yaw turns toward +z)
+          const toCam = Math.atan2(cam.position.z - p.z, cam.position.x - p.x) / DEG;
+          return (
+            <group key={i} position={p} rotation={[roll, 0, f.pitch]}>
+              <Plane kind={slot.kind} frame={frame} t={t} wave={wave} headYaw={Math.max(-60, Math.min(20, -toCam * 0.8))} phase={slot.phase} />
+            </group>
+          );
+        })}
       </ThreeCanvas>
       {/* sun glare and a soft vignette */}
       <AbsoluteFill style={{background: 'radial-gradient(ellipse at 85% 18%, rgba(255,240,210,.35), transparent 45%)'}} />
