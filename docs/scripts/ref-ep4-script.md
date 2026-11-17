@@ -1,31 +1,37 @@
-# You're the Ref, Episode 4: "Jimmy Takes Over" (script draft)
+# You're the Ref, Episode 4: "Jimmy Does What He Wants" (script, latest)
 
-About 36 s, vertical, uncensored. Carries straight on from Episode 3's penalty shootout. Scoreboard: BLU 1-1 ORA, PENS, with shootout dots.
+About 34 s, vertical. Continues straight from Episode 3's penalty shootout. Scoreboard: BLU 1-1 ORA, PENS, with shootout dots.
+Swearing: four swears, each on a big beat. Jimmy is played deadpan: calm and quiet while everything around him goes mad.
 
-| Time | Visual | On-screen text | Voiceover |
+| Time | Visual | On-screen text | Voiceover / sound |
 |---|---|---|---|
-| 0.0-1.4 | COLD OPEN. Streaker celebrates his top-corner smash, pint raised. Camera whips to Jimmy (the ref) staring. | "THE FUCK ARE YOU DOING?" | Jimmy: "The fuck are you doing?" |
-| 1.4-3.6 | CHASE. Jimmy sprints after him; streaker waddles, spilling beer. | (chase emojis) | (chase music) |
-| 3.6-5.2 | RUGBY TACKLE. Slow-mo spear tackle, beer everywhere, WHACK frame. | WHACK! | "Jimmy rugby tackles him..." |
-| 5.2-7.6 | DROP KICK. Jimmy boots him over the stand; he becomes a twinkle in the sky. | DROP KICKED OUT OF THE STADIUM | Jimmy: "Get the fuck out of my stadium, you prick." |
-| 7.6-9.6 | Jimmy watches the slow-mo replay of the strike on the big screen and nods, impressed. | REPLAY | "But that strike was that good..." |
-| 9.6-11.8 | He points to the centre circle; first shootout dot turns green for Blue. | GOAL GIVEN | "...Jimmy gives it anyway. Jimmy does what the fuck he wants." |
-| 11.8-14.0 | Orange's first penalty is saved; Jimmy orders a retake ("keeper off his line!"). | RETAKE! | "Orange miss. Jimmy says retake." |
-| 14.0-15.6 | VAR monitor shows the keeper's feet on the line. | VAR: "HE WAS ON HIS LINE" | "VAR says he was on his line." |
-| 15.6-18.2 | Close-up, eye twitching; rips out his earpiece and throws it. | "FUCK YOUR CALL. I'M TAKING THIS OVER." | Jimmy: "Fuck your call. I'm taking this over." |
-| 18.2-20.0 | Red card to the VAR camera; screen cuts to static. | VAR: SENT OFF | Jimmy: "And you're off, you shit." |
-| 20.0-22.6 | Blue players swarm him; he blows the whistle in their faces and they back off. | "RETAKE. NOW." | Jimmy: "I said retake. Shut the fuck up." |
-| 22.6-25.0 | Orange retake, top corner. Shootout 1-1. Blue bench loses it. | RETAKE SCORED, 1-1 | "Orange score the retake." |
-| 25.0-27.6 | Blue keeper throws his gloves at Jimmy; Jimmy books him without looking up. | (yellow card) | "Blue's keeper loses it. Jimmy books him." |
-| 27.6-34.6 | Vote ending: A vs B panels, live vote bar, fake comments, TAP TO COMMENT. Final shot: streaker twinkling in the sky (loops to the opening). | A: YES (the ref has the final say) / B: NO (VAR overrules the ref) / ANSWER IN EPISODE 5 | "So, ref... can Jimmy ignore VAR? A or B. Comments." |
+| 0.0-1.2 | COLD OPEN. Streaker celebrates his top-corner penalty, pint raised. Hard cut to Jimmy, still, staring. | "THE FUCK ARE YOU DOING?" | Jimmy (flat, quiet): "The fuck are you doing?" |
+| 1.2-3.2 | CHASE. Jimmy jogs after him unhurried; the streaker panics, beer everywhere. | | Comedy chase music |
+| 3.2-4.6 | RUGBY TACKLE. Slow-mo spear tackle, beer fountain, freeze-frame. | WHACK! | Crunch + crowd "OOOOH" |
+| 4.6-7.0 | DROP KICK. Jimmy boots him clean over the stand; tiny twinkle in the sky. | OUT OF THE STADIUM | Crowd roars. Jimmy straightens his shirt. |
+| 7.0-9.0 | Jimmy glances at the big-screen replay of the streaker's strike. Long pause. Small nod. | (TV icon) | Narrator: "But... that strike was class." |
+| 9.0-11.4 | Points to the centre circle; Blue's first dot turns green. Orange players gape. | GOAL GIVEN | Narrator: "So Jimmy gives it. Jimmy does what the fuck he wants." |
+| 11.4-13.6 | Orange's first penalty is saved. Jimmy blows before the ball stops rolling. | RETAKE! | Jimmy: "He moved. Retake." |
+| 13.6-15.2 | VAR overlay: keeper's heels on the line. Radio crackle. | VAR: "HE WAS ON HIS LINE, JIMMY." | VAR: "Jimmy... he was on his line." |
+| 15.2-17.8 | Close-up. He takes out his earpiece and drops it in a puddle of the streaker's beer. | "FUCK YOUR CALL. I'M TAKING THIS OVER." | Jimmy (calm): "Fuck your call. I'm taking this over." |
+| 17.8-19.6 | Red card held up to the pitch-side camera; static. | VAR: SENT OFF | Static buzz |
+| 19.6-21.6 | Blue players swarm him; he raises one finger and they freeze. | RETAKE. | Jimmy: "Retake." |
+| 21.6-23.6 | Orange's retake: top corner. Dots 1-1. | 1-1 | Net swish, Orange crowd erupts |
+| 23.6-26.0 | Final kick: Blue #9 (whose pen the streaker stole) scores to win it. Blue bench floods on. | BLUE WIN?! | Narrator: "Blue score to win it..." |
+| 26.0-28.6 | Jimmy blows, points at the big screen (still the streaker's strike), then at #9, shakes his head. | NO GOAL | Jimmy: "Nah. Not as good as the fat lad's." |
+| 28.6-29.8 | Slow push-in on 22 silent players staring at him. | | Narrator: "Jimmy does what the fuck he wants." |
+| 29.8-35.8 | Vote ending: A vs B panels, live vote bar, comments, TAP TO COMMENT. Last shot: streaker twinkling in the sky (loops to the open). | CAN JIMMY IGNORE VAR? A: YES (the ref has the final say) / B: NO (VAR overrules the ref) / ANSWER IN EPISODE 5 | Narrator: "So, ref... can Jimmy ignore VAR? A or B in the comments." |
 
 Fake comments:
 - "Jimmy does what the fuck he wants is my new life motto"
-- "Gave the streaker's goal THEN drop kicked him"
+- "Disallowed it for not being as good as the fat lad's"
 - "B. That's literally what VAR is for"
 - "A. Ref's decision is final, always has been"
 - "Jimmy for World Cup final ref"
 
-Answer for Episode 5: A, yes. VAR only advises; the referee always makes the final decision. But Jimmy was wrong on the retake (keeper on his line), can't send off VAR, and the streaker's goal should never have counted.
+Answer for Episode 5: A, yes. VAR only advises; the referee always has the final say. Episode 5 can then list everything Jimmy still got wrong: the streaker's goal can't count, the keeper was on his line, VAR can't be sent off, and you can't disallow a goal for being "not as good".
 
-Open questions: who voices the narrator and Jimmy; which beat to use for the 3-second test clip.
+Title: "Ref drop-kicks streaker, then ignores VAR | You're the Ref Ep 4"
+Thumbnail: freeze of the drop kick, streaker mid-air, text "REF WENT ROGUE".
+
+Open questions: voices (narrator, Jimmy, VAR); which beat for the 3-second test clip.
