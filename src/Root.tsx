@@ -1,3 +1,4 @@
+import {IceWallFlight, ICE_FRAMES} from './films/ice-wall/IceWallFlight';
 import React from 'react';
 import {Composition} from 'remotion';
 import {DURATION_IN_FRAMES, FPS, HEIGHT, WIDTH} from './core/constants';
@@ -13,6 +14,7 @@ import {SCENE1_FRAMES, Scene1Trapped} from './films/sleep-experiment/scenes/Scen
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="IceWallFlight" component={IceWallFlight} durationInFrames={ICE_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition
       id="RefEpisode3"
       component={Episode3}

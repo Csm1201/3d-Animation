@@ -40,7 +40,7 @@ export type Style = {
   /** Subject number on the jumpsuit patch (subject outfit only). */
   patch?: number;
   kit?: Kit;
-  /** Scientist goggles: worn over the eyes, or pushed up on the forehead. */
+  /** Goggles (scientist by default; any outfit when set): worn over the eyes, or pushed up on the forehead. */
   goggles?: 'eyes' | 'forehead';
   /** Pull the near hand in toward the body's centre line (world z of the wrist), e.g. a hand on the backside. */
   nearHandZ?: number;
@@ -300,7 +300,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
   const autoBlink = !look.noBlink && [114, 252].some((b) => frame >= b && frame < b + 7);
   const blink = look.eyesClosed || autoBlink;
   const lid = look.stare ? 1.25 : Math.max(0.35, 1 - 0.6 * look.tired);
-  const goggled = st.outfit === 'scientist' && (st.goggles ?? 'eyes') === 'eyes';
+  const goggled = (st.outfit === 'scientist' ? st.goggles ?? 'eyes' : st.goggles) === 'eyes';
   const eyeMag = goggled ? 1.3 : 1; // goggle lenses magnify the eyes
   const brows = look.brows ?? 0;
   const browY = (goggled ? 0.52 : 0.36) + (look.stare ? 0.06 : 0) + (look.browLift ?? 0) * 0.12;
@@ -384,7 +384,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
                 );
               })
             : null}
-          {st.outfit === 'scientist' ? (
+          {st.outfit === 'scientist' || st.goggles ? (
             goggled ? (
               // goggles worn over the eyes: strap round the head at eye level, amber lenses in brass rims
               <group position={[0, 0.018, 0]}>
