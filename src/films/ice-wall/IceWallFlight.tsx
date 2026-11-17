@@ -1,7 +1,7 @@
 /**
  * Ice wall flight test (2 s, 30 fps, 1080x1920).
- * A pilot in a little red bush plane skims the Southern Ocean, pulls up hard and crests
- * the edge of a towering Antarctic ice cliff, revealing the white plateau beyond.
+ * A pilot in a little red open-cockpit plane has just cleared the edge of a towering Antarctic
+ * ice cliff; the camera flies ahead of him, looking back at his face, with the drop to the sea behind.
  * Same toy-plastic style as the "You're the Ref" films.
  */
 import {ThreeCanvas} from '@remotion/three';
@@ -296,6 +296,7 @@ const white = new MeshStandardMaterial({color: '#f6f4ee', roughness: 0.35});
 const dark = new MeshStandardMaterial({color: '#25272d', roughness: 0.5});
 const chrome = new MeshStandardMaterial({color: '#d6dbe2', roughness: 0.18, metalness: 0.9});
 const glass = new MeshStandardMaterial({color: '#bfe3ff', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.35, side: DoubleSide});
+const ghostBlade = new MeshBasicMaterial({color: '#2a2c32', transparent: true, opacity: 0.18, depthWrite: false});
 const blurMat = new MeshBasicMaterial({color: '#e8eef4', transparent: true, opacity: 0.22, side: DoubleSide, depthWrite: false});
 const scarfMat = new MeshStandardMaterial({color: '#f2c230', roughness: 0.6, side: DoubleSide});
 
@@ -317,8 +318,8 @@ const PILOT: Style = {
 };
 // seated: thighs forward, shins down, hands on the stick
 const PLANE_SCALE = 0.62;
-const PILOT_Y = -0.62;
-const SEATED: BodySpec = {lean: -4, headTilt: -6, near: {thigh: 88, knee: 92, foot: 0}, far: {thigh: 84, knee: 88, foot: 0}, nearArm: [52, 46], farArm: [48, 50]};
+const PILOT_Y = -0.3; // straight-leg seat: pelvis sits lower in the pose, so lift him back up
+const SEATED: BodySpec = {lean: -4, headTilt: -6, near: {thigh: 86, knee: 8, foot: 0}, far: {thigh: 84, knee: 6, foot: 0}, nearArm: [52, 46], farArm: [48, 50]};
 
 const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, whoop}) => {
   const prop = t * 70; // radians
@@ -333,7 +334,7 @@ const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, w
       <mesh geometry={spinnerGeo} material={red} position={[3.25, 0, 0]} rotation={[0, 0, -Math.PI / 2]} />
       {/* propeller: two blades + a motion-blur disc */}
       <group position={[3.08, 0, 0]} rotation={[prop, 0, 0]}>
-        <mesh geometry={box} material={dark} scale={[0.07, 2.7, 0.2]} />
+        <mesh geometry={box} material={ghostBlade} scale={[0.04, 2.7, 0.2]} />
       </group>
       <mesh geometry={discGeo} material={blurMat} position={[3.1, 0, 0]} rotation={[0, 0, Math.PI / 2]} />
       {/* low wing with red tips, and fixed landing gear */}
@@ -363,7 +364,7 @@ const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, w
         shadow={false}
         frame={frame}
         spec={{...SEATED, nearArm: [lerp(52, 165, whoop), lerp(46, 18, whoop)]}}
-        look={{tired: 0, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'open', mouthOpen: 0.45 + 0.4 * whoop, noBlink: true, yaw: lerp(25, 70, whoop)}}
+        look={{tired: 0, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'open', mouthOpen: 0.45 + 0.4 * whoop, noBlink: true, yaw: lerp(-20, -38, whoop)}}
       />
       {/* scarf streaming back in the wind: two overlapping flapping strips */}
       {[0, 1].map((i) => (
@@ -381,15 +382,14 @@ const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, w
 };
 
 // ---------------------------------------------------------------- flight path
-// 0-0.9 s skimming the sea toward the cliff, then a hard pull-up that crests the lip at ~1.8 s.
+// Already up above the ice: he has just cleared the lip, so the cliff edge and the sea are right
+// behind him, and he flies on inland over the plateau with a gentle bank.
+const CRUISE_Y = WALL_H + 13;
 const flight = (t: number) => {
-  const x = lerp(-10, WALL_X + 12, t / 2);
-  const climb = smooth(clamp01((t - 0.55) / 1.25));
-  const y = lerp(6, WALL_H + 9, climb);
-  const z = Math.sin(t * 1.4) * 2.5;
-  const vy = (WALL_H + 9 - 6) * (clamp01((t - 0.55) / 1.25) > 0 && t < 1.8 ? 6 * ((t - 0.55) / 1.25) * (1 - (t - 0.55) / 1.25) / 1.25 : 0);
-  const pitch = Math.atan2(vy, 50); // nose up while climbing
-  return {pos: v3(x, y, z), pitch, roll: -Math.cos(t * 1.4) * 9 * DEG};
+  const x = lerp(WALL_X + 22, WALL_X + 90, t / 2);
+  const y = CRUISE_Y + Math.sin(t * 2.2) * 0.6;
+  const z = Math.sin(t * 1.1) * 1.5;
+  return {pos: v3(x, y, z), pitch: 0.05 + Math.cos(t * 2.2) * 0.02, roll: Math.sin(t * 1.6) * 7 * DEG};
 };
 
 export const IceWallFlight: React.FC = () => {
@@ -397,14 +397,15 @@ export const IceWallFlight: React.FC = () => {
   const {fps} = useVideoConfig();
   const t = frame / fps;
   const f = flight(t);
-  const whoop = smooth(clamp01((t - 1.25) / 0.35));
+  const whoop = smooth(clamp01((t - 0.45) / 0.35)); // waves at the camera from ~half a second
 
-  // chase camera: behind, right and a little above; drifts wider as he crests so the plateau opens up
-  const k = smooth(clamp01((t - 0.9) / 1.1));
+  // camera flies just ahead of the plane, off the near wing, looking back at his face;
+  // the cliff edge and the ocean far below fill the background, and it slowly swings round
+  const k = smooth(clamp01(t / 2));
   const cam: Cam = {
-    position: v3(f.pos.x - lerp(9.5, 8, k), f.pos.y + lerp(1.2, 3.4, k), f.pos.z + lerp(6.2, 7.5, k)),
-    target: v3(f.pos.x + lerp(6, 4, k), f.pos.y + lerp(4.5, 0.6, k), f.pos.z - lerp(1, 0.5, k)),
-    fov: lerp(66, 58, k),
+    position: v3(f.pos.x + lerp(3.4, 4.0, k), f.pos.y + lerp(2.1, 1.8, k), f.pos.z + lerp(2.6, 2.0, k)),
+    target: v3(f.pos.x - 1.6, f.pos.y - 0.3, f.pos.z),
+    fov: 54,
     far: 1200,
   };
 
@@ -414,8 +415,8 @@ export const IceWallFlight: React.FC = () => {
         <CameraRig cam={cam} />
         <fog attach="fog" args={['#d4e4f2', 220, 1100]} />
         <Environment intensity={0.4} />
-        {/* Daylight's offset y is absolute, so keep the key ~12 m above the plane (shadow on the snow at the crest) */}
-        <Daylight center={f.pos} extent={9} offset={[-5, f.pos.y + 12, 7]} color="#fff1dc" intensity={2.2} sky="#a9cdf2" ground="#6f9cc0" fill={0.6} />
+        {/* Daylight's offset y is absolute: key ~12 m above and in front of the plane so his face is lit */}
+        <Daylight center={f.pos} extent={9} offset={[9, f.pos.y + 12, 7]} color="#fff1dc" intensity={2.2} sky="#a9cdf2" ground="#6f9cc0" fill={0.6} />
         {/* low sun raking along the cliff face: gold rib facets, blue recesses */}
         <directionalLight position={[-80, 70, 300]} intensity={1.4} color="#ffd6a8" />
         <Sky />
