@@ -57,14 +57,17 @@ const noise1 = (seed: number) => {
   };
 };
 
+const N3 = noise1(47);
+/** How far the cliff top is set back (world x) at a point along the cliff (world z). */
+const lipAt = (u: number) => (N3(u * 0.012) - 0.5) * 22 + Math.pow(u / 140, 2) * 8;
+
 const IceCliff: React.FC = () => {
   const geo = useMemo(() => {
     const segZ = 520;
-    const segY = 36;
+    const segY = 48;
     const g = new PlaneGeometry(WALL_LEN, WALL_H + 3, segZ, segY);
     const n1 = noise1(11);
     const n2 = noise1(29);
-    const n3 = noise1(47);
     const pos = g.attributes.position;
     const cols: number[] = [];
     const deep = new Color('#2f6f9e');
@@ -76,20 +79,24 @@ const IceCliff: React.FC = () => {
       const u = pos.getX(i); // along the cliff (world z)
       const h = pos.getY(i) + (WALL_H + 3) / 2 - 3; // height above sea, top edge exactly at the plateau
       // vertical columns + big bays + a slight lean back near the top
-      const cols1 = Math.pow(n1(u * 0.35), 2.2) * 4.5; // sharp ribs
-      const cols2 = (n2(u * 1.3) - 0.5) * 1.1;
-      const bays = (n3(u * 0.012) - 0.5) * 22;
+      const cols1 = Math.pow(n1(u * 0.07), 3) * 7; // irregular big fracture buttresses (~14 m)
+      const cols2 = (n2(u * 0.28) - 0.5) * 1.6; // secondary ribs
+      const slump = (n2(u * 0.05 + h * 0.06) - 0.5) * 3; // blocks shift with height: no perfect prisms
       const lean = (h / WALL_H) * 2.5;
       const base = h < 2 ? (2 - h) * 1.5 : 0; // undercut at the waterline
-      const depth = bays + cols1 + cols2 + lean + base;
+      const notch = h > 0 && h < 3 ? (3 - h) * 1.2 : 0; // wave-cut notch
+      const cornice = h > WALL_H - 1 ? -1.5 : 0; // snow overhangs the lip
+      const depth = lipAt(u) + cols1 + cols2 + slump + lean + base + notch + cornice;
       // plane is built in x/y; we map: plane x -> world z, plane y -> height, displacement -> world x
       pos.setXYZ(i, depth, h, u);
       const k = clamp01(h / WALL_H);
       // recessed (pushed back) ice reads deeper blue; horizontal annual layers near the top
-      const recess = clamp01((depth + 6) / 26);
-      const strata = k > 0.55 ? 0.08 * Math.sin(h * 2.6 + n2(u * 0.2) * 3) : 0;
-      const streak = 0.12 * (n2(u * 2.1) - 0.5) + strata - recess * 0.35;
-      if (k > 0.93) c.copy(pale).lerp(snow, (k - 0.93) / 0.07);
+      const recess = clamp01((depth - lipAt(u) + 2) / 12);
+      const strata = k > 0.4 ? 0.14 * Math.sin(h * 1.9 + n2(u * 0.05) * 3) : 0;
+      const streak = 0.12 * (n2(u * 0.6) - 0.5) + strata - recess * 0.5;
+      if (h < 0.8) c.set('#e6f3fa'); // foam / ice foot
+      else if (h < 3) c.set('#1b4d75'); // dark wet notch
+      else if (k > 0.93) c.copy(pale).lerp(snow, (k - 0.93) / 0.07);
       else if (k > 0.45) c.copy(mid).lerp(pale, (k - 0.45) / 0.48 + streak);
       else c.copy(deep).lerp(mid, k / 0.45 + streak);
       cols.push(c.r, c.g, c.b);
@@ -98,7 +105,7 @@ const IceCliff: React.FC = () => {
     g.computeVertexNormals();
     return g;
   }, []);
-  const mat = useMemo(() => new MeshStandardMaterial({vertexColors: true, roughness: 0.32, metalness: 0.0, emissive: '#0b2a40', emissiveIntensity: 0.2, flatShading: true}), []);
+  const mat = useMemo(() => new MeshStandardMaterial({vertexColors: true, roughness: 0.32, metalness: 0.0, emissive: '#0b2a40', emissiveIntensity: 0.2, flatShading: true, envMapIntensity: 0.25}), []);
   return <mesh geometry={geo} material={mat} position={[WALL_X, 0, 0]} />;
 };
 
@@ -110,25 +117,78 @@ const Plateau: React.FC = () => {
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
-      pos.setZ(i, (n(x * 0.03 + y * 0.011) - 0.5) * 2.4 + (n(y * 0.05) - 0.5) * 1.2);
+      // plane y becomes world -z after the rotation; near edge follows the cliff lip
+      pos.setX(i, x + lipAt(-y) * (1 - clamp01((x + 800) / 400)));
+      pos.setZ(i, (n(x * 0.03 + y * 0.011) - 0.5) * 2.4 + (n(y * 0.05) - 0.5) * 1.2 + (n(x * 0.006 + 3) - 0.5) * 7 * clamp01((x + 790) / 60));
     }
     g.computeVertexNormals();
     return g;
   }, []);
-  const mat = useMemo(() => new MeshStandardMaterial({color: '#f4f8fc', roughness: 0.85}), []);
-  return <mesh geometry={geo} material={mat} rotation={[-Math.PI / 2, 0, 0]} position={[WALL_X + 800 + 2, WALL_H, 0]} receiveShadow />;
+  const mat = useMemo(() => {
+    const t = canvasTex(256, 256, (g) => {
+      g.fillStyle = '#f3f7fb';
+      g.fillRect(0, 0, 256, 256);
+      const r = seeded(61);
+      for (let i = 0; i < 500; i++) {
+        const x = r() * 256;
+        const y = r() * 256;
+        g.strokeStyle = `rgba(140,175,210,${0.18 + r() * 0.17})`;
+        g.lineWidth = 1 + r() * 2;
+        g.beginPath();
+        g.moveTo(x, y);
+        g.quadraticCurveTo(x + 10, y - 3, x + 22 + r() * 18, y + 1);
+        g.stroke();
+      }
+    });
+    t.wrapS = RepeatWrapping;
+    t.wrapT = RepeatWrapping;
+    t.repeat.set(50, 50);
+    return new MeshStandardMaterial({map: t, color: '#ffffff', roughness: 0.9, envMapIntensity: 0.2});
+  }, []);
+  return <mesh geometry={geo} material={mat} rotation={[-Math.PI / 2, 0, 0]} position={[WALL_X + 800, WALL_H, 0]} receiveShadow />;
+};
+
+// distant rock peaks poking through the ice sheet, for scale on the reveal
+const Nunataks: React.FC = () => {
+  const items = useMemo(() => {
+    const r = seeded(97);
+    return Array.from({length: 7}, (_, i) => {
+      const h = 90 + r() * 130;
+      const geo = new ConeGeometry(1, 1, 7);
+      const pos = geo.attributes.position;
+      const cols: number[] = [];
+      const rock = new Color('#3e4854');
+      const snowC = new Color('#f2f6fa');
+      for (let k = 0; k < pos.count; k++) {
+        const y = pos.getY(k) + 0.5;
+        const c = y > 0.55 + (r() - 0.5) * 0.2 ? snowC : rock;
+        cols.push(c.r, c.g, c.b);
+      }
+      geo.setAttribute('color', new Float32BufferAttribute(cols, 3));
+      geo.computeVertexNormals();
+      return {geo, h, rr: h * (0.6 + r() * 0.3), x: WALL_X + 380 + r() * 320, z: -500 + (i + r()) * (1000 / 7)};
+    });
+  }, []);
+  const mat = useMemo(() => new MeshStandardMaterial({vertexColors: true, roughness: 0.8, flatShading: true, envMapIntensity: 0.2}), []);
+  return (
+    <>
+      {items.map((n, i) => (
+        <mesh key={i} geometry={n.geo} material={mat} position={[n.x, WALL_H - 10 + n.h / 2, n.z]} scale={[n.rr, n.h, n.rr]} />
+      ))}
+    </>
+  );
 };
 
 const waveTex = () =>
   once('ice-waves', () => {
     const t = canvasTex(256, 256, (g) => {
-      g.fillStyle = '#0f3554';
+      g.fillStyle = '#0b3048';
       g.fillRect(0, 0, 256, 256);
       const r = seeded(5);
       for (let i = 0; i < 900; i++) {
         const x = r() * 256;
         const y = r() * 256;
-        g.strokeStyle = `rgba(${150 + r() * 80},${200 + r() * 40},255,${0.08 + r() * 0.16})`;
+        g.strokeStyle = `rgba(${170 + r() * 60},${215 + r() * 30},255,${0.1 + r() * 0.18})`;
         g.lineWidth = 1 + r() * 1.5;
         g.beginPath();
         g.moveTo(x, y);
@@ -146,7 +206,7 @@ const Ocean: React.FC<{t: number}> = ({t}) => {
     const tex = waveTex().clone();
     tex.needsUpdate = true;
     tex.repeat.set(60, 60);
-    return new MeshStandardMaterial({map: tex, color: '#7fb0cc', roughness: 0.35, metalness: 0.1});
+    return new MeshStandardMaterial({map: tex, color: '#5f97b8', roughness: 0.6, metalness: 0, envMapIntensity: 0.15});
   }, []);
   mat.map!.offset.set(t * 0.05, t * 0.02);
   return (
@@ -157,26 +217,22 @@ const Ocean: React.FC<{t: number}> = ({t}) => {
 };
 
 // floating tabular bergs (flat-topped slabs that calved off the shelf) and rounded brash ice
-const bergTop = new MeshStandardMaterial({color: '#f6fbff', roughness: 0.6});
-const bergSide = new MeshStandardMaterial({color: '#bfe2f2', roughness: 0.3, emissive: '#3f8fbf', emissiveIntensity: 0.18});
+const bergTop = new MeshStandardMaterial({color: '#f6fbff', roughness: 0.6, envMapIntensity: 0.25});
+const bergSide = new MeshStandardMaterial({color: '#bfe2f2', roughness: 0.3, emissive: '#3f8fbf', emissiveIntensity: 0.18, envMapIntensity: 0.25});
 const slabGeo = new BoxGeometry(1, 1, 1, 6, 2, 6);
 const lumpGeo = new SphereGeometry(1, 14, 10);
 const Bergs: React.FC = () => {
   const items = useMemo(() => {
     const r = seeded(19);
-    const out: {big: boolean; p: [number, number, number]; s: [number, number, number]; ry: number}[] = [];
-    for (let i = 0; i < 30; i++) {
-      const big = i < 7;
-      // keep them off the flight line (z ~ 0) near the camera start
-      let z = -260 + r() * 520;
-      if (Math.abs(z) < 30) z += z < 0 ? -30 : 30;
-      const sz = big ? 10 + r() * 16 : 1 + r() * 2.5;
-      out.push({
-        big,
-        p: [WALL_X - 8 - r() * (big ? 220 : 120), big ? sz * 0.12 : 0, z],
-        s: big ? [sz * (1.2 + r()), sz * (0.28 + r() * 0.15), sz * (0.8 + r())] : [sz * 1.3, sz * 0.35, sz],
-        ry: r() * Math.PI,
-      });
+    const out: {big: boolean; p: [number, number, number]; s: [number, number, number]; ry: number}[] = [
+      {big: true, p: [40, 1.2, -48], s: [16, 5, 11], ry: 0.3},
+      {big: true, p: [58, 1.0, 16], s: [10, 3.5, 8], ry: -0.5},
+      {big: true, p: [20, 0.8, 28], s: [7, 2.5, 6], ry: 1.1},
+      {big: true, p: [-60, 2, -140], s: [24, 7, 16], ry: 0.8},
+    ];
+    for (let i = 0; i < 40; i++) {
+      const sc = 1 + r() * 2;
+      out.push({big: false, p: [WALL_X - 25 + r() * 21, 0, -50 + r() * 100], s: [sc, 0.2 + r() * 0.2, 1 + r() * 2], ry: r() * Math.PI});
     }
     return out;
   }, []);
@@ -200,11 +256,12 @@ const Sky: React.FC = () => {
   const mat = useMemo(() => {
     const t = canvasTex(4, 512, (g) => {
       const gr = g.createLinearGradient(0, 0, 0, 512);
-      gr.addColorStop(0, '#2c5fa8');
-      gr.addColorStop(0.42, '#7fb2e6');
-      gr.addColorStop(0.5, '#e6eef6');
-      gr.addColorStop(0.53, '#f6e2c8');
-      gr.addColorStop(1, '#dfe9f2');
+      gr.addColorStop(0, '#1a4a96');
+      gr.addColorStop(0.3, '#3c7cd0');
+      gr.addColorStop(0.44, '#8dbbe8');
+      gr.addColorStop(0.49, '#d4e4f2');
+      gr.addColorStop(0.5, '#e9f1f7');
+      gr.addColorStop(1, '#cfdde9');
       g.fillStyle = gr;
       g.fillRect(0, 0, 4, 512);
     });
@@ -217,16 +274,16 @@ const Sky: React.FC = () => {
 const Clouds: React.FC<{t: number}> = ({t}) => {
   const items = useMemo(() => {
     const r = seeded(7);
-    return Array.from({length: 10}, () => ({x: WALL_X + 120 + r() * 500, y: WALL_H + 60 + r() * 70, z: -400 + r() * 800, s: 25 + r() * 35}));
+    return Array.from({length: 6}, () => ({x: WALL_X + 250 + r() * 450, y: WALL_H + 110 + r() * 80, z: -400 + r() * 800, s: 30 + r() * 35}));
   }, []);
-  const mat = useMemo(() => new MeshStandardMaterial({color: '#ffffff', roughness: 1, transparent: true, opacity: 0.75, depthWrite: false}), []);
+  const mat = useMemo(() => new MeshStandardMaterial({color: '#ffffff', roughness: 0.9, envMapIntensity: 0.3}), []);
   const geo = useMemo(() => new SphereGeometry(1, 16, 12), []);
   return (
     <>
       {items.map((c, i) => (
         <group key={i} position={[c.x + t * 1.5, c.y, c.z]}>
-          <mesh geometry={geo} material={mat} scale={[c.s, c.s * 0.35, c.s * 0.7]} />
-          <mesh geometry={geo} material={mat} position={[c.s * 0.6, c.s * 0.1, 0]} scale={[c.s * 0.7, c.s * 0.3, c.s * 0.6]} />
+          <mesh geometry={geo} material={mat} scale={[c.s, c.s * 0.22, c.s * 0.7]} />
+          <mesh geometry={geo} material={mat} position={[c.s * 0.6, c.s * 0.1, 0]} scale={[c.s * 0.7, c.s * 0.2, c.s * 0.6]} />
         </group>
       ))}
     </>
@@ -265,7 +322,6 @@ const SEATED: BodySpec = {lean: -4, headTilt: -6, near: {thigh: 88, knee: 92, fo
 
 const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, whoop}) => {
   const prop = t * 70; // radians
-  const scarf = Array.from({length: 7}, (_, i) => i);
   return (
     <group>
       <group scale={PLANE_SCALE}>
@@ -309,15 +365,15 @@ const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, w
         spec={{...SEATED, nearArm: [lerp(52, 165, whoop), lerp(46, 18, whoop)]}}
         look={{tired: 0, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'open', mouthOpen: 0.45 + 0.4 * whoop, noBlink: true, yaw: lerp(25, 70, whoop)}}
       />
-      {/* scarf streaming back in the wind */}
-      {scarf.map((i) => (
+      {/* scarf streaming back in the wind: two overlapping flapping strips */}
+      {[0, 1].map((i) => (
         <mesh
           key={i}
           geometry={box}
           material={scarfMat}
-          position={[-0.12 - i * 0.17, 0.62 + 0.025 * i + Math.sin(t * 22 - i * 0.8) * 0.035 * i, 0.12 + Math.sin(t * 17 - i * 0.9) * 0.04 * i]}
-          rotation={[Math.sin(t * 20 - i * 0.8) * 0.35, 0, 0.12]}
-          scale={[0.24, 0.025, 0.15]}
+          position={[-0.45 - i * 0.5, 0.64 + i * 0.05 + Math.sin(t * 24 + i) * 0.04, 0.14 + Math.sin(t * 19 + i * 1.7) * 0.05]}
+          rotation={[Math.sin(t * 21 + i * 1.3) * 0.35, Math.sin(t * 15 + i) * 0.15, 0.1]}
+          scale={[0.62, 0.025, 0.15 - i * 0.03]}
         />
       ))}
     </group>
@@ -329,9 +385,9 @@ const Plane: React.FC<{frame: number; t: number; whoop: number}> = ({frame, t, w
 const flight = (t: number) => {
   const x = lerp(-10, WALL_X + 12, t / 2);
   const climb = smooth(clamp01((t - 0.55) / 1.25));
-  const y = lerp(14, WALL_H + 9, climb);
+  const y = lerp(6, WALL_H + 9, climb);
   const z = Math.sin(t * 1.4) * 2.5;
-  const vy = (WALL_H + 9 - 14) * (clamp01((t - 0.55) / 1.25) > 0 && t < 1.8 ? 6 * ((t - 0.55) / 1.25) * (1 - (t - 0.55) / 1.25) / 1.25 : 0);
+  const vy = (WALL_H + 9 - 6) * (clamp01((t - 0.55) / 1.25) > 0 && t < 1.8 ? 6 * ((t - 0.55) / 1.25) * (1 - (t - 0.55) / 1.25) / 1.25 : 0);
   const pitch = Math.atan2(vy, 50); // nose up while climbing
   return {pos: v3(x, y, z), pitch, roll: -Math.cos(t * 1.4) * 9 * DEG};
 };
@@ -346,9 +402,9 @@ export const IceWallFlight: React.FC = () => {
   // chase camera: behind, right and a little above; drifts wider as he crests so the plateau opens up
   const k = smooth(clamp01((t - 0.9) / 1.1));
   const cam: Cam = {
-    position: v3(f.pos.x - lerp(9.5, 8, k), f.pos.y + lerp(2.2, 3.4, k), f.pos.z + lerp(6.2, 7.5, k)),
-    target: v3(f.pos.x + lerp(6, 4, k), f.pos.y + lerp(3.2, 0.6, k), f.pos.z - lerp(1, 0.5, k)),
-    fov: lerp(62, 58, k),
+    position: v3(f.pos.x - lerp(9.5, 8, k), f.pos.y + lerp(1.2, 3.4, k), f.pos.z + lerp(6.2, 7.5, k)),
+    target: v3(f.pos.x + lerp(6, 4, k), f.pos.y + lerp(4.5, 0.6, k), f.pos.z - lerp(1, 0.5, k)),
+    fov: lerp(66, 58, k),
     far: 1200,
   };
 
@@ -356,15 +412,18 @@ export const IceWallFlight: React.FC = () => {
     <AbsoluteFill style={{backgroundColor: '#9cc6ea'}}>
       <ThreeCanvas width={WIDTH} height={HEIGHT} frameloop="demand" dpr={1} shadows="variance" gl={{antialias: true}} camera={{fov: 60, position: [0, 2, 5]}}>
         <CameraRig cam={cam} />
-        <fog attach="fog" args={['#dde9f3', 160, 900]} />
+        <fog attach="fog" args={['#d4e4f2', 220, 1100]} />
         <Environment intensity={0.4} />
-        <Daylight center={f.pos} extent={9} offset={[-12, 30, 18]} color="#fff3e2" intensity={2.6} sky="#cfe3f7" ground="#8fb7d4" fill={0.9} />
-        <directionalLight position={[200, 60, -150]} intensity={0.6} color="#ffd9b0" />
+        {/* Daylight's offset y is absolute, so keep the key ~12 m above the plane (shadow on the snow at the crest) */}
+        <Daylight center={f.pos} extent={9} offset={[-5, f.pos.y + 12, 7]} color="#fff1dc" intensity={2.2} sky="#a9cdf2" ground="#6f9cc0" fill={0.6} />
+        {/* low sun raking along the cliff face: gold rib facets, blue recesses */}
+        <directionalLight position={[-80, 70, 300]} intensity={1.4} color="#ffd6a8" />
         <Sky />
         <Ocean t={t} />
         <Bergs />
         <IceCliff />
         <Plateau />
+        <Nunataks />
         <Clouds t={t} />
         <group position={f.pos} rotation={[f.roll, 0, f.pitch]}>
           <Plane frame={frame} t={t} whoop={whoop} />
