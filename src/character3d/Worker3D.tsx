@@ -30,7 +30,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string};
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string};
 export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept';
 export type Style = {
   outfit: Outfit;
@@ -46,6 +46,8 @@ export type Style = {
   nearHandZ?: number;
   /** Eyebrow colour when it differs from the hair (e.g. dark brows under grey hair). */
   brow?: string;
+  /** Full short beard and moustache, in the hair colour. */
+  beard?: boolean;
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -74,6 +76,20 @@ const numberTex = (n: number, color: string) =>
     g.textBaseline = 'middle';
     g.font = '900 200px "Inter Display", Inter, sans-serif';
     g.fillText(String(n), 128, 140);
+  });
+
+const chestTex = (text: string, color: string, outline: string) =>
+  canvasTex(512, 256, (g) => {
+    g.clearRect(0, 0, 512, 256);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'italic 900 128px "Inter Display", Inter, sans-serif';
+    g.lineWidth = 14;
+    g.strokeStyle = outline;
+    g.lineJoin = 'round';
+    g.strokeText(text, 256, 136, 480);
+    g.fillStyle = color;
+    g.fillText(text, 256, 136, 480);
   });
 
 const buildMats = (st: Style) => {
@@ -125,6 +141,7 @@ const buildMats = (st: Style) => {
     number: num ? new MeshStandardMaterial({map: num, transparent: true, roughness: 0.6, depthWrite: false}) : null,
     mono: kit?.quarterZip ? new MeshStandardMaterial({map: monoTex(kit.quarterZip), transparent: true, roughness: 0.6, depthWrite: false}) : null,
     zip: plastic('#c9ced6', 0.2),
+    chest: kit?.chestText ? new MeshStandardMaterial({map: chestTex(kit.chestText, kit.numColor ?? '#ffffff', '#ffffff'), transparent: true, roughness: 0.6, depthWrite: false}) : null,
   };
 };
 type Mats = ReturnType<typeof buildMats>;
@@ -216,6 +233,7 @@ const torsoGeo = new CapsuleGeometry(0.16, 0.3, 10, 32);
 const bellyGeo = new SphereGeometry(0.15, 24, 16);
 const navelGeo = new SphereGeometry(0.012, 8, 6);
 const numPlane = new PlaneGeometry(0.26, 0.26);
+const chestPlane = new PlaneGeometry(0.25, 0.125);
 const box1 = new BoxGeometry(1, 1, 1);
 const pelvisGeo = new SphereGeometry(0.165, 32, 20);
 const beltGeo = new CylinderGeometry(0.163, 0.163, 0.045, 40);
@@ -225,6 +243,10 @@ const knotGeo = new RoundedBoxGeometry(0.03, 0.04, 0.05, 2, 0.01);
 const collarGeo = new CylinderGeometry(0.075, 0.098, 0.06, 32);
 const smileGeo = new TorusGeometry(0.03, 0.007, 10, 24, Math.PI);
 const hairGeo = new SphereGeometry(0.157, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
+// lower-face shell (front half, from the cheekbones down) for beards
+const beardGeo = new SphereGeometry(0.152, 40, 12, Math.PI * 0.5, Math.PI, Math.PI * 0.67, Math.PI * 0.2); // jaw + chin, under the mouth
+const burnGeoA = new SphereGeometry(0.152, 16, 8, Math.PI * 0.52, Math.PI * 0.16, Math.PI * 0.5, Math.PI * 0.2); // sideburn / cheek, +z side
+const burnGeoB = new SphereGeometry(0.152, 16, 8, Math.PI * 1.32, Math.PI * 0.16, Math.PI * 0.5, Math.PI * 0.2); // -z side
 const buzzGeo = new SphereGeometry(0.153, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.45);
 const skirtGeo = new CylinderGeometry(0.175, 0.235, 0.5, 40, 1, true);
 const shirtVGeo = new RoundedBoxGeometry(0.012, 0.26, 0.09, 2, 0.005);
@@ -380,6 +402,16 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         <group position={[0.02, 0.2, 0]}>
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
+          {st.beard ? (
+            // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache
+            <group>
+              <mesh geometry={beardGeo} material={M.hair} rotation={[0, 0, -0.08]} scale={[1.04, 1.03, 1.04]} castShadow />
+              <mesh geometry={burnGeoA} material={M.hair} scale={1.03} />
+              <mesh geometry={burnGeoB} material={M.hair} scale={1.03} />
+              <mesh geometry={sphere(1)} material={M.hair} position={surf(0.8, -0.75, 0, R * 0.95)} scale={[0.04, 0.03, 0.05]} castShadow />
+              <mesh geometry={sphere(1)} material={M.hair} position={surf(1, -0.27, 0, R - 0.002)} scale={[0.012, 0.011, 0.05]} />
+            </group>
+          ) : null}
           <mesh geometry={sphere(0.028)} material={M.skin} position={surf(1, -0.04, 0, R + 0.008)} />
           {mouth === 'smile' ? (
             <mesh geometry={smileGeo} material={M.mouth} position={surf(1, -0.42, 0, R - 0.006)} rotation={[0, Math.PI / 2, Math.PI]} />
@@ -489,6 +521,13 @@ const Torso: React.FC<{pose: Pose; st: Style; M: Mats}> = ({pose, st, M}) => {
           )}
           {st.kit?.bare ? null : M.mono ? (
             <mesh geometry={numPlane} material={M.mono} position={[0.131, 0.44, -0.07]} rotation={[0, Math.PI / 2, 0]} scale={0.3} />
+          ) : M.chest ? (
+            <>
+              {/* basketball vest: wordmark across the chest, number under it, big number on the back */}
+              <mesh geometry={chestPlane} material={M.chest} position={[0.133, 0.5, 0]} rotation={[0, Math.PI / 2, 0]} />
+              {M.number ? <mesh geometry={numPlane} material={M.number} position={[0.133, 0.36, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.6} /> : null}
+              {M.number ? <mesh geometry={numPlane} material={M.number} position={[-0.132, 0.38, 0]} rotation={[0, -Math.PI / 2, 0]} scale={1} /> : null}
+            </>
           ) : M.number ? (
             <>
               <mesh geometry={numPlane} material={M.number} position={[-0.132, 0.38, 0]} rotation={[0, -Math.PI / 2, 0]} scale={1} />
@@ -576,7 +615,7 @@ const Arm: React.FC<{pose: Pose; far?: boolean; carry: Carry; st: Style; M: Mats
     return (
       <group>
         <Seg a={s} b={e} ra={0.054} rb={0.048} mat={long ? mat : skin} />
-        {st.kit?.bare ? null : <Seg a={s} b={sleeveEnd} ra={0.066} rb={0.06} mat={mat} />}
+        {st.kit?.bare || st.kit?.sleeveless ? null : <Seg a={s} b={sleeveEnd} ra={0.066} rb={0.06} mat={mat} />}
         <Seg a={e} b={w} ra={0.047} rb={0.042} mat={long ? mat : skin} />
         <mesh
           geometry={sphere(st.kit?.gloves ? 0.062 : 0.05)}

@@ -88,13 +88,15 @@ type ActorProps = {
   pitch?: number;
   y?: number;
   shadow?: boolean;
+  /** uniform size multiplier (1 = everyone else) */
+  scale?: number;
   children?: (pose: ReturnType<typeof buildPose>) => React.ReactNode;
 };
 
-export const Actor: React.FC<ActorProps> = ({style, x, z, yaw, spec, frame, look = DETERMINED, roll = 0, pitch = 0, y = 0, shadow = true, children}) => {
+export const Actor: React.FC<ActorProps> = ({style, x, z, yaw, spec, frame, look = DETERMINED, roll = 0, pitch = 0, y = 0, shadow = true, scale = 1, children}) => {
   const pose = buildPose(spec);
   return (
-    <group position={[x, 0, z]} rotation={[0, yaw, 0]}>
+    <group position={[x, 0, z]} rotation={[0, yaw, 0]} scale={scale}>
       <group position={[0, y, 0]} rotation={[roll * DEG, 0, pitch * DEG]}>
         <Worker3D pose={pose} frame={frame} look={look} carry="none" style={style} />
         {children ? children(pose) : null}
