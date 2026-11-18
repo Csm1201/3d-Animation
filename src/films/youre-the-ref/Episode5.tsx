@@ -4,7 +4,7 @@
  * Voices: vidIQ (ElevenLabs) stock voices — narrator "Daniel", Jimmy "George", keeper "Liam",
  * Orange #7 "Chris"; the 6-7 chant is four voices layered. LeBron has no lines. SFX are synthesised.
  *
- *   0.0  HOOK: the keeper, ball in his arms, buried in the top corner   "HE KICKED THE KEEPER IN."
+ *   0.0  HOOK: over LeBron's shoulder, the keeper flying into the top corner   "LEBRON KICKED THE KEEPER IN."
  *   1.4  Episode 4 answer: rewind to the fan's save, ✗, "B. RETAKE."
  *   4.4  Jimmy points to the spot  ·  6.7 #7: "I'm not taking it."  ·  9.0 Jimmy: "Somebody fucking take it."
  *  11.0  LeBron James walks out of the crowd  ·  13.2 MOGGED  ·  15.0 Jimmy hands him the ball
@@ -148,10 +148,11 @@ const ShotHook: React.FC<{from: number}> = ({from}) => {
   const t = f / EP5_FPS;
   const fr = from + f;
   const push = smooth(clamp01(t / 1.4));
-  const cam: Cam = {position: v3(47.2 + push * 0.6, 1.45, 1.6 - push * 0.3), target: v3(52.6, 1.75, -2.6), fov: 38 - push * 3};
+  // behind LeBron's shoulder in his follow-through, keeper flying into the top corner in slow motion
+  const cam: Cam = {position: v3(STRIKE_X - 3.7 + push * 0.7, 1.9, 2.2 - push * 0.25), target: v3(44.5, 1.5, -0.4), fov: 46 - push * 3};
   return (
-    <Scene cam={cam} frame={fr} centre={v3(50, 0, -1)} extent={10} excite={2}>
-      <KickWorld s={KC + 0.15} fr={fr} showLeBron={false} />
+    <Scene cam={cam} frame={fr} centre={v3(47, 0, -1)} extent={12} excite={2}>
+      <KickWorld s={lerp(0.98, KC + 0.12, push)} fr={fr} showLeBron={false} />
       <LeBron x={STRIKE_X} z={0.52} yaw={0} spec={{...KICK_FOLLOW, lift: 0}} frame={fr} />
     </Scene>
   );
@@ -559,7 +560,7 @@ export const Episode5: React.FC = () => {
       )}
 
       {/* titles */}
-      {inRange(frame, 0, F(1.4)) ? <BigTitle text="HE KICKED THE KEEPER IN." frame={frame} fps={fps} top={330} size={92} rot={-5} color="#ffd23a" /> : null}
+      {inRange(frame, 0, F(1.4)) ? <BigTitle text="LEBRON KICKED THE KEEPER IN." frame={frame} fps={fps} top={330} size={92} rot={-5} color="#ffd23a" /> : null}
       {inRange(frame, F(5.95), F(6.7)) ? <Tag text="RETAKE." frame={frame} fps={fps} from={F(5.95)} style={{top: 330, left: 0, right: 0, margin: '0 auto', width: 'fit-content', fontSize: 70, padding: '12px 44px', rotate: '-5deg'}} /> : null}
       {inRange(frame, F(11.3), F(13.2)) ? (
         <div style={{position: 'absolute', left: 48, top: 1250, transform: `translateX(${(1 - interpolate(frame, [F(11.3), F(11.55)], [0, 1], clampO)) * -80}px)`}}>

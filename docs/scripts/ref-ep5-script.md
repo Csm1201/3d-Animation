@@ -5,7 +5,7 @@ Jimmy stays deadpan, with the invite still poking out of his top pocket. LeBron 
 
 | Time | Visual | On-screen text | Voiceover / sound |
 |---|---|---|---|
-| 0.0-1.4 | HOOK. Freeze frame: the keeper mid-air in the top corner, wrapped round the ball, net bulging. Hard cut to black. | HE KICKED THE KEEPER IN. | Bass hit, record scratch |
+| 0.0-1.4 | HOOK. Slow-mo over LeBron's shoulder in his follow-through: the keeper flies into the top corner wrapped round the ball. Hard cut. | LEBRON KICKED THE KEEPER IN. | Bass hit, record scratch |
 | 1.4-4.0 | EP 4 ANSWER. VHS rewind to Epstein's fingertip save; a red ✗ stamps over it. Quick flash of a "B" comment. | EPISODE 4 ANSWER: B. RETAKE. | Narrator: "Last time? B. A fan can't save a penalty. Retake." |
 | 4.0-6.4 | Orange #7 walks up to the spot, looks at Jimmy. Jimmy stares back, unblinking. #7 sweats, shakes his head and backs away. | | #7: "I'm not taking it." Jimmy (flat): "Somebody fucking take it." |
 | 6.4-8.4 | Crowd goes silent. In the VIP box, a tall figure stands up. Slow-mo walk down the steps and onto the pitch, crowd parting. | LEBRON JAMES?! | Crowd gasp, then silence. Single heartbeat thud. |
