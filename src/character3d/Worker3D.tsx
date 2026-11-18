@@ -30,8 +30,8 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean};
-export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz';
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean};
+export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept';
 export type Style = {
   outfit: Outfit;
   skin: string;
@@ -44,6 +44,8 @@ export type Style = {
   goggles?: 'eyes' | 'forehead';
   /** Pull the near hand in toward the body's centre line (world z of the wrist), e.g. a hand on the backside. */
   nearHandZ?: number;
+  /** Eyebrow colour when it differs from the hair (e.g. dark brows under grey hair). */
+  brow?: string;
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -75,6 +77,7 @@ const buildMats = (st: Style) => {
     skinShade: clay(shade(st.skin, 0.9), 0.65),
     cheek: clay('#ff9c8f', 0.7),
     hair: clay(st.hair, 0.72),
+    brow: clay(st.brow ?? st.hair, 0.72),
     shirt: clay(top, 0.72),
     shirtFar: clay(shade(top, 0.92), 0.75),
     cuff: clay('#ffffff', 0.6),
@@ -284,6 +287,20 @@ const Hair: React.FC<{st: Style; M: Mats}> = ({st, M}) => {
       </group>
     );
   if (st.hairStyle === 'buzz') return <mesh geometry={buzzGeo} material={M.hair} rotation={[0, 0, 0.45]} castShadow />;
+  if (st.hairStyle === 'swept')
+    // full head of hair brushed straight back: hairline set back off the forehead, height on the crown,
+    // combed-back ridges and fuller sides over the ears
+    return (
+      <group>
+        <mesh geometry={hairGeo} material={M.hair} rotation={[0, 0, 1.0]} position={[-0.012, 0.004, 0]} scale={[1.05, 1.04, 1.07]} castShadow />
+        <mesh geometry={sphere(1)} material={M.hair} position={[-0.025, 0.128, 0]} scale={[0.125, 0.058, 0.12]} rotation={[0, 0, -0.25]} castShadow />
+        <mesh geometry={sphere(1)} material={M.hair} position={[0.055, 0.128, 0]} scale={[0.07, 0.04, 0.11]} rotation={[0, 0, -0.75]} castShadow />
+        {[-1, 1].map((sd) => (
+          <mesh key={sd} geometry={sphere(1)} material={M.hair} position={[-0.055, 0.05, 0.128 * sd]} scale={[0.085, 0.07, 0.035]} rotation={[0, 0, -0.35]} castShadow />
+        ))}
+        <mesh geometry={sphere(1)} material={M.hair} position={[-0.12, 0.05, 0]} scale={[0.06, 0.1, 0.13]} castShadow />
+      </group>
+    );
   return (
     <group>
       <mesh geometry={hairGeo} material={M.hair} rotation={[0, 0, 0.55]} position={[-0.006, 0.006, 0]} castShadow />
@@ -329,10 +346,10 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         {/* eyebrow: rotated so its inner end rises (worried) or drops (angry) */}
         <mesh
           geometry={sphere(0.012)}
-          material={M.hair}
+          material={M.brow}
           position={surf(0.86, browY, 0.4 * side, R + 0.004)}
           rotation={[brows * 0.55 * side, 0, 0]}
-          scale={st.hairStyle === 'wild' ? [0.9, 0.9, 3] : [0.6, 0.6, 2.4]}
+          scale={st.hairStyle === 'wild' ? [0.9, 0.9, 3] : st.hairStyle === 'swept' ? [0.85, 0.8, 2.9] : [0.6, 0.6, 2.4]}
         />
         <mesh geometry={sphere(0.03)} material={M.cheek} position={surf(0.8, -0.16, 0.55 * side, R - 0.012)} scale={[0.5, 0.8, 1]} />
         <mesh geometry={sphere(0.038)} material={M.skin} position={surf(0, 0.02, side, R - 0.01)} scale={[0.75, 1.1, 0.5]} />
@@ -592,8 +609,8 @@ export const Worker3D: React.FC<{pose: Pose; frame: number; look?: Look; carry?:
   return (
     <group>
       <Arm pose={pose} far carry={carry} st={style} M={M} />
-      <Leg leg={pose.farLeg} z={-0.095} far M={M} kit={style.outfit === 'kit'} bare={style.kit?.bare} fat={style.kit?.fat} />
-      <Leg leg={pose.nearLeg} z={0.095} M={M} kit={style.outfit === 'kit'} bare={style.kit?.bare} fat={style.kit?.fat} />
+      <Leg leg={pose.farLeg} z={-0.095} far M={M} kit={style.outfit === 'kit' && !style.kit?.trousers} bare={style.kit?.bare} fat={style.kit?.fat} />
+      <Leg leg={pose.nearLeg} z={0.095} M={M} kit={style.outfit === 'kit' && !style.kit?.trousers} bare={style.kit?.bare} fat={style.kit?.fat} />
       <Torso pose={pose} st={style} M={M} />
       <Head pose={pose} frame={frame} look={look} st={style} M={M} />
       <Arm pose={pose} carry={carry} st={style} M={M} />

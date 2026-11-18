@@ -1,3 +1,4 @@
+import {Ep4SaveTest, EP4_SAVE_FRAMES} from './films/youre-the-ref/Ep4SaveTest';
 import {IceWallFlight, ICE_FRAMES} from './films/ice-wall/IceWallFlight';
 import React from 'react';
 import {Composition} from 'remotion';
@@ -14,6 +15,7 @@ import {SCENE1_FRAMES, Scene1Trapped} from './films/sleep-experiment/scenes/Scen
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="RefEp4SaveTest" component={Ep4SaveTest} durationInFrames={EP4_SAVE_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="IceWallFlight" component={IceWallFlight} durationInFrames={ICE_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition
       id="RefEpisode3"
