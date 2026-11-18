@@ -141,10 +141,12 @@ export const Scene: React.FC<{
   frame: number;
   centre: Vector3;
   excite?: number;
+  /** crowd doing the 6-7 hands (0..1) */
+  sixSeven?: number;
   extent?: number;
   layer?: 'all' | 'stadium' | 'actors';
   children?: React.ReactNode;
-}> = ({cam, frame, centre, excite = 0.4, extent = 16, layer = 'all', children}) => (
+}> = ({cam, frame, centre, excite = 0.4, sixSeven = 0, extent = 16, layer = 'all', children}) => (
   <ThreeCanvas
     width={WIDTH}
     height={HEIGHT}
@@ -159,7 +161,7 @@ export const Scene: React.FC<{
     <Environment intensity={0.28} />
     <Daylight center={centre} extent={extent} offset={[-16, 34, 20]} color="#eef2ff" intensity={2.5} sky={NIGHT.sky} ground={NIGHT.ground} fill={0.75} />
     <directionalLight position={[60, 30, -40]} intensity={0.55} color="#ffe6c4" />
-    {layer !== 'actors' ? <Stadium frame={frame} excite={excite} /> : null}
+    {layer !== 'actors' ? <Stadium frame={frame} excite={excite} sixSeven={sixSeven} /> : null}
     {layer !== 'stadium' ? children : null}
   </ThreeCanvas>
 );

@@ -39,11 +39,11 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const v3 = (x: number, y: number, z: number) => new Vector3(x, y, z);
 const clampO = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
-const JIMMY = ST.ref;
-const BLUE_KEEPER = ST.greenKeeper;
+export const JIMMY = ST.ref;
+export const BLUE_KEEPER = ST.greenKeeper;
 
 // Jimmy is deadpan: flat brows, small mouth that moves only when he talks
-const DEADPAN = (talk: number, t: number): Look => ({
+export const DEADPAN = (talk: number, t: number): Look => ({
   tired: 0.25,
   droop: 2,
   eyesClosed: false,
@@ -53,10 +53,10 @@ const DEADPAN = (talk: number, t: number): Look => ({
   mouthOpen: talk > 0 ? 0.18 + 0.22 * Math.abs(Math.sin(t * 13)) : 0,
   noBlink: true,
 });
-const GAPE: Look = {tired: 0, droop: -6, eyesClosed: false, brows: 0.8, browLift: 0.8, mouth: 'open', mouthOpen: 0.7, noBlink: true};
+export const GAPE: Look = {tired: 0, droop: -6, eyesClosed: false, brows: 0.8, browLift: 0.8, mouth: 'open', mouthOpen: 0.7, noBlink: true};
 const SMUG: Look = {tired: 0, droop: -4, eyesClosed: false, brows: -0.15, browLift: 0.1, mouth: 'smile', noBlink: true};
 
-const handLocal = (pose: Pose, far: boolean) => {
+export const handLocal = (pose: Pose, far: boolean) => {
   const z = far ? -0.27 : 0.27;
   const e = to3(pose[far ? 'farArm' : 'nearArm'].elbow, z);
   const w = to3(pose[far ? 'farArm' : 'nearArm'].wrist, z);
@@ -510,7 +510,7 @@ const pocketLocal = (pose: Pose) => {
   return to3(pose.pelvis, 0).add(new Vector3(px * Math.cos(l) - py * Math.sin(l), px * Math.sin(l) + py * Math.cos(l), -0.08));
 };
 /** The invite standing in the pocket; `sink` 0 = resting on the pocket lip, 1 = pushed in (top still showing). */
-const PocketCard: React.FC<{pose: Pose; sink: number}> = ({pose, sink}) => {
+export const PocketCard: React.FC<{pose: Pose; sink: number}> = ({pose, sink}) => {
   const p = pocketLocal(pose);
   const r: [number, number, number] = [0, 0, -pose.lean * DEG2];
   return (
@@ -607,7 +607,7 @@ const ShotVote4: React.FC<{from: number}> = ({from}) => {
 };
 
 // ================================================================ shootout tally under the scoreboard
-const Tally: React.FC<{blue: ('g' | 'x' | null)[]; orange: ('g' | 'x' | null)[]}> = ({blue, orange}) => {
+export const Tally: React.FC<{blue: ('g' | 'x' | null)[]; orange: ('g' | 'x' | null)[]}> = ({blue, orange}) => {
   const row = (label: string, color: string, marks: ('g' | 'x' | null)[]) => (
     <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
       <div style={{width: 64, fontFamily: FONT, fontWeight: 900, fontSize: 22, color}}>{label}</div>

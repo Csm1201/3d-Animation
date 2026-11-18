@@ -314,7 +314,7 @@ const headGeo = new SphereGeometry(0.13, 6, 4);
 const armGeo = new BoxGeometry(0.1, 0.5, 0.1);
 armGeo.translate(0, 0.25, 0);
 
-const Crowd: React.FC<{frame: number; excite: number}> = ({frame, excite}) => {
+const Crowd: React.FC<{frame: number; excite: number; sixSeven?: number}> = ({frame, excite, sixSeven = 0}) => {
   const fans = useMemo(buildFans, []);
   const meshes = useMemo(() => {
     const mk = (geo: BoxGeometry | SphereGeometry, n: number) => {
@@ -358,10 +358,13 @@ const Crowd: React.FC<{frame: number; excite: number}> = ({frame, excite}) => {
     side.set(Math.cos(f.rotY), 0, -Math.sin(f.rotY)).multiplyScalar(0.27);
     const raised = f.amp > 0.11 || f.scarf;
     for (const s of [-1, 1]) {
-      const wave = raised ? 0.35 + Math.sin(frame * f.rate * 1.3 + f.phase + s) * 0.3 : Math.PI - 0.12;
+      const base = raised ? 0.35 + Math.sin(frame * f.rate * 1.3 + f.phase + s) * 0.3 : Math.PI - 0.12;
+      // "6 7": whole crowd, arms out, hands bobbing up and down in turn, nearly in sync
+      const six = 1.15 + Math.sin(frame * 0.62 + (s > 0 ? Math.PI : 0) + f.phase * 0.15) * 0.4;
+      const wave = sixSeven > 0 ? base + (six - base) * sixSeven : base;
       const qa = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), wave * s);
       const qq = q.clone().multiply(qa);
-      p.set(f.pos.x + side.x * s, f.pos.y + bounce + (raised ? 0.56 : 0.6) * f.h, f.pos.z + side.z * s);
+      p.set(f.pos.x + side.x * s, f.pos.y + bounce + (raised || sixSeven > 0.5 ? 0.56 : 0.6) * f.h, f.pos.z + side.z * s);
       m.compose(p, qq, sc);
       meshes.arms.setMatrixAt(i * 2 + (s > 0 ? 1 : 0), m);
     }
@@ -504,7 +507,7 @@ const skyMat = new MeshBasicMaterial({
   toneMapped: false,
 });
 
-export const Stadium: React.FC<{frame: number; excite?: number}> = ({frame, excite = 0.4}) => (
+export const Stadium: React.FC<{frame: number; excite?: number; sixSeven?: number}> = ({frame, excite = 0.4, sixSeven = 0}) => (
   <group>
     <mesh material={skyMat} renderOrder={-1}>
       <sphereGeometry args={[150, 24, 16]} />
@@ -515,7 +518,7 @@ export const Stadium: React.FC<{frame: number; excite?: number}> = ({frame, exci
     {STANDS.map((s, i) => (
       <StandShell key={i} s={s} />
     ))}
-    <Crowd frame={frame} excite={excite} />
+    <Crowd frame={frame} excite={excite} sixSeven={sixSeven} />
     <AdBoards frame={frame} />
     <Floodlights />
   </group>
