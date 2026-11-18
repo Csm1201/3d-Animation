@@ -69,7 +69,7 @@ const goldMat = new MeshStandardMaterial({color: '#e8c25a', roughness: 0.25, met
 const inviteGeo = new BoxGeometry(0.008, 0.12, 0.17);
 const pocketFrontGeo = new BoxGeometry(0.006, 0.1, 0.13);
 const pocketMat = new MeshStandardMaterial({color: '#26272c', roughness: 0.6});
-const budGeo = new SphereGeometry(0.018, 10, 8);
+const budGeo = new SphereGeometry(0.026, 10, 8);
 const budMat = new MeshStandardMaterial({color: '#2a2c32', roughness: 0.4});
 
 // ================================================================ SHOT 1a — the streaker celebrating (0–0.7)
@@ -178,11 +178,11 @@ const Shot4: React.FC<{from: number}> = ({from}) => {
   );
   // streaker hunched in front of him, then launched up and away over the end stand, spinning
   const fly = Math.max(0, t - kickT);
-  const sp = v3(base.x + 0.9 + 15 * fly, Math.max(0, 0.15 + 26 * fly - 4.9 * fly * fly), base.z - 1.8 * fly);
-  const sSpec: BodySpec = {lean: 40, headTilt: 20, near: {thigh: 70, knee: 90}, far: {thigh: 65, knee: 95}, nearArm: [80, 90], farArm: [75, 95]};
+  const sp = v3(base.x + 0.62 + 15 * fly, Math.max(0, 0.15 + 26 * fly - 4.9 * fly * fly), base.z - 1.8 * fly);
+  const sSpec: BodySpec = fly > 0 ? {lean: 40, headTilt: 20, near: {thigh: 70, knee: 90}, far: {thigh: 65, knee: 95}, nearArm: [80, 90], farArm: [75, 95]} : {lean: 62, headTilt: 25, near: {thigh: 8, knee: 22}, far: {thigh: -4, knee: 26}, nearArm: [40, 30], farArm: [30, 40]};
   const look = Math.min(1, fly / 1.2);
   const cam: Cam = {
-    position: v3(base.x - 4.2 + look * 1.0, 1.3 + look * 0.6, base.z + 1.6),
+    position: v3(base.x - 2.7 + look * 0.4, 1.25 + look * 0.6, base.z + 3.1 - look * 1.2),
     target: v3(lerp(base.x + 1, sp.x, look), lerp(1.0, sp.y, look), lerp(base.z, sp.z, look)),
     fov: 48,
     far: 400,
@@ -239,7 +239,7 @@ const Shot6a: React.FC<{from: number}> = ({from}) => {
       : t < kickT + fly
         ? v3(SPOT.x, BALL_R, SPOT.z).lerp(save, (t - kickT) / fly)
         : save.clone().add(v3(-4 * (t - kickT - fly), 0, 3 * (t - kickT - fly))).setY(Math.max(BALL_R, 0.7 - 3 * (t - kickT - fly)));
-  const cam: Cam = {position: v3(36.0, 2.6, -2.2), target: v3(50.5, 0.9, 0.6), fov: 32};
+  const cam: Cam = {position: v3(37.6, 2.4, 0.1), target: v3(50.5, 0.9, 0.4), fov: 36};
   return (
     <Scene cam={cam} frame={fr} centre={v3(47, 0, 0)} extent={12} excite={1.6}>
       <Actor style={ST.seven} x={SPOT.x - 1.6 + 1.2 * smooth(clamp01(Math.min(t, 0.35) / 0.35)) - 0.45} z={0.4} yaw={0} spec={spec} frame={fr} look={CALM} />
@@ -255,7 +255,7 @@ const Shot6b: React.FC<{from: number}> = ({from}) => {
   const t = f / EP4_FPS;
   const fr = from + f;
   const talk = t > 0.05 && t < 2.1 ? 1 : 0;
-  const spec = keyedSpec([[0, {...idleSpec(fr, 0.1), nearArm: [150, 120]}], [0.3, POINT], [2.2, POINT]], t);
+  const spec = keyedSpec([[0, idleSpec(fr, 0.1)], [0.35, POINT], [2.2, POINT]], t);
   const cam: Cam = {position: v3(47.6, 1.62, 2.4), target: v3(47.0, 1.58, 0.6), fov: 32};
   return (
     <Scene cam={cam} frame={fr} centre={v3(47, 0, 0)} extent={8} excite={1.5}>
@@ -311,7 +311,7 @@ const Shot8: React.FC<{from: number}> = ({from}) => {
     t,
   );
   const dropT = 1.2;
-  const cam: Cam = {position: v3(46.0 - 1.7, 1.62, 1.0 + 0.7), target: v3(46.0, 1.55, 1.0), fov: 30};
+  const cam: Cam = {position: v3(46.0 - 1.9, 1.5, 1.0 + 0.85), target: v3(46.0, 1.4, 1.1), fov: 40};
   return (
     <Scene cam={cam} frame={fr} centre={v3(46, 0, 1)} extent={6} excite={1.4}>
       <Actor style={JIMMY} x={46.0} z={1.0} yaw={yawFor(-1, 0.4)} spec={spec} frame={fr} look={{...DEADPAN(talk, t), brows: -0.55}}>
@@ -330,8 +330,8 @@ const Shot9: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP4_FPS;
   const fr = from + f;
-  const spec = keyedSpec([[0, idleSpec(fr, 0.1)], [0.35, {...idleSpec(fr, 0.1), nearArm: [100, 4]}], [1.6, {...idleSpec(fr, 0.1), nearArm: [100, 4]}]], t);
-  const cam: Cam = {position: v3(44.6, 1.6, 0.5).add(shake(t, t > 0.55 ? 0.03 : 0, 9)), target: v3(46.2, 1.5, 0.5), fov: 40};
+  const spec = keyedSpec([[0, idleSpec(fr, 0.1)], [0.3, {...idleSpec(fr, 0.1), nearArm: [168, 6]}], [1.6, {...idleSpec(fr, 0.1), nearArm: [168, 6]}]], t);
+  const cam: Cam = {position: v3(44.0, 1.7, 0.36).add(shake(t, t > 0.55 ? 0.03 : 0, 9)), target: v3(46.2, 1.8, 0.36), fov: 46};
   const staticOn = t > 0.7;
   return (
     <AbsoluteFill>
@@ -394,7 +394,7 @@ const Shot11: React.FC<{from: number}> = ({from}) => {
   const fr = from + f;
   const walk = runAlong((tt) => ({x: SPOT.x - 0.6 - 1.8 * smooth(clamp01((tt - 0.6) / 1.0)), z: 0.45}), t, 0.3, 0.1, {x: 60, z: 0.45});
   const hop = Math.abs(Math.sin(t * 5)) * 18;
-  const cam: Cam = {position: v3(55.4, 2.0, -2.4), target: v3(44, 0.9, 0.6), fov: 38};
+  const cam: Cam = {position: v3(55.6, 1.9, -0.7), target: v3(44, 1.0, 0.6), fov: 44};
   return (
     <Scene cam={cam} frame={fr} centre={v3(48, 0, 0)} extent={10} excite={1.4}>
       <Actor style={ST.ten} x={walk.pos.x} z={0.45} yaw={0} spec={t < 0.6 ? {...idleSpec(fr, 0.1), lean: 30, nearArm: [40, 30], farArm: [36, 30]} : walk.spec} frame={fr} look={{...CALM, brows: -0.5}} />
@@ -655,8 +655,8 @@ const SOUND: Sfx[] = [
   {at: 7.9, src: 'nar-gives-goal.mp3'},
   {at: 9.05, src: 'whistle.wav', vol: 0.6},
   {at: 12.95, src: 'kick.wav'},
-  {at: 13.25, src: 'crowd-ooh.wav', vol: 0.6},
-  {at: 13.65, src: 'whistle.wav', vol: 0.7},
+  {at: 13.15, src: 'crowd-ooh.wav', vol: 0.4},
+  {at: 13.4, src: 'whistle.wav', vol: 0.6},
   {at: 13.75, src: 'jimmy-he-moved.mp3'},
   {at: 15.9, src: 'radio-blip.wav'},
   {at: 16.0, src: 'var-radio.wav'},
@@ -674,6 +674,14 @@ const SOUND: Sfx[] = [
   {at: 36.7, src: 'whistle.wav', vol: 0.4},
   {at: 37.8, src: 'nar-vote.mp3'},
 ];
+
+// voice lines (start, length in s): the crowd bed dips under them so every word reads
+const VOICE: [number, number][] = [[0.75, 1.72], [7.9, 4.68], [13.75, 2.12], [16.0, 2.16], [18.3, 2.69], [23.35, 0.91], [24.35, 2.51], [28.95, 0.84], [34.7, 3.08], [37.8, 4.99]];
+const bedVolume = (s: number) => {
+  let duck = 0;
+  for (const [a, d] of VOICE) duck = Math.max(duck, clamp01((s - a + 0.15) / 0.15) * clamp01((a + d + 0.2 - s) / 0.2));
+  return 0.55 - 0.27 * duck;
+};
 
 type ShotDef = {from: number; to: number; C: React.FC<{from: number}>};
 const SHOTS: ShotDef[] = [
@@ -709,7 +717,7 @@ export const Episode4: React.FC = () => {
   const twinkle = inRange(frame, F(7.3), F(7.8)) ? Math.abs(Math.sin((T - 7.3) * 18)) : 0;
   return (
     <AbsoluteFill style={{backgroundColor: '#0a0d1a'}}>
-      <Audio src={staticFile('ep4/crowd-bed.wav')} volume={0.55} />
+      <Audio src={staticFile('ep4/crowd-bed.wav')} volume={(fr) => bedVolume(fr / EP4_FPS)} />
       {SOUND.map((s, i) => (
         <Sequence key={`a${i}`} from={F(s.at)} layout="none">
           <Audio src={staticFile(`ep4/${s.src}`)} volume={s.vol ?? 1} />
