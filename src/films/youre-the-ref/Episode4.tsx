@@ -69,8 +69,8 @@ const goldMat = new MeshStandardMaterial({color: '#e8c25a', roughness: 0.25, met
 const inviteGeo = new BoxGeometry(0.008, 0.12, 0.17);
 const pocketFrontGeo = new BoxGeometry(0.006, 0.1, 0.13);
 const pocketMat = new MeshStandardMaterial({color: '#26272c', roughness: 0.6});
-const budGeo = new SphereGeometry(0.026, 10, 8);
-const budMat = new MeshStandardMaterial({color: '#2a2c32', roughness: 0.4});
+const budGeo = new SphereGeometry(0.036, 12, 10);
+const budMat = new MeshStandardMaterial({color: '#e9ecf0', roughness: 0.3});
 
 // ================================================================ SHOT 1a — the streaker celebrating (0–0.7)
 const Shot1a: React.FC<{from: number}> = ({from}) => {
@@ -303,22 +303,26 @@ const Shot8: React.FC<{from: number}> = ({from}) => {
   const talk = t > 0.1 && t < 2.8 ? 1 : 0;
   const spec = keyedSpec(
     [
-      [0, {...idleSpec(fr, 0.1), nearArm: [150, 150]}],
-      [0.6, {...idleSpec(fr, 0.1), nearArm: [150, 150]}],
-      [1.1, {...idleSpec(fr, 0.1), nearArm: [70, 30]}],
+      [0, {...idleSpec(fr, 0.1), nearArm: [135, 165]}],
+      [0.6, {...idleSpec(fr, 0.1), nearArm: [135, 165]}],
+      [1.0, {...idleSpec(fr, 0.1), nearArm: [100, 95]}],
+      [1.6, {...idleSpec(fr, 0.1), nearArm: [100, 95]}],
       [2.9, {...idleSpec(fr, 0.1), nearArm: [10, 20]}],
     ],
     t,
   );
-  const dropT = 1.2;
-  const cam: Cam = {position: v3(46.0 - 1.9, 1.5, 1.0 + 0.85), target: v3(46.0, 1.4, 1.1), fov: 40};
+  const dropT = 1.6;
+  const cam: Cam = {position: v3(46.0 - 2.6, 1.55, 1.0 + 1.15), target: v3(46.0, 1.4, 1.0), fov: 40};
   return (
     <Scene cam={cam} frame={fr} centre={v3(46, 0, 1)} extent={6} excite={1.4}>
-      <Actor style={JIMMY} x={46.0} z={1.0} yaw={yawFor(-1, 0.4)} spec={spec} frame={fr} look={{...DEADPAN(talk, t), brows: -0.55}}>
+      <Actor style={JIMMY} x={46.0} z={1.0} yaw={yawFor(-1, 1.2)} spec={spec} frame={fr} look={{...DEADPAN(talk, t), brows: -0.55}}>
         {(pose) => {
+          // pinched between fingertips: past the fist along the forearm, nudged toward camera
+          const e = to3(pose.nearArm.elbow, 0.27);
           const h = handLocal(pose, false);
+          const h2 = h.clone().addScaledVector(h.clone().sub(e).normalize(), 0.07);
           const fall = Math.max(0, t - dropT);
-          return <mesh geometry={budGeo} material={budMat} position={t < dropT ? [h.x, h.y, h.z] : [h.x + 0.1 * fall, Math.max(0.02, h.y - 4.9 * fall * fall), h.z]} />;
+          return <mesh geometry={budGeo} material={budMat} position={t < dropT ? [h2.x, h2.y, h2.z + 0.03] : [h2.x + 0.1 * fall, Math.max(0.03, h2.y - 4.9 * fall * fall), h2.z + 0.03]} />;
         }}
       </Actor>
     </Scene>
