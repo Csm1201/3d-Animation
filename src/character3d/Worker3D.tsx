@@ -31,7 +31,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
 export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string};
-export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept';
+export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept' | 'crop';
 export type Style = {
   outfit: Outfit;
   skin: string;
@@ -248,6 +248,7 @@ const beardGeo = new SphereGeometry(0.152, 40, 12, Math.PI * 0.5, Math.PI, Math.
 const burnGeoA = new SphereGeometry(0.152, 16, 8, Math.PI * 0.52, Math.PI * 0.16, Math.PI * 0.5, Math.PI * 0.2); // sideburn / cheek, +z side
 const burnGeoB = new SphereGeometry(0.152, 16, 8, Math.PI * 1.32, Math.PI * 0.16, Math.PI * 0.5, Math.PI * 0.2); // -z side
 const buzzGeo = new SphereGeometry(0.153, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.45);
+const cropGeo = new SphereGeometry(0.157, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.49);
 const skirtGeo = new CylinderGeometry(0.175, 0.235, 0.5, 40, 1, true);
 const shirtVGeo = new RoundedBoxGeometry(0.012, 0.26, 0.09, 2, 0.005);
 const lapelGeo = new RoundedBoxGeometry(0.014, 0.26, 0.05, 2, 0.006);
@@ -322,6 +323,15 @@ const Hair: React.FC<{st: Style; M: Mats}> = ({st, M}) => {
       </group>
     );
   if (st.hairStyle === 'buzz') return <mesh geometry={buzzGeo} material={M.hair} rotation={[0, 0, 0.45]} castShadow />;
+  if (st.hairStyle === 'crop') {
+    // full, thick short crop: the buzz hairline, but a thicker shell with height on the crown
+    return (
+      <group rotation={[0, 0, 0.3]}>
+        <mesh geometry={cropGeo} material={M.hair} castShadow />
+        <mesh geometry={sphere(1)} material={M.hair} position={[-0.012, 0.062, 0]} scale={[0.162, 0.11, 0.16]} castShadow />
+      </group>
+    );
+  }
   if (st.hairStyle === 'swept')
     // full head of hair brushed straight back: hairline set back off the forehead, height on the crown,
     // combed-back ridges and fuller sides over the ears

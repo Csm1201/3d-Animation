@@ -12,12 +12,12 @@ import {yawFor} from './Players';
 
 export const LEBRON_SCALE = 1.3;
 
-// toy caricature: tall, dark brown skin, close-cropped hair, full short beard, Lakers gold #23 vest
+// toy caricature: tall, dark brown skin, full head of short hair, full short beard, Lakers gold #23 vest
 export const LEBRON: Style = {
   outfit: 'kit',
   skin: '#7a4f36',
   hair: '#17110e',
-  hairStyle: 'buzz',
+  hairStyle: 'crop',
   beard: true,
   kit: {shirt: '#fdb927', shorts: '#fdb927', socks: '#ffffff', number: 23, numColor: '#552583', trim: '#552583', sleeveless: true, chestText: 'LAKERS'},
 };

@@ -111,7 +111,8 @@ const KickWorld: React.FC<{s: number; fr: number; showLeBron?: boolean}> = ({s, 
   const lbX = s < KT - 0.08 ? run.pos.x : STRIKE_X;
   const b = ballAt(s);
   const p = keeperPitch(s);
-  const k = keeperFeet(b, p);
+  // on his line until the ball arrives, then carried with it (keeperFeet(CATCH, 0) is where it meets his chest)
+  const k = s < KI ? keeperFeet(CATCH, 0) : keeperFeet(b, p);
   const hop = s < KT ? Math.abs(Math.sin(s * 8)) * 14 : 0;
   const kSpec = s < KI - 0.06 ? {...K_SET, lift: hop, nearArm: [100, 20] as [number, number], farArm: [96, 22] as [number, number]} : lerpSpec(K_SET, K_HUG, smooth(clamp01((s - KI + 0.06) / 0.12)));
   const shock: Look = s < KI ? {...CALM, brows: -0.4} : {tired: 0, droop: -10, eyesClosed: false, brows: 0.9, browLift: 0.9, mouth: 'open', mouthOpen: 0.8, noBlink: true};
@@ -282,8 +283,10 @@ const ShotHandover: React.FC<{from: number}> = ({from}) => {
   const reach = smooth(clamp01((t - 0.15) / 0.35));
   const give = smooth(clamp01((t - 0.75) / 0.4));
   const handed = t > 1.15;
-  const lbSpec: BodySpec = {...idleSpec(fr, 0.1), nearArm: [lerp(-2, 72, reach), lerp(12, 14, reach)]};
-  const jSpec: BodySpec = {...idleSpec(fr, 0.1), farArm: [lerp(52, 74, give), lerp(60, 20, give)]};
+  // LeBron reaches down, Jimmy lifts the ball up into his hand, LeBron pulls it in to his chest
+  const pull = smooth(clamp01((t - 1.2) / 0.4));
+  const lbSpec: BodySpec = {...idleSpec(fr, 0.1), nearArm: [lerp(lerp(-2, 58, reach), 30, pull), lerp(lerp(12, 14, reach), 95, pull)]};
+  const jSpec: BodySpec = {...idleSpec(fr, 0.1), farArm: [lerp(52, 100, give) - 60 * pull, lerp(60, 12, give) + 40 * pull]};
   const cam: Cam = {position: v3(SPOT.x + 0.35, 1.7, 4.4), target: v3(SPOT.x + 0.35, 1.68, 0), fov: 46};
   return (
     <Scene cam={cam} frame={fr} centre={v3(SPOT.x, 0, 0)} extent={8} excite={0.1}>
