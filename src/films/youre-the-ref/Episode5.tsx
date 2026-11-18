@@ -178,9 +178,9 @@ const ShotFlash: React.FC<{from: number}> = () => {
         <div style={{position: 'absolute', top: 470, left: 0, right: 0, textAlign: 'center', fontFamily: FONT, fontWeight: 900, fontSize: 520, lineHeight: 1, color: '#ff2b2b', textShadow: '0 0 40px rgba(0,0,0,.6), 10px 10px 0 #000', transform: `scale(${2.2 - 1.2 * stampS}) rotate(-8deg)`, opacity: Math.min(1, stampS * 3)}}>✕</div>
       ) : null}
       {t >= REW + 0.75 ? (
-        <div style={{position: 'absolute', top: 1080, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', transform: `scale(${0.5 + 0.5 * labelS})`, opacity: Math.min(1, labelS * 2)}}>
+        <div style={{position: 'absolute', top: 320, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', transform: `scale(${0.5 + 0.5 * labelS})`, opacity: Math.min(1, labelS * 2)}}>
           <div style={{background: '#ffd21a', color: '#0d0f14', fontFamily: FONT, fontWeight: 900, fontSize: 40, padding: '8px 22px'}}>EPISODE 4 ANSWER</div>
-          <div style={{background: '#0d0f14', color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: 92, padding: '6px 30px'}}>
+          <div style={{background: '#0d0f14', color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: 70, whiteSpace: 'nowrap', padding: '6px 30px'}}>
             <span style={{color: '#45e070'}}>B.</span> SAVE DOESN'T COUNT
           </div>
         </div>
@@ -491,7 +491,7 @@ const SOUND: Sfx[] = [
   {at: 18.4 + 1.25, src: 'crowd-ooh.wav', vol: 0.7},
   {at: 18.4 + 2.25, src: 'net.wav'},
   {at: 18.4 + 2.3, src: 'crowd-roar.wav'},
-  {at: 21.75, src: 'crowd-67.wav'},
+  {at: 21.75, src: 'lebron-67.wav'},
   {at: 24.1, src: 'nar-gives.mp3'},
   {at: 24.0, src: 'whistle.wav', vol: 0.5},
   {at: 25.55, src: 'keeper-down.mp3'},

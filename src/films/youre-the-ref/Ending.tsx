@@ -54,8 +54,9 @@ const Panel: React.FC<{side: 'A' | 'B'; frame: number; fps: number; locked: numb
     >
       <div style={{position: 'absolute', inset: 0, background: 'repeating-linear-gradient(115deg, rgba(255,255,255,.07) 0 22px, transparent 22px 44px)', transform: `translateX(${(frame * 3) % 44}px)`}} />
       <div style={{fontFamily: FONT, fontWeight: 900, fontSize: 150, lineHeight: 0.9, color: '#fff', WebkitTextStroke: '10px rgba(0,0,0,.25)', paintOrder: 'stroke fill', textShadow: '0 8px 0 rgba(0,0,0,.18)'}}>{side}</div>
-      <div style={{fontFamily: FONT, fontWeight: 900, fontSize: 62, color: '#fff', marginTop: 6, letterSpacing: 1, textShadow: '0 4px 10px rgba(0,0,0,.3)'}}>{a ? cfg.a.title : cfg.b.title}</div>
-      <div style={{fontFamily: FONT, fontWeight: 700, fontSize: 32, color: 'rgba(255,255,255,.88)'}}>{a ? cfg.a.sub : cfg.b.sub}</div>
+      {/* keep text clear of the VS badge on the card's inner edge, and shrink long titles to fit */}
+      <div style={{fontFamily: FONT, fontWeight: 900, fontSize: Math.min(62, 370 / ((a ? cfg.a.title : cfg.b.title).length * 0.72)), whiteSpace: 'nowrap', color: '#fff', marginTop: 6, letterSpacing: 1, textShadow: '0 4px 10px rgba(0,0,0,.3)', [a ? 'marginRight' : 'marginLeft']: 90}}>{a ? cfg.a.title : cfg.b.title}</div>
+      <div style={{fontFamily: FONT, fontWeight: 700, fontSize: 27, lineHeight: 1.15, textAlign: 'center', color: 'rgba(255,255,255,.88)', [a ? 'paddingRight' : 'paddingLeft']: 110, [a ? 'paddingLeft' : 'paddingRight']: 24}}>{a ? cfg.a.sub : cfg.b.sub}</div>
     </div>
   );
 };
