@@ -405,9 +405,19 @@ const Shot11: React.FC<{from: number}> = ({from}) => {
 };
 
 // ================================================================ SHOT 12 — Epstein vaults out of the crowd (26.8–28.6)
+// out of the stand behind the goal, round the outside of the near post, then along the line to the middle
+const E_ROUTE: [number, number][] = [[57.6, -6.5], [55.6, -5.6], [53.4, -4.9], [51.7, -4.3], [51.6, -2.6], [52.4, -0.4]];
+const E_LEN = E_ROUTE.slice(1).map((p, i) => Math.hypot(p[0] - E_ROUTE[i][0], p[1] - E_ROUTE[i][1]));
 const ePath = (t: number) => {
-  const u = smooth(clamp01((t - 0.25) / 1.5));
-  return {x: lerp(57.6, 52.4, u), z: lerp(-6.5, -0.4, u)};
+  let d = smooth(clamp01((t - 0.25) / 1.5)) * E_LEN.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < E_LEN.length; i++) {
+    if (d <= E_LEN[i] || i === E_LEN.length - 1) {
+      const k = clamp01(d / E_LEN[i]);
+      return {x: lerp(E_ROUTE[i][0], E_ROUTE[i + 1][0], k), z: lerp(E_ROUTE[i][1], E_ROUTE[i + 1][1], k)};
+    }
+    d -= E_LEN[i];
+  }
+  return {x: 52.4, z: -0.4};
 };
 const Shot12: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
