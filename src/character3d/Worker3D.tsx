@@ -30,7 +30,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean};
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string};
 export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept';
 export type Style = {
   outfit: Outfit;
@@ -55,6 +55,16 @@ const shade = (hex: string, k: number) => {
   const c = (v: number) => Math.max(0, Math.min(255, Math.round(v * k)));
   return `#${[c(n >> 16), c((n >> 8) & 255), c(n & 255)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 };
+
+const monoTex = (text: string) =>
+  canvasTex(256, 256, (g) => {
+    g.clearRect(0, 0, 256, 256);
+    g.fillStyle = '#f4f2ec';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'italic 700 150px Georgia, "Times New Roman", serif';
+    g.fillText(text, 128, 132);
+  });
 
 const numberTex = (n: number, color: string) =>
   canvasTex(256, 256, (g) => {
@@ -113,6 +123,8 @@ const buildMats = (st: Style) => {
     boot: plastic('#1d1f24', 0.25),
     bootSole: plastic(kit?.trim ?? '#e9e9e9', 0.35),
     number: num ? new MeshStandardMaterial({map: num, transparent: true, roughness: 0.6, depthWrite: false}) : null,
+    mono: kit?.quarterZip ? new MeshStandardMaterial({map: monoTex(kit.quarterZip), transparent: true, roughness: 0.6, depthWrite: false}) : null,
+    zip: plastic('#c9ced6', 0.2),
   };
 };
 type Mats = ReturnType<typeof buildMats>;
@@ -204,6 +216,7 @@ const torsoGeo = new CapsuleGeometry(0.16, 0.3, 10, 32);
 const bellyGeo = new SphereGeometry(0.15, 24, 16);
 const navelGeo = new SphereGeometry(0.012, 8, 6);
 const numPlane = new PlaneGeometry(0.26, 0.26);
+const box1 = new BoxGeometry(1, 1, 1);
 const pelvisGeo = new SphereGeometry(0.165, 32, 20);
 const beltGeo = new CylinderGeometry(0.163, 0.163, 0.045, 40);
 const tieGeo = new RoundedBoxGeometry(0.016, 0.3, 0.07, 2, 0.006);
@@ -464,10 +477,19 @@ const Torso: React.FC<{pose: Pose; st: Style; M: Mats}> = ({pose, st, M}) => {
                 </>
               ) : null}
             </>
+          ) : st.kit?.quarterZip ? (
+            // quarter-zip: tall stand-up collar in the jumper colour, zipped a few inches down the chest
+            <>
+              <mesh geometry={collarGeo} material={M.shirt} position={[0.01, 0.635, 0]} scale={[1.08, 1.25, 1.08]} />
+              <mesh geometry={box1} material={M.zip} position={[0.134, 0.555, 0]} scale={[0.008, 0.15, 0.012]} rotation={[0, 0, 0.12]} />
+              <mesh geometry={box1} material={M.zip} position={[0.138, 0.49, 0]} scale={[0.012, 0.022, 0.016]} />
+            </>
           ) : (
             <mesh geometry={collarGeo} material={M.trim} position={[0.01, 0.6, 0]} scale={[1.02, 0.6, 1.02]} />
           )}
-          {st.kit?.bare ? null : M.number ? (
+          {st.kit?.bare ? null : M.mono ? (
+            <mesh geometry={numPlane} material={M.mono} position={[0.131, 0.44, -0.07]} rotation={[0, Math.PI / 2, 0]} scale={0.3} />
+          ) : M.number ? (
             <>
               <mesh geometry={numPlane} material={M.number} position={[-0.132, 0.38, 0]} rotation={[0, -Math.PI / 2, 0]} scale={1} />
               <mesh geometry={numPlane} material={M.number} position={[0.133, 0.43, -0.07]} rotation={[0, Math.PI / 2, 0]} scale={0.38} />

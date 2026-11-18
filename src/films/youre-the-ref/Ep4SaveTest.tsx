@@ -27,14 +27,14 @@ const SPOT = {x: 41.5, z: 0};
 const LINE_X = 52.0; // where he stands, just off the goal line
 const POST_Z = -3.66;
 
-// toy caricature: thick grey hair brushed back, dark heavy brows, tan, navy crew-neck jumper, jeans
+// toy caricature: thick grey hair brushed back, dark heavy brows, tan, his navy monogrammed quarter-zip, jeans
 export const EPSTEIN: Style = {
   outfit: 'kit',
   skin: '#e0a47c',
   hair: '#b3aea6',
   brow: '#3a2d26',
   hairStyle: 'swept',
-  kit: {shirt: '#26324d', shorts: '#3b4a66', socks: '#3b4a66', trim: '#26324d', longSleeves: true, trousers: true},
+  kit: {shirt: '#1d2b4f', shorts: '#3b4a66', socks: '#3b4a66', trim: '#1d2b4f', longSleeves: true, trousers: true, quarterZip: 'JE'},
 };
 const SMUG: Look = {tired: 0, droop: -4, eyesClosed: false, brows: -0.15, browLift: 0.1, mouth: 'smile', noBlink: true};
 const STRAIN: Look = {tired: 0, droop: -8, eyesClosed: false, brows: -0.9, browLift: -0.2, mouth: 'open', mouthOpen: 0.55, noBlink: true};
@@ -136,7 +136,8 @@ const ballAt = (t: number, contact: Vector3) => {
   return {pos: p, spin: (CONTACT_T - KICK_T) * 60 + dt * 25};
 };
 
-export const Ep4SaveTest: React.FC = () => {
+/** `inEpisode`: used as a shot inside Episode 4 (no name tag, badge or scoreboard; the episode draws those). */
+export const Ep4SaveTest: React.FC<{inEpisode?: boolean}> = ({inEpisode = false}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const T = frame / fps;
@@ -199,10 +200,10 @@ export const Ep4SaveTest: React.FC = () => {
       ) : null}
 
       {/* who is that in goal */}
-      <div style={{position: 'absolute', left: 48, top: 1260, opacity: tagIn * tagOut, transform: `translateX(${(1 - tagIn) * -60}px)`}}>
+      {inEpisode ? null : <div style={{position: 'absolute', left: 48, top: 1260, opacity: tagIn * tagOut, transform: `translateX(${(1 - tagIn) * -60}px)`}}>
         <div style={{background: '#ffd21a', color: '#0d0f14', fontFamily: FONT, fontWeight: 900, fontSize: 34, padding: '8px 18px', display: 'inline-block'}}>IN GOAL</div>
         <div style={{background: '#0d0f14', color: '#ffffff', fontFamily: FONT, fontWeight: 900, fontSize: 52, padding: '8px 18px'}}>JEFFREY EPSTEIN?!</div>
-      </div>
+      </div>}
 
       {frame >= Math.round(1.1 * fps) ? (
         <div style={{position: 'absolute', top: 420, left: 0, right: 0, textAlign: 'center'}}>
@@ -224,8 +225,8 @@ export const Ep4SaveTest: React.FC = () => {
         </div>
       ) : null}
 
-      <Badge episode={4} />
-      <Scoreboard frame={frame} fps={fps} goalAt={1e9} base={[1, 1]} clock="PENS" />
+      {inEpisode ? null : <Badge episode={4} />}
+      {inEpisode ? null : <Scoreboard frame={frame} fps={fps} goalAt={1e9} base={[1, 1]} clock="PENS" />}
     </AbsoluteFill>
   );
 };

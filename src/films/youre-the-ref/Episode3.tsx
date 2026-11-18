@@ -66,29 +66,29 @@ const v3 = (x: number, y: number, z: number) => new Vector3(x, y, z);
 const clampO = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
 // ---------------------------------------------------------------- cast
-const STREAKER: Style = {
+export const STREAKER: Style = {
   outfit: 'kit',
   skin: '#f6c7a8',
   hair: '#d9a35a',
   hairStyle: 'wild',
   kit: {shirt: '#f6c7a8', shorts: '#fbfbf7', socks: '#f6c7a8', trim: '#f6c7a8', bare: true, fat: true},
 };
-const STEWARD: Style = {
+export const STEWARD: Style = {
   outfit: 'kit',
   skin: '#8d5a3c',
   hair: '#151110',
   hairStyle: 'buzz',
   kit: {shirt: '#d8ff2e', shorts: '#1d2030', socks: '#1d2030', trim: '#1d2030', longSleeves: true},
 };
-const STEWARD2: Style = {...STEWARD, skin: '#f1c3a0', hair: '#5a3a2c', hairStyle: 'short'};
-const B9 = kitStyle('blue', 9, '#c98f6b', '#1f1714', 'short');
-const B10 = kitStyle('blue', 10, '#f1c3a0', '#3a2a22', 'short');
-const BLUES = [kitStyle('blue', 2, '#f1c3a0', '#c47a3a'), kitStyle('blue', 6, '#8d5a3c', '#1f1714', 'buzz'), kitStyle('blue', 8, '#e8b48f', '#3a2a22'), B10, B9];
-const ORANGES = [ST.seven, ST.nine, ST.ten, ST.eleven, kitStyle('orange', 4, '#c98f6b', '#151110', 'buzz')];
-const KEEPER = ST.pinkKeeper;
+export const STEWARD2: Style = {...STEWARD, skin: '#f1c3a0', hair: '#5a3a2c', hairStyle: 'short'};
+export const B9 = kitStyle('blue', 9, '#c98f6b', '#1f1714', 'short');
+export const B10 = kitStyle('blue', 10, '#f1c3a0', '#3a2a22', 'short');
+export const BLUES = [kitStyle('blue', 2, '#f1c3a0', '#c47a3a'), kitStyle('blue', 6, '#8d5a3c', '#1f1714', 'buzz'), kitStyle('blue', 8, '#e8b48f', '#3a2a22'), B10, B9];
+export const ORANGES = [ST.seven, ST.nine, ST.ten, ST.eleven, kitStyle('orange', 4, '#c98f6b', '#151110', 'buzz')];
+export const KEEPER = ST.pinkKeeper;
 
-const BEERY: Look = {tired: 0.15, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'grin', noBlink: true};
-const ROAR = (t: number): Look => ({tired: 0, droop: -10, eyesClosed: false, brows: 0.6, browLift: 0.8, mouth: 'open', mouthOpen: 0.75 + 0.2 * Math.sin(t * 14), noBlink: true, pupils: 0.85});
+export const BEERY: Look = {tired: 0.15, droop: -6, eyesClosed: false, brows: 0.5, browLift: 0.7, mouth: 'grin', noBlink: true};
+export const ROAR = (t: number): Look => ({tired: 0, droop: -10, eyesClosed: false, brows: 0.6, browLift: 0.8, mouth: 'open', mouthOpen: 0.75 + 0.2 * Math.sin(t * 14), noBlink: true, pupils: 0.85});
 
 // ---------------------------------------------------------------- the pint (held in the far hand)
 const glassGeo = new CylinderGeometry(0.048, 0.04, 0.16, 20, 1, true);
@@ -111,7 +111,7 @@ const handLocal = (pose: Pose, far: boolean) => {
 const SPRAY = seededArray(808, 40, (r) => ({vx: (r() - 0.5) * 1.6, vy: 0.8 + r() * 2.2, vz: (r() - 0.5) * 1.6, s: 0.008 + r() * 0.012, d: r() * 0.5}));
 
 /** A pint in the far hand; `spray` 0..1 flings beer out of it (looping droplets). */
-const Pint: React.FC<{pose: Pose; t: number; spray?: number; level?: number}> = ({pose, t, spray = 0, level = 1}) => {
+export const Pint: React.FC<{pose: Pose; t: number; spray?: number; level?: number}> = ({pose, t, spray = 0, level = 1}) => {
   const h = handLocal(pose, true);
   const top = v3(h.x, h.y + 0.1, h.z);
   return (
@@ -140,26 +140,26 @@ const Pint: React.FC<{pose: Pose; t: number; spray?: number; level?: number}> = 
   );
 };
 
-const Streaker: React.FC<{x: number; z: number; yaw: number; spec: BodySpec; frame: number; t: number; look?: Look; spray?: number; roll?: number}> = ({x, z, yaw, spec, frame, t, look = BEERY, spray = 0, roll = 0}) => (
-  <Actor style={STREAKER} x={x} z={z} yaw={yaw} spec={spec} frame={frame} look={look} roll={roll}>
+export const Streaker: React.FC<{x: number; z: number; y?: number; yaw: number; spec: BodySpec; frame: number; t: number; look?: Look; spray?: number; roll?: number}> = ({x, z, y = 0, yaw, spec, frame, t, look = BEERY, spray = 0, roll = 0}) => (
+  <Actor style={STREAKER} x={x} z={z} y={y} yaw={yaw} spec={spec} frame={frame} look={look} roll={roll}>
     {(pose) => <Pint pose={pose} t={t} spray={spray} level={1 - 0.35 * Math.min(1, spray * 1.5)} />}
   </Actor>
 );
 
 /** Streaker sprint: far arm keeps the pint high, near arm windmills. */
-const streakerRun = (s: BodySpec, t: number): BodySpec => ({
+export const streakerRun = (s: BodySpec, t: number): BodySpec => ({
   ...s,
   nearArm: [150 + 25 * Math.sin(t * 16), 20 + 20 * Math.sin(t * 16)],
   farArm: [135 + 8 * Math.sin(t * 9), 60],
 });
 
 // ---------------------------------------------------------------- penalty geometry (+x goal)
-const SPOT = {x: 41.5, z: 0};
+export const SPOT = {x: 41.5, z: 0};
 const CORNER = v3(52.45, 2.2, -3.2);
-const GOAL_X = 52.5;
+export const GOAL_X = 52.5;
 
 /** Pink keeper dives (dir +1 toward -z, -1 toward +z). */
-const keeperDive = (t: number, dir: number, start = 0) => {
+export const keeperDive = (t: number, dir: number, start = 0) => {
   const d = clamp01((t - start) / 0.45);
   const fall = clamp01((t - start - 0.5) / 0.4);
   const roll = dir * (lerp(0, 70, smooth(d)) + lerp(0, 16, smooth(fall)));
@@ -170,7 +170,7 @@ const keeperDive = (t: number, dir: number, start = 0) => {
 };
 
 // ---------------------------------------------------------------- shared overlays
-const Onomatopoeia: React.FC<{text: string; t: number; top?: number}> = ({text, t, top = 300}) => {
+export const Onomatopoeia: React.FC<{text: string; t: number; top?: number}> = ({text, t, top = 300}) => {
   const pop = smooth(clamp01(t / 0.12));
   const wob = 1 + 0.04 * Math.sin(t * 40);
   const cx = 540;
@@ -193,7 +193,7 @@ const Onomatopoeia: React.FC<{text: string; t: number; top?: number}> = ({text, 
   );
 };
 
-const BigTitle: React.FC<{text: string; frame: number; fps: number; top: number; color?: string; stroke?: string; size?: number; rot?: number; left?: number}> = ({text, frame, fps, top, color = '#ffffff', stroke = '#0d0f14', size = 130, rot = -4, left}) => {
+export const BigTitle: React.FC<{text: string; frame: number; fps: number; top: number; color?: string; stroke?: string; size?: number; rot?: number; left?: number}> = ({text, frame, fps, top, color = '#ffffff', stroke = '#0d0f14', size = 130, rot = -4, left}) => {
   const s = spring({frame, fps, config: {damping: 8, stiffness: 240}});
   return (
     <div style={{position: 'absolute', top, left: left ?? 0, right: left === undefined ? 0 : undefined, textAlign: left === undefined ? 'center' : 'left'}}>
