@@ -19,11 +19,11 @@ import {BodySpec, idleSpec, keyedSpec, lerpSpec} from '../../core/sportPoses';
 import {Cam} from '../../character3d/stage';
 import {Look} from '../../character3d/Worker3D';
 import {Actor, CALM, FOLD, KICK_BACK, KICK_FOLLOW, KICK_HIT, POINT, runAlong, Scene, ST, THINK} from './Episode2';
-import {BigTitle, BLUES, Onomatopoeia, SPOT} from './Episode3';
+import {BigTitle, BLUES, SPOT} from './Episode3';
 import {BLUE_KEEPER, DEADPAN, GAPE, handLocal, JIMMY, PocketCard, Tally} from './Episode4';
 import {COOL, LEBRON, LEBRON_SCALE} from './Ep5Cast';
 import {EndingCfg, EndingOverlay} from './Ending';
-import {Badge, Captions, Cue, FONT, Scoreboard, Tag} from './Overlays';
+import {Badge, Captions, Cue, FONT, Scoreboard} from './Overlays';
 import {Ball, BALL_R, yawFor} from './Players';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
@@ -463,7 +463,6 @@ const CUES: Cue[] = [
   {from: F(6.0), to: F(6.7), text: 'RETAKE.', hl: {'RETAKE.': C.red}},
   {from: F(6.85), to: F(9.0), text: "I'M… I'M NOT TAKING IT.", hl: {NOT: C.orange}},
   {from: F(9.1), to: F(11.0), text: 'SOMEBODY FUCKING TAKE IT.', hl: {FUCKING: C.red}},
-  {from: F(15.3), to: F(16.8), text: 'JIMMY HANDS HIM THE BALL.', hl: {'BALL.': C.yellow}},
   {from: F(24.1), to: F(25.4), text: 'AND JIMMY GIVES IT.', hl: {'IT.': C.green}},
   {from: F(25.55), to: F(27.0), text: 'CAN SOMEONE GET ME DOWN?', hl: {'DOWN?': C.yellow}},
   {from: F(27.2), to: F(29.6), text: 'SO, REF… DOES LEBRON MOG?', hl: {LEBRON: C.gold, 'MOG?': C.gold}},
@@ -485,7 +484,6 @@ const SOUND: Sfx[] = [
   {at: 11.6, src: 'heartbeat.wav', vol: 0.9},
   {at: 12.4, src: 'heartbeat.wav', vol: 0.9},
   {at: 13.95, src: 'trombone.wav', vol: 0.55},
-  {at: 15.3, src: 'nar-hands.mp3'},
   {at: 18.4 + 0.5, src: 'big-kick.wav'},
   {at: 18.4 + 0.5, src: 'whoosh.wav', vol: 0.7},
   {at: 18.4 + 1.25, src: 'big-kick.wav', vol: 0.6},
@@ -500,7 +498,7 @@ const SOUND: Sfx[] = [
 ];
 
 // voice lines (start, length): the crowd bed dips under them
-const VOICE: [number, number][] = [[1.5, 5.07], [6.85, 2.06], [9.1, 1.93], [15.3, 1.52], [24.1, 1.23], [25.55, 1.36], [27.2, 4.7]];
+const VOICE: [number, number][] = [[1.5, 5.07], [6.85, 2.06], [9.1, 1.93], [24.1, 1.23], [25.55, 1.36], [27.2, 4.7]];
 const bedVolume = (s: number) => {
   let duck = 0;
   for (const [a, d] of VOICE) duck = Math.max(duck, clamp01((s - a + 0.15) / 0.15) * clamp01((a + d + 0.2 - s) / 0.2));
@@ -560,8 +558,6 @@ export const Episode5: React.FC = () => {
       )}
 
       {/* titles */}
-      {inRange(frame, 0, F(1.4)) ? <BigTitle text="LEBRON KICKED THE KEEPER IN." frame={frame} fps={fps} top={330} size={92} rot={-5} color="#ffd23a" /> : null}
-      {inRange(frame, F(5.95), F(6.7)) ? <Tag text="RETAKE." frame={frame} fps={fps} from={F(5.95)} style={{top: 330, left: 0, right: 0, margin: '0 auto', width: 'fit-content', fontSize: 70, padding: '12px 44px', rotate: '-5deg'}} /> : null}
       {inRange(frame, F(11.3), F(13.2)) ? (
         <div style={{position: 'absolute', left: 48, top: 1250, transform: `translateX(${(1 - interpolate(frame, [F(11.3), F(11.55)], [0, 1], clampO)) * -80}px)`}}>
           <div style={{background: '#552583', color: '#fdb927', fontFamily: FONT, fontWeight: 900, fontSize: 34, padding: '8px 18px', display: 'inline-block'}}>FROM THE CROWD</div>
@@ -569,9 +565,6 @@ export const Episode5: React.FC = () => {
         </div>
       ) : null}
       {inRange(frame, F(13.95), F(15.0)) ? <BigTitle text="MOGGED." frame={frame - F(13.95)} fps={fps} top={300} size={130} rot={-6} color="#fdb927" stroke="#552583" /> : null}
-      {inRange(frame, F(18.4 + 1.2), F(21.6)) ? <Onomatopoeia text="WHAT?!" t={T - 18.4 - 1.2} top={300} /> : null}
-      {inRange(frame, F(21.8), F(24.0)) ? <BigTitle text="6 7" frame={frame - F(21.8)} fps={fps} top={300} size={200} rot={-4} color="#ffd23a" /> : null}
-      {inRange(frame, F(24.0), F(25.4)) ? <Tag text="GOAL GIVEN 🤷‍♂️" frame={frame} fps={fps} from={F(24.05)} bg="#20b94f" style={{top: 330, left: 0, right: 0, margin: '0 auto', width: 'fit-content', fontSize: 64, padding: '12px 40px', rotate: '-6deg'}} /> : null}
 
       {flash ? null : <Badge episode={5} />}
       {showScore ? <Scoreboard frame={frame} fps={fps} goalAt={1e9} base={[1, 1]} clock="PENS" /> : null}
