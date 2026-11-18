@@ -140,8 +140,8 @@ export const Pint: React.FC<{pose: Pose; t: number; spray?: number; level?: numb
   );
 };
 
-export const Streaker: React.FC<{x: number; z: number; y?: number; yaw: number; spec: BodySpec; frame: number; t: number; look?: Look; spray?: number; roll?: number}> = ({x, z, y = 0, yaw, spec, frame, t, look = BEERY, spray = 0, roll = 0}) => (
-  <Actor style={STREAKER} x={x} z={z} y={y} yaw={yaw} spec={spec} frame={frame} look={look} roll={roll}>
+export const Streaker: React.FC<{x: number; z: number; y?: number; yaw: number; spec: BodySpec; frame: number; t: number; look?: Look; spray?: number; roll?: number; pitch?: number}> = ({x, z, y = 0, yaw, spec, frame, t, look = BEERY, spray = 0, roll = 0, pitch = 0}) => (
+  <Actor style={STREAKER} x={x} z={z} y={y} yaw={yaw} spec={spec} frame={frame} look={look} roll={roll} pitch={pitch}>
     {(pose) => <Pint pose={pose} t={t} spray={spray} level={1 - 0.35 * Math.min(1, spray * 1.5)} />}
   </Actor>
 );

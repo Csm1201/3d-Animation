@@ -67,6 +67,8 @@ const cardGeo = new BoxGeometry(0.008, 0.11, 0.08);
 const redMat = new MeshStandardMaterial({color: '#e5262b', roughness: 0.35});
 const goldMat = new MeshStandardMaterial({color: '#e8c25a', roughness: 0.25, metalness: 0.5});
 const inviteGeo = new BoxGeometry(0.008, 0.12, 0.17);
+const pocketFrontGeo = new BoxGeometry(0.006, 0.1, 0.13);
+const pocketMat = new MeshStandardMaterial({color: '#26272c', roughness: 0.6});
 const budGeo = new SphereGeometry(0.018, 10, 8);
 const budMat = new MeshStandardMaterial({color: '#2a2c32', roughness: 0.4});
 
@@ -119,26 +121,40 @@ const Shot2: React.FC<{from: number}> = ({from}) => {
 };
 
 // ================================================================ SHOT 3 — rugby tackle (4.2–5.4), freeze on impact
+// Side-on: both run along +z; Jimmy launches shoulder-first into the streaker's waist and they go down together.
+const TK_HIT = 0.42;
+const TK_DIVE: BodySpec = {lean: 4, headTilt: -14, near: {thigh: -12, knee: 14}, far: {thigh: -30, knee: 38}, nearArm: [168, 26], farArm: [158, 40]};
+const TK_WRAP: BodySpec = {lean: 8, headTilt: -8, near: {thigh: -6, knee: 22}, far: {thigh: -18, knee: 40}, nearArm: [128, 70], farArm: [120, 78]};
+const TK_DOWN: BodySpec = {lean: 6, headTilt: 12, near: {thigh: -8, knee: 18}, far: {thigh: -22, knee: 30}, nearArm: [172, 12], farArm: [160, 26]};
 const Shot3: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const T = f / EP4_FPS;
   // hold the impact for a beat (freeze frame)
-  const t = T < 0.42 ? T : T < 0.72 ? 0.42 : T - 0.3;
+  const t = T < TK_HIT ? T : T < TK_HIT + 0.3 ? TK_HIT : T - 0.3;
   const fr = from + f;
   const s0 = sPath(1.8);
-  const sx = s0.x + 0.9 * Math.min(t, 0.42) * 0.9;
-  const sz = s0.z + 3.5 * Math.min(t, 0.42) * 0.9;
-  const hit = clamp01((t - 0.42) / 0.5);
-  // Jimmy launches low and horizontal into his waist, both go down
-  const dive = smooth(clamp01((t - 0.18) / 0.24));
-  const jz = lerp(sz - 2.2, sz - 0.55, smooth(clamp01(t / 0.42))) + hit * 0.9;
-  const jSpec: BodySpec = lerpSpec(runAlong((tt) => ({x: sx, z: sz - 2.2 + 4 * tt}), t, 0.8, 0.2).spec, {lean: 10, headTilt: -10, near: {thigh: -20, knee: 30}, far: {thigh: 10, knee: 20}, nearArm: [110, 30], farArm: [100, 40]}, dive);
-  const sSpec: BodySpec = lerpSpec(streakerRun(runAlong((tt) => ({x: sx, z: sz - 1 + 3.5 * tt}), t, 0.75, 0.1).spec, t), {lean: -30, headTilt: -20, near: {thigh: 60, knee: 40}, far: {thigh: 40, knee: 60}, nearArm: [150, 30], farArm: [140, 50]}, smooth(hit));
-  const cam: Cam = {position: v3(sx + 6.2, 1.25, sz - 0.9).add(shake(T, T > 0.42 && T < 0.8 ? 0.05 : 0, 3)), target: v3(sx, 0.75, sz - 0.6), fov: 42};
+  const sx = s0.x;
+  const run = Math.min(t, TK_HIT);
+  const szH = s0.z + 2.8 * TK_HIT;
+  const sz = s0.z + 2.8 * run;
+  const h = smooth(clamp01((t - TK_HIT) / 0.5));
+  const launch = smooth(clamp01((t - 0.18) / (TK_HIT - 0.18)));
+  const FACE = yawFor(0, 1);
+  // streaker: running away, then driven forward onto his front
+  const sRun = streakerRun(runAlong((tt) => ({x: sx, z: s0.z + 2.8 * tt}), run, 0.75, 0.1).spec, t);
+  const sSpec = lerpSpec(sRun, TK_DOWN, h);
+  // Jimmy: chases, launches (pivot at the feet), shoulder into the waist, rides him down
+  const jStart = s0.z - 1.3;
+  const jRun = runAlong((tt) => ({x: sx, z: jStart + ((szH - 1.45 - jStart) * tt) / TK_HIT}), run, 0.8, 0.2);
+  const jSpec = lerpSpec(lerpSpec(jRun.spec, TK_DIVE, launch), TK_WRAP, h);
+  const jz = jRun.pos.z + 1.15 * h;
+  const jy = 0.42 * launch * (1 - h) + 0.14 * h;
+  const cz = sz - 0.3 + 0.9 * h;
+  const cam: Cam = {position: v3(sx + 5.6 + 0.9 * h, 1.1 - 0.15 * h, cz).add(shake(T, T > TK_HIT && T < 0.8 ? 0.05 : 0, 3)), target: v3(sx, 0.7 - 0.25 * h, cz), fov: 42};
   return (
     <Scene cam={cam} frame={fr} centre={v3(sx, 0, sz)} extent={7} excite={2.2}>
-      <Streaker x={sx} z={sz + hit * 1.0} y={0} yaw={0} spec={sSpec} frame={fr} t={t} look={{...ROAR(t), brows: 1, eyesClosed: hit > 0.1}} spray={hit > 0 ? 1 : 0.6} roll={-hit * 78} />
-      <Actor style={JIMMY} x={sx} z={jz} y={dive * 0.45 * (1 - hit) + hit * 0.15} yaw={0} roll={-dive * 70 - hit * 18} spec={jSpec} frame={fr} look={{...DEADPAN(0, t), brows: -0.8}} />
+      <Streaker x={sx + 0.02} z={sz + 0.3 * h} y={0.22 * h} yaw={FACE} spec={sSpec} frame={fr} t={t} look={{...ROAR(t), brows: 1, eyesClosed: h > 0.1}} spray={h > 0 ? 1 : 0.6} pitch={-86 * h} />
+      <Actor style={JIMMY} x={sx - 0.02} z={jz} y={jy} yaw={FACE} pitch={-(72 * launch + 8 * h)} spec={jSpec} frame={fr} look={{...DEADPAN(0, t), brows: -0.8}} />
     </Scene>
   );
 };
@@ -472,30 +488,57 @@ const InviteCard: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   );
 };
 
-// ================================================================ SHOT 16 — save stands (35.2–37.6)
+// ================================================================ SHOT 16 — save stands (35.2–37.6): the invite goes in the top pocket
+/** Chest pocket (far side of the ref shirt) in actor-local space. */
+const pocketLocal = (pose: Pose) => {
+  const l = -pose.lean * DEG2;
+  const px = 0.13, py = 0.45;
+  return to3(pose.pelvis, 0).add(new Vector3(px * Math.cos(l) - py * Math.sin(l), px * Math.sin(l) + py * Math.cos(l), -0.08));
+};
+/** The invite standing in the pocket; `sink` 0 = resting on the pocket lip, 1 = pushed in (top still showing). */
+const PocketCard: React.FC<{pose: Pose; sink: number}> = ({pose, sink}) => {
+  const p = pocketLocal(pose);
+  const r: [number, number, number] = [0, 0, -pose.lean * DEG2];
+  return (
+    <>
+      <mesh geometry={inviteGeo} material={goldMat} position={[p.x + 0.014, p.y + 0.1 - 0.075 * sink, p.z]} rotation={[Math.PI / 2, 0, r[2]]} />
+      {/* pocket front drawn over the card so it reads as tucked in */}
+      <mesh geometry={pocketFrontGeo} material={pocketMat} position={[p.x + 0.024, p.y, p.z]} rotation={r} />
+    </>
+  );
+};
+const DEG2 = Math.PI / 180;
 const Shot16: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP4_FPS;
   const fr = from + f;
+  const HOLD: [number, number] = [75, 30];
+  const POCKET: [number, number] = [28, 128];
   const spec = keyedSpec(
     [
-      [0, {...idleSpec(fr, 0.1), nearArm: [75, 30]}],
-      [0.6, {...idleSpec(fr, 0.1), nearArm: [75, 30]}],
-      [0.95, {...idleSpec(fr, 0.1), nearArm: [40, 110]}], // into the top pocket
-      [1.3, {...idleSpec(fr, 0.1), nearArm: [40, 110]}],
-      [1.7, POINT],
+      [0, {...idleSpec(fr, 0.1), farArm: HOLD}],
+      [0.45, {...idleSpec(fr, 0.1), farArm: HOLD}],
+      [0.85, {...idleSpec(fr, 0.1), farArm: POCKET}], // card to the top pocket
+      [1.2, {...idleSpec(fr, 0.1), farArm: POCKET}], // pat it in
+      [1.5, {...idleSpec(fr, 0.1)}],
+      [1.8, POINT],
       [2.4, POINT],
     ],
     t,
   );
-  const cam: Cam = {position: v3(43.4, 1.6, 2.6), target: v3(46.2, 1.35, 0.4), fov: 38};
+  const into = smooth(clamp01((t - 0.72) / 0.16)); // hand → pocket lip
+  const sink = smooth(clamp01((t - 0.92) / 0.25));
+  const zoom = smooth(clamp01((t - 0.3) / 0.5)) * (1 - smooth(clamp01((t - 1.35) / 0.45)));
+  const cam: Cam = {position: v3(lerp(43.4, 44.6, zoom), lerp(1.6, 1.5, zoom), lerp(2.6, 1.9, zoom)), target: v3(46.2, lerp(1.35, 1.25, zoom), 0.4), fov: lerp(38, 30, zoom)};
   return (
     <Scene cam={cam} frame={fr} centre={v3(46, 0, 0)} extent={7} excite={1.5}>
-      <Actor style={JIMMY} x={46.2} z={0.4} yaw={lerp(yawFor(-1, 0.6), yawFor(0.35, 1), smooth(clamp01((t - 1.3) / 0.4)))} spec={spec} frame={fr} look={DEADPAN(0, t)}>
+      <Actor style={JIMMY} x={46.2} z={0.4} yaw={lerp(yawFor(-1, 0.6), yawFor(0.35, 1), smooth(clamp01((t - 1.4) / 0.4)))} spec={spec} frame={fr} look={DEADPAN(0, t)}>
         {(pose) => {
-          if (t > 0.95) return null;
-          const h = handLocal(pose, false);
-          return <mesh geometry={inviteGeo} material={goldMat} position={[h.x + 0.02, h.y, h.z]} />;
+          if (into >= 1) return <PocketCard pose={pose} sink={sink} />;
+          const h = handLocal(pose, true);
+          const p = pocketLocal(pose);
+          const pos = new Vector3(h.x + 0.02, h.y, h.z).lerp(new Vector3(p.x + 0.014, p.y + 0.1, p.z), into);
+          return <mesh geometry={inviteGeo} material={goldMat} position={pos.toArray()} rotation={[(Math.PI / 2) * into, 0, -pose.lean * DEG2 * into]} />;
         }}
       </Actor>
     </Scene>
@@ -511,7 +554,7 @@ const EP4_ENDING: EndingCfg = {
   nextLabel: 'ANSWER IN EPISODE 5',
   nextEp: 5,
   comments: [
-    {user: 'pint_and_a_pie', text: 'Jimmy does what the fuck he wants is my new life motto', pick: '?', likes: 1204},
+    {user: 'pint_and_a_pie', text: 'Jimmy sending off VAR is the best thing I have seen all season', pick: '?', likes: 1204},
     {user: 'laws_of_the_game', text: 'B. Outside agent, retake the pen', pick: 'B', likes: 512},
     {user: 'orange_army', text: 'Did not have him on the team sheet', pick: '?', likes: 877},
     {user: 'sunday_league_ref', text: "A. Ref's decision is final, always has been", pick: 'A', likes: 233},
@@ -540,7 +583,9 @@ const ShotVote4: React.FC<{from: number}> = ({from}) => {
   return (
     <>
       <Scene cam={cam} frame={fr} centre={v3(0, 0, 0)} extent={12} excite={1.1}>
-        <Actor style={JIMMY} x={0} z={0} yaw={yawFor(1, 0.12)} spec={spec} frame={fr} look={{...DEADPAN(0, t), mouth: t > C.nextAt ? 'smile' : 'flat'}} />
+        <Actor style={JIMMY} x={0} z={0} yaw={yawFor(1, 0.12)} spec={spec} frame={fr} look={{...DEADPAN(0, t), mouth: t > C.nextAt ? 'smile' : 'flat'}}>
+          {(pose) => <PocketCard pose={pose} sink={1} />}
+        </Actor>
       </Scene>
       <EndingOverlay frame={f} fps={EP4_FPS} cfg={EP4_ENDING} />
     </>
@@ -581,7 +626,8 @@ const CUES: Cue[] = [
   {from: F(18.3), to: F(21.1), text: "FUCK YOUR CALL. I'M TAKING THIS OVER.", hl: {FUCK: C.red, 'OVER.': C.yellow}},
   {from: F(23.35), to: F(24.3), text: 'RETAKE.', hl: {'RETAKE.': C.red}},
   {from: F(24.35), to: F(26.8), text: 'ORANGE RETAKE THEIR FIRST PENALTY…', hl: {ORANGE: C.orange}},
-  {from: F(35.3), to: F(37.6), text: 'JIMMY DOES WHAT THE FUCK HE WANTS.', hl: {'WANTS.': C.yellow}},
+  {from: F(34.7), to: F(36.45), text: "JIMMY'S GOT SUMMER PLANS.", hl: {SUMMER: C.yellow, 'PLANS.': C.yellow}},
+  {from: F(36.45), to: F(37.6), text: 'SAVE STANDS.', hl: {'STANDS.': C.green}},
   {from: F(37.8), to: F(40.6), text: 'SO, REF… DOES THE SAVE COUNT?', hl: {SAVE: C.yellow, 'COUNT?': C.yellow}},
   {from: F(40.6), to: EP4_FRAMES, text: 'A OR B IN THE COMMENTS.', hl: {A: C.yellow, B: C.yellow}},
 ];
@@ -614,7 +660,7 @@ const SOUND: Sfx[] = [
   {at: 28.85, src: 'whack.wav', vol: 0.5},
   {at: 30.9, src: 'crowd-roar.wav', vol: 0.9},
   {at: 34.25, src: 'twinkle.wav', vol: 0.5},
-  {at: 35.3, src: 'nar-does-what.mp3'},
+  {at: 34.7, src: 'nar-summer.mp3'},
   {at: 36.7, src: 'whistle.wav', vol: 0.4},
   {at: 37.8, src: 'nar-vote.mp3'},
 ];
@@ -685,7 +731,6 @@ export const Episode4: React.FC = () => {
         </div>
       ) : null}
       {inRange(frame, F(33.7), F(35.2)) ? <InviteCard frame={frame - F(33.7)} fps={fps} /> : null}
-      {inRange(frame, F(36.6), F(37.6)) ? <Tag text="SAVE STANDS" frame={frame} fps={fps} from={F(36.6)} bg="#20b94f" style={{top: 330, left: 0, right: 0, margin: '0 auto', width: 'fit-content', fontSize: 66, padding: '12px 40px', rotate: '-5deg'}} /> : null}
 
       <Badge episode={4} />
       {showScore ? <Scoreboard frame={frame} fps={fps} goalAt={1e9} base={[1, 1]} clock="PENS" /> : null}
