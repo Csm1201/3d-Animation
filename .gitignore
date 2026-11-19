@@ -2,3 +2,5 @@
 /.env.local
 animations/*/build/
 node_modules/
+animations/*/assets/
+animations/*/renders/
