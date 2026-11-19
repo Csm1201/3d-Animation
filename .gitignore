@@ -4,3 +4,4 @@ animations/*/build/
 node_modules/
 animations/*/assets/
 animations/*/renders/
+__pycache__/
