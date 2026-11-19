@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Overlays</title>
+<style>html, body { margin: 0; background: transparent; } #c { display: block; }</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// Captions, rewind effect, vignette and title card for the Blender render, drawn on a transparent canvas.
+// Same timings as animations/fantastic-3d. render.js captures it; compose.sh lays it over the Cycles frames.
+(() => {
+const W = 1080, H = 1920, DUR = 14.4;
+const T = { hookEnd: 0.67, freezeEnd: 1.0, rewindEnd: 1.5, fant: 4.55, jay: 12.0, title: 13.4 };
+const FONT = '"Inter Display", "DejaVu Sans", sans-serif';
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const prog = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+const octx = document.getElementById('c').getContext('2d');
+// ---------- overlays ----------
+function outlined(text, x, y, size, fill, weight = 900) {
+  octx.font = `${weight} ${size}px ${FONT}`; octx.textAlign = 'center'; octx.textBaseline = 'middle';
+  octx.lineJoin = 'round'; octx.lineWidth = size * .16; octx.strokeStyle = '#000'; octx.strokeText(text, x, y);
+  octx.fillStyle = fill; octx.fillText(text, x, y);
+}
+const SUBS = [[T.fant, T.fant + 1.75, 'Oh... fantastic.'], [T.jay, T.jay + 1.0, '"Jaywalking."']];
+function overlays(t) {
+  const vg = octx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.3)'); octx.fillStyle = vg; octx.fillRect(0, 0, W, H);
+  if (t < 3.0) { octx.save(); octx.globalAlpha = t < 2.7 ? 1 : 1 - prog(t, 2.7, 3.0); outlined('GTA 6 pedestrians', W / 2, 250, 84, '#fff'); outlined('on release day:', W / 2, 345, 84, '#fff'); octx.restore(); }
+  if (t >= T.hookEnd && t < T.hookEnd + .12) { octx.fillStyle = `rgba(255,255,255,${.6 * (1 - prog(t, T.hookEnd, T.hookEnd + .12))})`; octx.fillRect(0, 0, W, H); }
+  if (t >= T.freezeEnd && t < T.rewindEnd + .25) {
+    octx.save(); octx.globalAlpha = t < T.rewindEnd ? 1 : 1 - prog(t, T.rewindEnd, T.rewindEnd + .25);
+    if (t < T.rewindEnd) { for (let y = 0; y < H; y += 6) { octx.fillStyle = 'rgba(0,0,0,.18)'; octx.fillRect(0, y, W, 3); } octx.fillStyle = 'rgba(255,255,255,.22)'; octx.fillRect(0, (t * 3000) % H, W, 40); }
+    outlined('◀◀', W / 2, 820, 120, '#fff'); outlined('6 SECONDS EARLIER', W / 2, 960, 76, '#ffd23f'); octx.restore();
+  }
+  for (const [a, b, s] of SUBS) if (t >= a && t < b) outlined(s, W / 2, 1440, 72, '#fff');
+  if (t >= T.title) {
+    const k = prog(t, T.title, T.title + .25);
+    octx.fillStyle = `rgba(20,8,40,${.72 * k})`; octx.fillRect(0, 0, W, H);
+    const s = lerp(1.6, 1, ease(k));
+    octx.save(); octx.globalAlpha = k; octx.translate(W / 2, 900); octx.scale(s, s); octx.rotate(-.06);
+    outlined('LIFE AS A', 0, -120, 92, '#ffd23f');
+    octx.shadowColor = '#ff4fa3'; octx.shadowBlur = 40; outlined('GTA 6 NPC', 0, 30, 170, '#ff4fa3'); octx.shadowBlur = 0; octx.restore();
+  }
+}
+
+
+function render(t) { octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, W, H); overlays(clamp(t, 0, DUR - 1e-6)); }
+window.__anim = { duration: DUR, fps: 30, render, ready: document.fonts.ready };
+})();
+</script>
+</body>
+</html>
