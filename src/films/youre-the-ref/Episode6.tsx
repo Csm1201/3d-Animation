@@ -5,7 +5,7 @@
  *   1.4  ◀◀ LAST TIME: "does LeBron mog?"
  *   3.9  tape measure: "Mogs."  ·  6.0 the red card reaches his belly button: "...It has to be seen."
  *   8.4  Jimmy fetches a stepladder  ·  10.0 climbs it: RED CARD  ·  12.0 LeBron walks off, gone for good
- *  14.0  3 HOURS LATER: PENS 67-67  ·  15.0 everyone keeps scoring, Jimmy falls apart
+ *  14.0  3 HOURS LATER: PENS 66-65  ·  15.0 everyone keeps scoring (66-66, 67-66), Jimmy falls apart
  *  17.4  next taker places the ball: "Fuck this."  ·  19.4 Jimmy shoves him and smashes it out of the stadium
  *  21.8  "Missed. Blue win."  ·  23.8 Jimmy walks out
  *  26.0  vote: A SEASON 2 vs B JIMMY IN GTA 6
@@ -369,7 +369,7 @@ const ShotExit: React.FC<{from: number}> = ({from}) => {
   );
 };
 
-// ================================================================ SHOT 7 — 3 HOURS LATER (14.0–15.0): PENS 67-67
+// ================================================================ SHOT 7 — 3 HOURS LATER (14.0–15.0): PENS 66-65
 const ShotBoard: React.FC<{from: number}> = () => {
   const f = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -382,7 +382,7 @@ const ShotBoard: React.FC<{from: number}> = () => {
         <div style={{fontFamily: '"Courier New", monospace', fontWeight: 900, fontSize: 54, color: '#ffb02a', letterSpacing: 8}}>PENS</div>
         <div style={{display: 'flex', alignItems: 'center', gap: 30, fontFamily: '"Courier New", monospace', fontWeight: 900, color: '#ffcf4a', textShadow: '0 0 24px rgba(255,190,40,.8)'}}>
           <span style={{fontSize: 60, color: '#5a95ff'}}>BLU</span>
-          <span style={{fontSize: 200}}>67-67</span>
+          <span style={{fontSize: 200}}>66-65</span>
           <span style={{fontSize: 60, color: '#ff8a2a'}}>ORA</span>
         </div>
       </div>
@@ -538,7 +538,7 @@ const EP6_ENDING: EndingCfg = {
   nextLabel: 'YOU DECIDE',
   nextEp: 7,
   comments: [
-    {user: 'pint_and_a_pie', text: "67-67 💀", pick: '?', likes: 1904},
+    {user: 'pint_and_a_pie', text: "67-66 💀", pick: '?', likes: 1904},
     {user: 'orange_army', text: 'B. Jimmy giving out red cards in GTA 6 😭', pick: 'B', likes: 1210},
     {user: 'blu_til_i_die', text: 'A. we need to know who won 😭', pick: 'A', likes: 988},
     {user: 'sunday_league_ref', text: "'fuck this' and he just TOOK THE PEN", pick: '?', likes: 1450},
@@ -650,8 +650,8 @@ export const Episode6: React.FC = () => {
   const board = inRange(frame, F(14.0), F(15.0));
   const vote = frame >= F(26.0);
   const early = frame < F(14.0);
-  // the shootout score from 3 hours later: 67-67, then 68-67, 68-68
-  const late: [number, number] = T >= 16.7 ? [68, 68] : T >= 15.5 ? [67, 68] : [67, 67];
+  // the shootout score from 3 hours later [BLU, ORA]: 66-65, then 66-66, 67-66 (Jimmy then "misses" Orange's kick: Blue win 67-66)
+  const late: [number, number] = T >= 16.7 ? [67, 66] : T >= 15.5 ? [66, 66] : [66, 65];
   return (
     <AbsoluteFill style={{backgroundColor: '#0a0d1a'}}>
       <Audio src={staticFile('ep5/crowd-bed.wav')} volume={(fr) => bedVolume(fr / EP6_FPS)} />
