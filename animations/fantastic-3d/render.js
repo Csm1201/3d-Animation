@@ -17,11 +17,13 @@ const fs = require('fs');
   await page.evaluate(() => window.__anim.ready);
 
   const { duration, fps } = await page.evaluate(() => ({ duration: window.__anim.duration, fps: window.__anim.fps }));
-  const times = stills || Array.from({ length: Math.round(duration * fps) }, (_, i) => i / fps);
+  // FRAMES=start-end re-renders only that range of frames (e.g. after a title change)
+  const total = Math.round(duration * fps), range = (process.env.FRAMES || `0-${total - 1}`).split('-').map(Number);
+  const times = stills || Array.from({ length: range[1] - range[0] + 1 }, (_, i) => (range[0] + i) / fps);
 
   for (let i = 0; i < times.length; i++) {
     const dataUrl = await page.evaluate(t => { window.__anim.render(t); return document.getElementById('c').toDataURL('image/png'); }, times[i]);
-    const name = stills ? `still_${times[i].toFixed(2)}.png` : `f_${String(i).padStart(4, '0')}.png`;
+    const name = stills ? `still_${times[i].toFixed(2)}.png` : `f_${String(Math.round(times[i] * fps)).padStart(4, '0')}.png`;
     fs.writeFileSync(path.join(outDir, name), Buffer.from(dataUrl.split(',')[1], 'base64'));
   }
   await browser.close();

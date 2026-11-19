@@ -672,8 +672,8 @@ function overlays(t) {
     octx.fillStyle = `rgba(20,8,40,${.72 * k})`; octx.fillRect(0, 0, W, H);
     const s = lerp(1.6, 1, ease(k));
     octx.save(); octx.globalAlpha = k; octx.translate(W / 2, 900); octx.scale(s, s); octx.rotate(-.06);
-    octx.shadowColor = '#ff4fa3'; octx.shadowBlur = 40; outlined('FANTASTIC.', 0, 0, 150, '#ff4fa3'); octx.shadowBlur = 0; octx.restore();
-    octx.save(); octx.globalAlpha = prog(t, T.title + .25, T.title + .5); outlined('a GTA 6 launch-day story', W / 2, 1060, 46, '#ffd23f', 800); octx.restore();
+    outlined('LIFE AS A', 0, -120, 92, '#ffd23f');
+    octx.shadowColor = '#ff4fa3'; octx.shadowBlur = 40; outlined('GTA 6 NPC', 0, 30, 170, '#ff4fa3'); octx.shadowBlur = 0; octx.restore();
   }
 }
 

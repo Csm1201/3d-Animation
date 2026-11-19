@@ -19,7 +19,7 @@
 | 7.5–8.5 | Wide | He lands flat on his back in the middle of the road. *Splat.* Lifts his head: five sets of headlights. | | Splat, sirens swell |
 | 8.5–10.5 | Low angle down the road | All five police cars drive over him, one after another. The helicopter passes over last. | (no dialogue) | Five suspension bumps |
 | 10.5–12.5 | Medium, road | The last police car stops. A cop gets out, looks down at the flattened NPC, and slaps a ticket on his chest. Hold one beat on the flat NPC with the ticket. | Cop: **"Jaywalking."** | Ticket slap |
-| 13.4–14.4 | **Title card** over the last shot, darkened | The title slams in with a pink neon glow. | **"FANTASTIC."** · smaller: **"a GTA 6 launch-day story"** | Whoosh, bright chord sting |
+| 13.4–14.4 | **Title card** over the last shot, darkened | The title slams in with a pink neon glow. | **"LIFE AS A GTA 6 NPC"** | Whoosh, bright chord sting |
 
 **Beat:** hook (him mid-air, freeze) → rewind → stroll → the chase comes over the hill → "Fantastic." → launched (the hook shot, now in context) → run over by the cops → ticketed → title card.
 
