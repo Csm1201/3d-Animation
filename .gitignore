@@ -1,3 +1,4 @@
 # Local secrets written by `elevenlabs onboard`
 /.env.local
 animations/*/build/
+node_modules/

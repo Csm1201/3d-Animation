@@ -1,0 +1,8 @@
+{
+  "name": "3d-animation",
+  "private": true,
+  "description": "Animation projects and render tooling",
+  "dependencies": {
+    "three": "0.149.0"
+  }
+}
