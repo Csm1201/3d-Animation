@@ -1,6 +1,6 @@
-# "Fantastic" (13.5-second clip)
+# "Fantastic" (12.5-second clip)
 
-**Format:** 1080×1920 vertical for TikTok/Shorts, 30 fps, 405 frames, with audio. Loops.
+**Format:** 1080×1920 vertical for TikTok/Shorts, 30 fps, 375 frames, with audio. Loops.
 **Logline:** A GTA 6-launch-day pedestrian sees the 5-star chase coming over the hill and accepts his fate.
 **Post timing:** As close to the GTA 6 launch (November 19th) as possible, while launch content is spiking.
 **Characters:** an NPC (Hawaiian shirt, sunglasses, iced coffee) · the player (a pink sports car with ★★★★★) · five police cars and a helicopter · one cop
@@ -18,17 +18,16 @@
 | 6.0–7.5 | Wide, camera tilts up | *BONK.* The pink car hits him. He rolls over the hood and roof and launches into the sky, the same shot as the hook, this time without the freeze. | | Bonk, whoosh |
 | 7.5–8.5 | Wide | He lands flat on his back in the middle of the road. *Splat.* Lifts his head: five sets of headlights. | | Splat, sirens swell |
 | 8.5–10.5 | Low angle down the road | All five police cars drive over him, one after another. The helicopter passes over last. | NPC (flat, one per car): **"Ow. Ow. Ow. Ow. ...ow."** | Five suspension bumps |
-| 10.5–12.5 | Medium, road | The last police car stops. A cop gets out, looks down at the flattened NPC, and slaps a ticket on his chest. | Cop: **"Jaywalking."** | Ticket slap |
-| 12.5–13.5 | Close-up on NPC | He stares at the camera, flat as paper, ticket on his chest. Cut on his line, back to the hook. | NPC (flat): **"...Fantastic."** | Cut. Loops into the hook |
+| 10.5–12.5 | Medium, road | The last police car stops. A cop gets out, looks down at the flattened NPC, and slaps a ticket on his chest. Hold one beat on the flat NPC with the ticket, then cut straight back to the hook. | Cop: **"Jaywalking."** | Ticket slap. Cut. Loops into the hook |
 
-**Beat:** hook (him mid-air, freeze) → rewind → stroll → the chase comes over the hill → "Fantastic." → launched (the hook shot, now in context) → run over by the cops → ticketed → "...Fantastic." → loop.
+**Beat:** hook (him mid-air, freeze) → rewind → stroll → the chase comes over the hill → "Fantastic." → launched (the hook shot, now in context) → run over by the cops → ticketed → loop.
 
 **Why it should work:**
 - It's posted on GTA 6 launch day, while launch content is spiking.
 - Frame 1 is the most striking image (him mid-air above a 5-star chase) plus a relatable caption, so viewers stay to find out how he got there.
-- "Fantastic" works twice: sarcastic before the hit, deader after the ticket.
+- "Fantastic" is the only thing he says before the hit. One flat word sells that this happens to him every day.
 - The cops chase the car, run over the victim, and ticket the victim. That's the satire.
-- 13.5 seconds and looped, matching the 8–14s length of this month's outliers.
+- 12.5 seconds and looped, matching the 8–14s length of this month's outliers.
 
 **Voices (ElevenLabs):** NPC (tired, flat, sarcastic mid-30s man) · cop (dry, bored)
 
@@ -36,7 +35,6 @@
 1. NPC: "Fantastic." (sarcastic)
 2. NPC: "Ow." (×5 takes, each more tired)
 3. Cop: "Jaywalking."
-4. NPC: "...Fantastic." (completely defeated)
 
 **Sound effects:** record scratch, tape rewind, distant sirens, close sirens (several cars), helicopter, sports car engine roar, cartoon bonk, whoosh, splat, suspension bump (×5), ticket slap
 
