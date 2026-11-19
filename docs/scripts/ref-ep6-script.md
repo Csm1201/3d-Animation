@@ -5,7 +5,7 @@ About 31 s, vertical. Continues straight from Episode 5: LeBron kicked the keepe
 The story in two halves:
 1. **LeBron:** Jimmy sends him off. That's the last we see of LeBron.
 2. **The shootout:** three hours later it's 67-67, and Jimmy has had enough.
-3. **The vote:** Jimmy walks out of the stadium, and viewers decide what comes next: *You're the Ref* Season 2, or a Jimmy spin-off.
+3. **The vote:** Jimmy walks out of the stadium, and viewers decide what comes next: *You're the Ref* Season 2, or a Jimmy in GTA 6.
 
 **Characters:**
 - **Jimmy:** deadpan as always, getting more exhausted.
@@ -27,14 +27,14 @@ The story in two halves:
 | 18.0-20.4 | Jimmy shoves the penalty taker out of the way, sending him sprawling across the grass. He takes three steps and smashes the ball. Slow motion: it rockets over the keeper, over the crossbar, over the stand and out of the stadium. A little twinkle in the night sky. | OUT OF THE STADIUM | Huge thump, whoosh, a fading whistle into the distance. Ding. |
 | 20.4-22.0 | Silence. Both teams stare at Jimmy. He dusts off his hands, blows his whistle, and points. | MISSED. BLUE WIN. | Whistle. Jimmy (flat): "Missed. Blue win." Blue players start celebrating; Orange players lose their minds |
 | 22.0-24.6 | Jimmy takes off his whistle, drops it on the penalty spot, and walks out of the stadium through the chaos without looking back. The exit gates swing shut behind him. | | Riot noise behind him, fading. Gate clang. |
-| 24.6-31.0 | VOTE ENDING. Jimmy stops outside the stadium gates under a streetlight and looks back at the camera. Two panels slam in: **A: SEASON 2** (the stadium, floodlights on) vs **B: JIMMY SPIN-OFF** (Jimmy alone, holding a whistle). Live vote bar, comments popping in, TAP TO COMMENT. A "YOU DECIDE" stamp. Loops to the hook. | WHAT'S NEXT? / A: SEASON 2 / B: JIMMY SPIN-OFF / YOU DECIDE | Narrator: "So, ref... what's next? Season 2, or Jimmy's own show? A or B in the comments." |
+| 24.6-31.0 | VOTE ENDING. Jimmy stops outside the stadium gates under a streetlight and looks back at the camera. Two panels slam in: **A: SEASON 2** (the stadium, floodlights on) vs **B: JIMMY IN GTA 6** (Jimmy in the middle of a city police chase, holding up a red card). Live vote bar, comments popping in, TAP TO COMMENT. A "YOU DECIDE" stamp. Loops to the hook. | WHAT'S NEXT? / A: SEASON 2 / B: JIMMY IN GTA 6 / YOU DECIDE | Narrator: "So, ref... what's next? Season two, or Jimmy in GTA 6? A or B in the comments." |
 
 ## Fake comments
 
 - "67-67 💀"
 - "'fuck this' and he just TOOK THE PEN 😭"
 - "he shoved the taker over like he owed him money"
-- "B. Jimmy deserves his own show"
+- "B. Jimmy giving out red cards in GTA 6 😭"
 - "A. we need to know who won 😭"
 
 ## Voices
@@ -55,12 +55,12 @@ All voices are generic stock voices, not imitations of anyone:
   - Jimmy's shove and full-power kick
   - the shoved taker sprawling
 - **New lighting:** a night version of the stadium, with the floodlights on.
-- **Ending:** the A vs B vote panels from Episodes 2-4 (Ending.tsx), with a SEASON 2 panel and a JIMMY SPIN-OFF panel.
+- **Ending:** the A vs B vote panels from Episodes 2-4 (Ending.tsx), with a SEASON 2 panel and a JIMMY IN GTA 6 panel.
 - **Scoreboard:** a big "PENS 67-67" display, then 68-68.
 - **Reused:** the stadium, crowd, scoreboard, LeBron, the slow-motion kick system, the VHS rewind, the "OUT OF THE STADIUM" twinkle from Episode 4 and the question-card ending from Episode 5.
 
 ## Upload
 
 - **Title:** "Ref takes the penalty himself | You're the Ref Ep 6"
-- **Pinned comment:** "A: Season 2 or B: Jimmy spin-off? 👇"
+- **Pinned comment:** "A: Season 2 or B: Jimmy in GTA 6? 👇"
 - **Thumbnail:** Jimmy mid-kick, with the shoved taker flying, the ball a streak, and the scoreboard reading 67-67. Text: "FUCK THIS".
