@@ -16,7 +16,7 @@ Jimmy stays deadpan, with the invite still poking out of his top pocket. LeBron 
 | 16.6-18.8 | LeBron turns to the crowd and does the 6-7 hands. The whole stadium does it back. Cut to Jimmy, deadpan, doing it too. | 6 7 | Crowd chant: "SIX! SEVEN!" |
 | 18.8-20.6 | Jimmy calmly points to the centre circle. Orange's first dot turns green. | GOAL GIVEN | Narrator: "And Jimmy gives it." |
 | 20.6-22.4 | The keeper, upside down in the net, still holding the ball. | | Keeper (muffled): "Can someone get me down?" |
-| 22.4-30.0 | Vote ending: A vs B panels with LeBron towering over a measuring stick, live vote bar, comments, TAP TO COMMENT. Last shot: the keeper still hanging in the net (loops to the hook). | DOES LEBRON MOG? / A: MOGS / B: DOESN'T MOG / ANSWER IN EPISODE 6 | Narrator: "So, ref... does LeBron mog? A or B in the comments." |
+| 22.4-30.0 | Ending: a "DOES LEBRON MOG?" card, comments, TAP TO COMMENT. Last shot: the keeper still hanging in the net (loops to the hook). | DOES LEBRON MOG? / ANSWER IN EPISODE 6 | Narrator: "So, ref... does LeBron mog?" |
 
 Fake comments:
 - "Jimmy doing the 6 7 with a straight face 💀"

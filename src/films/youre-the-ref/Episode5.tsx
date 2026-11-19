@@ -4,18 +4,18 @@
  * Voices: vidIQ (ElevenLabs) stock voices — narrator "Daniel", Jimmy "George", keeper "Liam",
  * Orange #7 "Chris"; the 6-7 chant is four voices layered. LeBron has no lines. SFX are synthesised.
  *
- *   0.0  HOOK: over LeBron's shoulder, the keeper flying into the top corner   "LEBRON KICKED THE KEEPER IN."
+ *   0.0  HOOK: over LeBron's shoulder, the keeper dives, catches it in the top corner and is carried into the net
  *   1.4  Episode 4 answer: rewind to the fan's save, ✗, "B. RETAKE."
  *   4.4  Jimmy points to the spot  ·  6.7 #7: "I'm not taking it."  ·  9.0 Jimmy: "Somebody fucking take it."
  *  11.0  LeBron James walks out of the crowd  ·  13.2 MOGGED  ·  15.0 Jimmy hands him the ball
- *  16.8  He places it  ·  18.4 the kick: ball and keeper into the top corner (slow motion)
+ *  16.8  He places it  ·  18.4 the kick: keeper dives, catches it, and goes into the net with it (slow motion)
  *  21.6  6-7: LeBron, the whole stadium, then Jimmy  ·  24.0 "And Jimmy gives it."
  *  25.4  Keeper upside down in the net: "Can someone get me down?"  ·  27.0 Vote: does LeBron mog?
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Img, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {Vector3} from 'three';
-import {BodySpec, idleSpec, keyedSpec, lerpSpec} from '../../core/sportPoses';
+import {Euler, Vector3} from 'three';
+import {BodySpec, buildPose, idleSpec, keyedSpec, lerpSpec} from '../../core/sportPoses';
 import {Cam} from '../../character3d/stage';
 import {Look} from '../../character3d/Worker3D';
 import {Actor, CALM, FOLD, KICK_BACK, KICK_FOLLOW, KICK_HIT, POINT, runAlong, Scene, ST, THINK} from './Episode2';
@@ -79,48 +79,85 @@ const sixSeven = (base: BodySpec, t: number, k: number): BodySpec => ({
 const KT = 0.62;
 const KI = 0.8;
 const KC = 1.25;
-const CATCH = v3(51.85, 1.05, 0.0);
-const CORNER = v3(52.75, 2.0, -2.95);
 const RUN_FROM = SPOT.x - 3.4;
 const STRIKE_X = SPOT.x - 0.58;
-const KP_A = 0.24; // ball in front of the keeper's chest (local)
-const KP_H = 1.05;
+const LINE_X = 52.05;
+const DIVE_FROM = KT - 0.06; // he reads it and goes early
 
-const ballAt = (s: number): Vector3 => {
-  if (s < KT) return v3(SPOT.x, BALL_R, SPOT.z);
-  if (s < KI) return v3(SPOT.x, BALL_R, SPOT.z).lerp(CATCH, (s - KT) / (KI - KT));
-  if (s < KC) {
-    const u = smooth((s - KI) / (KC - KI));
-    return CATCH.clone().lerp(CORNER, u).add(v3(0, 0.35 * Math.sin(Math.PI * u), 0));
-  }
-  const w = s - KC;
-  return CORNER.clone().add(v3(0.08 * Math.exp(-w * 4) * Math.sin(w * 18), -0.05 * Math.exp(-w * 3) * Math.sin(w * 14), 0));
-};
-const keeperPitch = (s: number) => (s < KI ? 0 : s < KC ? 82 * smooth((s - KI) / (KC - KI)) : 82 + 5 * Math.exp(-(s - KC) * 3) * Math.sin((s - KC) * 14));
-/** Keeper placement so the ball sits against his chest at pitch p (yaw = π, backward pitch is positive). */
-const keeperFeet = (b: Vector3, p: number) => {
-  const r = p * DEG;
-  return {x: b.x + (KP_A * Math.cos(r) - KP_H * Math.sin(r)), y: b.y - (KP_A * Math.sin(r) + KP_H * Math.cos(r)), z: b.z};
-};
 const K_SET: BodySpec = {lean: 16, headTilt: 8, near: {thigh: 30, knee: 56}, far: {thigh: 26, knee: 54}, nearArm: [40, 24], farArm: [36, 26]};
 const K_HUG: BodySpec = {lean: 22, headTilt: 18, near: {thigh: 70, knee: 80}, far: {thigh: 55, knee: 90}, nearArm: [70, 110], farArm: [64, 116]};
+const K_PUSH: BodySpec = {lean: 6, headTilt: 2, near: {thigh: 12, knee: 18}, far: {thigh: 46, knee: 78}, nearArm: [128, 18], farArm: [104, 34]};
+const K_FLY: BodySpec = {lean: -2, headTilt: -10, near: {thigh: 6, knee: 10}, far: {thigh: -14, knee: 30}, nearArm: [178, 3], farArm: [166, 10]};
+// ball clutched to his chest, knees up, as the net swallows him
+const K_CLUTCH: BodySpec = {lean: 18, headTilt: 14, near: {thigh: 60, knee: 70}, far: {thigh: 44, knee: 84}, nearArm: [96, 96], farArm: [90, 104]};
+
+type KState = {spec: BodySpec; x: number; y: number; z: number; roll: number; pitch: number};
+/** The keeper at sim time s: set on his line, full-stretch dive to the top corner, catches it, and the dive carries him (and the ball) into the net. */
+const keeperAt = (s: number, fr: number): KState => {
+  if (s < DIVE_FROM) {
+    const hop = Math.abs(Math.sin(s * 8)) * 14;
+    return {spec: {...K_SET, lift: hop, nearArm: [100, 20], farArm: [96, 22]}, x: LINE_X, y: 0, z: 0, roll: 0, pitch: 0};
+  }
+  if (s < KI) {
+    const f = (s - DIVE_FROM) / (KI - DIVE_FROM);
+    const out = 1 - (1 - f) * (1 - f);
+    return {
+      spec: keyedSpec([[0, {...K_SET, nearArm: [100, 20], farArm: [96, 22]}], [0.3, K_PUSH], [0.75, K_FLY], [1, K_FLY]], f),
+      x: LINE_X,
+      y: 1.45 * Math.sin((Math.PI / 2) * Math.min(1, f * 1.1)),
+      z: -1.15 * out,
+      roll: 70 * smooth(f),
+      pitch: 0,
+    };
+  }
+  const c = smooth(clamp01((s - KI) / (KC - KI)));
+  const w = Math.max(0, s - KC);
+  const sway = 0.06 * Math.exp(-w * 3) * Math.sin(w * 14);
+  return {
+    spec: lerpSpec(K_FLY, K_CLUTCH, smooth(clamp01((s - KI) / 0.22))),
+    x: LINE_X + 0.95 * c,
+    y: 1.45 + 0.12 * Math.sin(Math.PI * c) - 0.2 * c + sway,
+    z: -1.15 - 0.4 * c,
+    roll: 70 + 18 * c,
+    pitch: 22 * c,
+  };
+};
+// ball held just in front of the palm (local to the actor)
+const ballInHand = (spec: BodySpec) => handLocal(buildPose(spec), false).add(v3(0.1, 0.02, 0));
+const toWorld = (k: KState, local: Vector3) =>
+  local
+    .clone()
+    .applyEuler(new Euler(k.roll * DEG, 0, k.pitch * DEG))
+    .add(v3(0, k.y, 0))
+    .applyAxisAngle(v3(0, 1, 0), Math.PI)
+    .add(v3(k.x, 0, k.z));
+const CATCH_K = keeperAt(KI, 0);
+const CATCH = toWorld(CATCH_K, ballInHand(CATCH_K.spec));
+
+/** Free ball (before he catches it); null once it's in his hands. */
+const ballAt = (s: number): Vector3 | null => {
+  if (s < KT) return v3(SPOT.x, BALL_R, SPOT.z);
+  if (s < KI) {
+    const u = (s - KT) / (KI - KT);
+    return v3(SPOT.x, BALL_R, SPOT.z).lerp(CATCH, u).add(v3(0, 0.25 * Math.sin(Math.PI * u), 0));
+  }
+  return null;
+};
 
 const KickWorld: React.FC<{s: number; fr: number; showLeBron?: boolean}> = ({s, fr, showLeBron = true}) => {
   const run = runAlong((tt) => ({x: lerp(RUN_FROM, STRIKE_X, smooth(clamp01((tt - 0.05) / (KT - 0.12)))), z: 0.52}), Math.min(s, KT - 0.08), 0.75, 0.1);
   const lbSpec = keyedSpec([[0.05, idleSpec(fr, 0.1)], [0.2, run.spec], [KT - 0.14, KICK_BACK], [KT, KICK_HIT], [KT + 0.3, KICK_FOLLOW], [KT + 0.9, {...KICK_FOLLOW, lift: 0}]], s);
   const lbX = s < KT - 0.08 ? run.pos.x : STRIKE_X;
   const b = ballAt(s);
-  const p = keeperPitch(s);
-  // on his line until the ball arrives, then carried with it (keeperFeet(CATCH, 0) is where it meets his chest)
-  const k = s < KI ? keeperFeet(CATCH, 0) : keeperFeet(b, p);
-  const hop = s < KT ? Math.abs(Math.sin(s * 8)) * 14 : 0;
-  const kSpec = s < KI - 0.06 ? {...K_SET, lift: hop, nearArm: [100, 20] as [number, number], farArm: [96, 22] as [number, number]} : lerpSpec(K_SET, K_HUG, smooth(clamp01((s - KI + 0.06) / 0.12)));
-  const shock: Look = s < KI ? {...CALM, brows: -0.4} : {tired: 0, droop: -10, eyesClosed: false, brows: 0.9, browLift: 0.9, mouth: 'open', mouthOpen: 0.8, noBlink: true};
+  const k = keeperAt(s, fr);
+  const look: Look = s < KT ? {...CALM, brows: -0.4} : s < KI ? {tired: 0, droop: -4, eyesClosed: false, brows: -0.8, browLift: 0, mouth: 'open', mouthOpen: 0.5, noBlink: true} : {tired: 0, droop: -10, eyesClosed: false, brows: 0.9, browLift: 0.9, mouth: 'open', mouthOpen: 0.8, noBlink: true};
   return (
     <>
       {showLeBron ? <LeBron x={lbX} z={0.52} yaw={0} spec={lbSpec} frame={fr} /> : null}
-      <Actor style={BLUE_KEEPER} x={k.x} y={k.y} z={k.z} yaw={Math.PI} pitch={p} spec={kSpec} frame={fr} look={shock} shadow={s < KI + 0.1} />
-      <Ball pos={b} spin={s > KT && s < KI ? s * 40 : 0} axisYaw={yawFor(1, 0)} />
+      <Actor style={BLUE_KEEPER} x={k.x} y={k.y} z={k.z} yaw={Math.PI} roll={k.roll} pitch={k.pitch} spec={k.spec} frame={fr} look={look} shadow>
+        {() => (b ? null : <Ball pos={ballInHand(k.spec)} spin={0} axisYaw={0} />)}
+      </Actor>
+      {b ? <Ball pos={b} spin={s > KT ? s * 40 : 0} axisYaw={yawFor(1, 0)} /> : null}
     </>
   );
 };
@@ -420,11 +457,12 @@ const EP5_ENDING: EndingCfg = {
   nextAt: 4.5,
   nextLabel: 'ANSWER IN EPISODE 6',
   nextEp: 6,
+  question: 'DOES LEBRON MOG?',
   comments: [
     {user: 'pint_and_a_pie', text: 'Jimmy doing the 6 7 with a straight face 💀', pick: '?', likes: 1388},
     {user: 'blu_til_i_die', text: 'The keeper is still in the net', pick: '?', likes: 942},
-    {user: 'orange_army', text: 'A. He kicked a grown man into the top corner', pick: 'A', likes: 701},
-    {user: 'sunday_league_ref', text: 'B. Nobody mogs Jimmy', pick: 'B', likes: 455},
+    {user: 'orange_army', text: 'He kicked a grown man into the top corner', pick: '?', likes: 701},
+    {user: 'sunday_league_ref', text: 'Nobody mogs Jimmy', pick: '?', likes: 455},
     {user: 'laws_of_the_game', text: 'Jimmy still has the invite in his pocket', pick: '?', likes: 610},
   ],
 };
@@ -469,7 +507,6 @@ const CUES: Cue[] = [
   {from: F(24.1), to: F(25.4), text: 'AND JIMMY GIVES IT.', hl: {'IT.': C.green}},
   {from: F(25.55), to: F(27.0), text: 'CAN SOMEONE GET ME DOWN?', hl: {'DOWN?': C.yellow}},
   {from: F(27.2), to: F(29.6), text: 'SO, REF… DOES LEBRON MOG?', hl: {LEBRON: C.gold, 'MOG?': C.gold}},
-  {from: F(29.6), to: EP5_FRAMES, text: 'A OR B IN THE COMMENTS.', hl: {A: C.yellow, B: C.yellow}},
 ];
 
 type Sfx = {at: number; src: string; vol?: number};

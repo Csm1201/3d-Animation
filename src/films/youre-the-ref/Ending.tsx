@@ -23,6 +23,38 @@ export type EndingCfg = {
   nextLabel: string;
   nextEp: number;
   comments: {user: string; text: string; pick: 'A' | 'B' | '?'; likes: number}[];
+  /** a plain question card instead of the A vs B panels, VS badge and vote meter */
+  question?: string;
+};
+
+const QuestionCard: React.FC<{frame: number; fps: number; text: string}> = ({frame, fps, text}) => {
+  const s = spring({frame, fps, config: {damping: 10, stiffness: 200}});
+  const bob = 1 + 0.02 * Math.sin(frame * 0.18);
+  return (
+    <div style={{position: 'absolute', top: 290, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
+      <div
+        style={{
+          transform: `rotate(-3deg) scale(${(1.8 - 0.8 * s) * bob})`,
+          opacity: Math.min(1, s * 2),
+          fontFamily: FONT,
+          fontWeight: 900,
+          fontSize: 92,
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+          color: '#fff',
+          background: 'linear-gradient(160deg,#fdb927 0%,#e89a00 100%)',
+          border: '7px solid #fff',
+          padding: '26px 46px',
+          borderRadius: 26,
+          boxShadow: '0 24px 60px rgba(0,0,0,.5)',
+          WebkitTextStroke: '8px rgba(0,0,0,.22)',
+          paintOrder: 'stroke fill',
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
 };
 
 // ---------------------------------------------------------------- versus panels
@@ -183,7 +215,7 @@ const CommentFeed: React.FC<{frame: number; fps: number; out: number; cfg: Endin
               transform: `scale(${0.9 + 0.1 * s})`,
             }}
           >
-            <div style={{width: 64, height: 64, borderRadius: 32, background: tagCol, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontWeight: 900, fontSize: 34, color: '#fff'}}>{c.pick}</div>
+            <div style={{width: 64, height: 64, borderRadius: 32, background: tagCol, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontWeight: 900, fontSize: 34, color: '#fff'}}>{cfg.question ? c.user[0].toUpperCase() : c.pick}</div>
             <div style={{flex: 1, minWidth: 0}}>
               <div style={{fontFamily: FONT, fontWeight: 700, fontSize: 24, color: '#9aa0b0'}}>@{c.user}</div>
               <div style={{fontFamily: FONT, fontWeight: 800, fontSize: 32, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{c.text}</div>
@@ -267,10 +299,16 @@ export const EndingOverlay: React.FC<{frame: number; fps: number; cfg?: EndingCf
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(5,7,14,.7) 0%, rgba(5,7,14,.15) 40%, rgba(5,7,14,.15) 62%, rgba(5,7,14,.75) 100%)'}} />
-      <Panel side="A" frame={frame} fps={fps} locked={lock} lead={leadA} cfg={cfg} />
-      <Panel side="B" frame={frame} fps={fps} locked={lock} lead={leadB} cfg={cfg} />
-      <VsBadge frame={frame} fps={fps} />
-      <VoteMeter frame={frame} fps={fps} hidden={lock} cfg={cfg} />
+      {cfg.question ? (
+        <QuestionCard frame={frame} fps={fps} text={cfg.question} />
+      ) : (
+        <>
+          <Panel side="A" frame={frame} fps={fps} locked={lock} lead={leadA} cfg={cfg} />
+          <Panel side="B" frame={frame} fps={fps} locked={lock} lead={leadB} cfg={cfg} />
+          <VsBadge frame={frame} fps={fps} />
+          <VoteMeter frame={frame} fps={fps} hidden={lock} cfg={cfg} />
+        </>
+      )}
       <CommentTap frame={frame} fps={fps} out={lock} cfg={cfg} />
       <CommentFeed frame={frame} fps={fps} out={lock} cfg={cfg} />
       <NextStamp frame={frame} fps={fps} cfg={cfg} />
