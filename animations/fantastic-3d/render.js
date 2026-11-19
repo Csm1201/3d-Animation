@@ -11,6 +11,8 @@ const fs = require('fs');
 
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
+  page.on('pageerror', e => console.error('PAGE ERROR:', e.message));
+  page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.error('console:', m.text()); });
   await page.goto('file://' + path.join(__dirname, 'index.html') + '?capture');
   await page.evaluate(() => window.__anim.ready);
 
