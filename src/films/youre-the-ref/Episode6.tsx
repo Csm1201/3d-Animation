@@ -17,6 +17,7 @@ import {AbsoluteFill, Audio, Img, interpolate, Sequence, spring, staticFile, use
 import {BoxGeometry, CylinderGeometry, MeshStandardMaterial, Quaternion, Vector3} from 'three';
 import {BodySpec, buildPose, idleSpec, keyedSpec, lerpSpec} from '../../core/sportPoses';
 import {Cam} from '../../character3d/stage';
+import {canvasTex, once} from '../../character3d/common';
 import {Look} from '../../character3d/Worker3D';
 import {ANGRY, Actor, armsUp, CALM, JOY, KICK_BACK, KICK_FOLLOW, KICK_HIT, POINT, runAlong, Scene, ST, THINK} from './Episode2';
 import {BigTitle, BLUES, KEEPER, ORANGES, SPOT} from './Episode3';
@@ -109,6 +110,85 @@ const handWorld = (spec: BodySpec, x: number, y: number, z: number, yaw: number)
   const c = Math.cos(yaw);
   const s = Math.sin(yaw);
   return v3(x + h.x * c + h.z * s, y + h.y, z - h.x * s + h.z * c);
+};
+
+
+// ---------------------------------------------------------------- the players' tunnel (near-side stand, x = TUN_X)
+const TUN_X = 40;
+const TUN_Z0 = 33.5; // mouth, on the run-off
+const TUN_Z1 = 40.8; // stand front wall
+export const TUN_H = 2.2; // inside height: LeBron has to duck
+const TUN_W = 2.4;
+const tunWall = new MeshStandardMaterial({color: '#262c40', roughness: 0.7});
+const tunTrim = new MeshStandardMaterial({color: '#f2f2f2', roughness: 0.5});
+const tunStripeO = new MeshStandardMaterial({color: '#ff7a1a', roughness: 0.5});
+const tunStripeB = new MeshStandardMaterial({color: '#2f6df0', roughness: 0.5});
+const tunDark = new MeshStandardMaterial({color: '#020306', roughness: 1});
+const tunLamp = new MeshStandardMaterial({color: '#fff3d6', emissive: '#fff3d6', emissiveIntensity: 1.2});
+const signTexture = () =>
+  once('tunnel-sign', () =>
+    canvasTex(1024, 160, (g) => {
+      g.fillStyle = '#0d0f14';
+      g.fillRect(0, 0, 1024, 160);
+      g.fillStyle = '#ffd23a';
+      g.fillRect(0, 0, 1024, 10);
+      g.fillRect(0, 150, 1024, 10);
+      g.fillStyle = '#ffffff';
+      g.font = '900 96px Inter, Arial, sans-serif';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText("PLAYERS' TUNNEL", 512, 84);
+    }),
+  );
+/** A covered players' tunnel running out from the near-side stand onto the run-off; the mouth faces -z (the pitch). */
+export const Tunnel: React.FC = () => {
+  const len = TUN_Z1 - TUN_Z0;
+  const zc = (TUN_Z0 + TUN_Z1) / 2;
+  const T = 0.18;
+  const signMat = React.useMemo(() => new MeshStandardMaterial({map: signTexture(), roughness: 0.6}), []);
+  return (
+    <group position={[TUN_X, 0, 0]}>
+      {/* side walls and roof */}
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <mesh material={tunWall} position={[s * (TUN_W / 2 + T / 2), (TUN_H + T) / 2, zc]} castShadow receiveShadow>
+            <boxGeometry args={[T, TUN_H + T, len]} />
+          </mesh>
+          <mesh material={s < 0 ? tunStripeO : tunStripeB} position={[s * (TUN_W / 2 + T + 0.005), 0.9, zc]}>
+            <boxGeometry args={[0.01, 0.22, len]} />
+          </mesh>
+        </group>
+      ))}
+      <mesh material={tunWall} position={[0, TUN_H + T / 2, zc]} castShadow receiveShadow>
+        <boxGeometry args={[TUN_W + 2 * T, T, len]} />
+      </mesh>
+      {/* white trim round the mouth */}
+      <mesh material={tunTrim} position={[0, TUN_H + T / 2, TUN_Z0 - 0.02]}>
+        <boxGeometry args={[TUN_W + 2 * T + 0.08, T + 0.06, 0.06]} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={`t${s}`} material={tunTrim} position={[s * (TUN_W / 2 + T / 2), (TUN_H + T) / 2, TUN_Z0 - 0.02]}>
+          <boxGeometry args={[T + 0.06, TUN_H + T, 0.06]} />
+        </mesh>
+      ))}
+      {/* sign over the mouth */}
+      <mesh material={signMat} position={[0, TUN_H + T + 0.26, TUN_Z0 - 0.06]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[TUN_W + 0.4, 0.42]} />
+      </mesh>
+      {/* inside: floor, dim strip lights, and darkness at the back */}
+      <mesh material={tunDark} position={[0, 0.01, zc]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[TUN_W, len]} />
+      </mesh>
+      {[0.8, 1.9].map((d) => (
+        <mesh key={d} material={tunLamp} position={[0, TUN_H - 0.02, TUN_Z0 + d]}>
+          <boxGeometry args={[0.9, 0.03, 0.12]} />
+        </mesh>
+      ))}
+      <mesh material={tunDark} position={[0, TUN_H / 2, TUN_Z0 + 2.6]}>
+        <boxGeometry args={[TUN_W, TUN_H, 0.05]} />
+      </mesh>
+    </group>
+  );
 };
 
 const LB_X = 43.9;
@@ -257,18 +337,34 @@ const ShotExit: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
   const fr = from + f;
-  const turn = smooth(clamp01(t / 0.4));
-  const away = yawFor(-1, -0.7);
-  const r = runAlong((tt) => ({x: LB_X - 3.4 * smooth(clamp01((tt - 0.3) / 1.8)), z: -2.4 * smooth(clamp01((tt - 0.3) / 1.8))}), t, 0.3);
-  const walking = t > 0.3;
-  const cam: Cam = {position: v3(LAD_X + 0.9, 2.15, 1.3), target: v3(42.2, 1.3, -1.4), fov: 44};
+  if (t < 0.8) {
+    // he looks at the card, turns, and starts walking
+    const turn = smooth(clamp01(t / 0.4));
+    const away = yawFor(-1, -0.7);
+    const r = runAlong((tt) => ({x: LB_X - 1.6 * smooth(clamp01((tt - 0.3) / 1.0)), z: -1.1 * smooth(clamp01((tt - 0.3) / 1.0))}), t, 0.3);
+    const walking = t > 0.3;
+    const cam: Cam = {position: v3(LAD_X + 0.9, 2.15, 1.3), target: v3(42.2, 1.3, -1.4), fov: 44};
+    return (
+      <Scene cam={cam} frame={fr} centre={v3(43.5, 0, -1)} extent={10} excite={0.5}>
+        <LeBron x={walking ? r.pos.x : LB_X} z={walking ? r.pos.z : 0} yaw={lerp(0, away, turn)} spec={walking ? r.spec : idleSpec(fr, 0.05)} frame={fr} />
+        <group position={[LAD_X, 0, 0]}>
+          <StepLadder />
+          <JimmyA x={0.02} y={LADDER_TOP} z={0} yaw={Math.PI} spec={{...idleSpec(fr, 0.05), nearArm: [20, 30], farArm: [8, 20]}} frame={fr} look={{...DEADPAN(0, t), yaw: 10}} />
+        </group>
+      </Scene>
+    );
+  }
+  // the tunnel: he has to duck to get in, and the dark swallows him
+  const u = t - 0.8;
+  const zAt = (tt: number) => lerp(30.6, TUN_Z0 + 2.3, clamp01(tt / 1.2));
+  const r = runAlong((tt) => ({x: TUN_X + 0.1, z: zAt(tt)}), u, 0.3);
+  const duck = smooth(clamp01((r.pos.z - (TUN_Z0 - 1.1)) / 0.7));
+  const spec: BodySpec = {...r.spec, lean: (r.spec.lean ?? 0) + 34 * duck, headTilt: (r.spec.headTilt ?? 0) + 24 * duck, near: {thigh: r.spec.near.thigh + 14 * duck, knee: r.spec.near.knee + 22 * duck}, far: {thigh: r.spec.far.thigh + 14 * duck, knee: r.spec.far.knee + 22 * duck}};
+  const cam: Cam = {position: v3(TUN_X - 2.4, 1.55, 27.6), target: v3(TUN_X, 1.35, TUN_Z0), fov: 42};
   return (
-    <Scene cam={cam} frame={fr} centre={v3(43.5, 0, -1)} extent={10} excite={0.5}>
-      <LeBron x={walking ? r.pos.x : LB_X} z={walking ? r.pos.z : 0} yaw={lerp(0, away, turn)} spec={walking ? r.spec : idleSpec(fr, 0.05)} frame={fr} />
-      <group position={[LAD_X, 0, 0]}>
-        <StepLadder />
-        <JimmyA x={0.02} y={LADDER_TOP} z={0} yaw={Math.PI} spec={{...idleSpec(fr, 0.05), nearArm: [20, 30], farArm: [8, 20]}} frame={fr} look={{...DEADPAN(0, t), yaw: 10}} />
-      </group>
+    <Scene cam={cam} frame={fr} centre={v3(TUN_X, 0, 32)} extent={10} excite={0.5}>
+      <Tunnel />
+      <LeBron x={r.pos.x} z={r.pos.z} yaw={yawFor(0, 1)} spec={spec} frame={fr} />
     </Scene>
   );
 };
