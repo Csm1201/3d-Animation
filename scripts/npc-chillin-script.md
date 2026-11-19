@@ -1,6 +1,6 @@
-# "Fantastic" (12.5-second clip)
+# "Fantastic" (13.4-second clip)
 
-**Format:** 1080×1920 vertical for TikTok/Shorts, 30 fps, 375 frames, with audio. Loops.
+**Format:** 1080×1920 vertical for TikTok/Shorts, 30 fps, 402 frames, with audio. Loops.
 **Logline:** A GTA 6-launch-day pedestrian sees the 5-star chase coming over the hill and accepts his fate.
 **Post timing:** As close to the GTA 6 launch (November 19th) as possible, while launch content is spiking.
 **Characters:** an NPC (Hawaiian shirt, sunglasses, iced coffee) · the player (a pink sports car with ★★★★★) · five police cars and a helicopter · one cop
@@ -11,7 +11,7 @@
 | Time | Shot | Action | Dialogue / On screen | Sound |
 |---|---|---|---|---|
 | 0.0–1.0 | **Hook**: wide, camera tilted up | The NPC spins high in the sky, coffee and sunglasses flying. Below him: the pink car (★★★★★), five police cars, a helicopter. Freeze on frame 20. | Text (top): **"GTA 6 pedestrians on release day:"** | Sirens, whoosh, then a record scratch on the freeze |
-| 1.0–1.5 | Same shot, rewinding | A fast rewind: he flies backwards down onto the car, the cars reverse back over the hill, and he un-sips his coffee. | Text: **"10 seconds earlier"** | Tape rewind sound |
+| 1.0–1.5 | Same shot, rewinding | A fast rewind: he flies backwards down onto the car, the cars reverse back over the hill, and he un-sips his coffee. | Text: **"6 SECONDS EARLIER"** | Tape rewind sound |
 | 1.5–3.0 | Wide, street running up to a hill | Back at the start: he strolls along the sidewalk, sipping his coffee. A faint red/blue glow appears behind the hill. | Caption from the hook stays up until 3.0s | Lazy beach music, faint sirens |
 | 3.0–4.5 | Same wide | The pink sports car flies over the crest of the hill, airborne, **★★★★★** floating above it. Five police cars and a helicopter pour over behind it. | | Engine roar, sirens get loud |
 | 4.5–6.0 | Close-up on NPC | He stops. Slowly lowers his coffee. Doesn't run. Stares at the camera. | NPC (flat, sarcastic): **"Fantastic."** | Music cuts on the word |
