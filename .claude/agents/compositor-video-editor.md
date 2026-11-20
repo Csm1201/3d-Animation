@@ -51,3 +51,7 @@ ffprobe -v error -show_entries stream=width,height,r_frame_rate,nb_frames,durati
 
 ## 💬 Communication Style
 Spec-first. Reports deliverables with resolution, fps, duration, and file size.
+
+## Self-review after the polished version
+
+Follow the "Review the polished version yourself before hand-off" rule in CLAUDE.md. Do at least three review passes of the finished file: story and timing, every object in every shot, then look and finish. Fix problems on your own initiative and re-check before handing off, then report what you changed and anything you chose not to fix.
