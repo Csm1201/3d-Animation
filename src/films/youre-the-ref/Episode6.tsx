@@ -7,7 +7,7 @@
  *   8.4  Jimmy fetches a stepladder  ·  10.0 climbs it: RED CARD  ·  12.0 LeBron walks off, gone for good
  *  14.0  3 HOURS LATER: PENS 66-65  ·  15.0 everyone keeps scoring (66-66, 67-66), Jimmy falls apart
  *  17.4  next taker places the ball: "Fuck this."  ·  19.4 Jimmy marches up, two-handed shoves him over and smashes it out of the stadium
- *  21.8  "Missed. Blue win."  ·  23.8 Jimmy walks out
+ *  21.8  "Missed. Blue win."  ·  23.5 Blue + the crowd do the 67  ·  24.5 Jimmy walks out
  *  26.0  vote: A SEASON 2 vs B JIMMY IN GTA 6
  *
  * LeBron has no lines. The island invite is NOT shown in this episode (LeBron shares scenes with Jimmy).
@@ -525,9 +525,9 @@ const sixSeven = (base: BodySpec, t: number, k: number): BodySpec => ({
   nearArm: [lerp(base.nearArm[0], 24 + 28 * Math.sin(t * 15), k), lerp(base.nearArm[1], 70, k)],
   farArm: [lerp(base.farArm[0], 24 - 28 * Math.sin(t * 15), k), lerp(base.farArm[1], 70, k)],
 });
-const SIX7_AT = 1.05; // into ShotWin: Blue (and the whole crowd) start doing the 67
+const SIX7_AT = 1.7; // into ShotWin: Blue (and the whole crowd) start doing the 67
 
-// ================================================================ SHOT 11 — "Missed. Blue win." (21.8–23.8)
+// ================================================================ SHOT 11 — "Missed. Blue win." (21.8–24.5)
 const ShotWin: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
@@ -549,11 +549,11 @@ const ShotWin: React.FC<{from: number}> = ({from}) => {
     );
   }
   const jSpec = keyedSpec([[0, {...THINK, nearArm: [150, 150]}], [0.35, {...THINK, nearArm: [150, 150]}], [0.55, POINT], [2, POINT]], t);
-  const talk = t > 0.2 && t < 2.0 ? 1 : 0;
+  const talk = t > 0.22 && t < 1.65 ? 1 : 0;
   const cam: Cam = {position: v3(38.6, 1.55, 2.6), target: v3(41.2, 1.45, 0.6), fov: 40};
-  const party = t > 0.9 ? 1 : 0;
+  const party = 0; // dead silence while he says it
   return (
-    <Scene cam={cam} frame={fr} centre={v3(42, 0, 0)} extent={12} excite={1.6} sixSeven={six}>
+    <Scene cam={cam} frame={fr} centre={v3(42, 0, 0)} extent={12} excite={0.5} sixSeven={six}>
       <JimmyA x={40.4} z={1.4} yaw={yawFor(-1.5, 0.95)} spec={jSpec} frame={fr} look={{...WORN(0.8, talk, t), yaw: 0}} />
       {[0, 1, 2].map((i) => (
         <Actor key={`b${i}`} style={BLUES[i]} x={43.2 + i * 0.9} z={-1.2 + i * 0.8} yaw={yawFor(-1, 0.4)} spec={armsUp({...idleSpec(fr + i * 7, 0.2), lift: party * Math.max(0, Math.sin((t + i * 0.3) * 9)) * 30}, t + i, party)} frame={fr} look={party ? JOY : CALM} />
@@ -565,7 +565,7 @@ const ShotWin: React.FC<{from: number}> = ({from}) => {
   );
 };
 
-// ================================================================ SHOT 12 — Jimmy walks out (23.8–26.0)
+// ================================================================ SHOT 12 — Jimmy walks out (24.5–26.0)
 const ShotLeave: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
@@ -631,8 +631,8 @@ const CUES: Cue[] = [
   {from: F(1.5), to: F(3.9), text: 'LAST TIME… DOES LEBRON MOG?', hl: {LEBRON: C.gold, 'MOG?': C.gold}},
   {from: F(5.3), to: F(6.0), text: 'MOGS.', hl: {'MOGS.': C.gold}},
   {from: F(18.6), to: F(19.4), text: 'FUCK THIS.', hl: {FUCK: C.red}},
-  {from: F(22.0), to: F(22.85), text: 'MISSED. BLUE WIN.', hl: {'BLUE': C.blue, 'WIN.': C.blue}},
-  {from: F(22.85), to: F(25.9), text: '6-7! 6-7!', hl: {'6-7!': C.blue}},
+  {from: F(22.0), to: F(23.5), text: 'MISSED. BLUE WIN.', hl: {'BLUE': C.blue, 'WIN.': C.blue}},
+  {from: F(23.5), to: F(25.9), text: '6-7! 6-7!', hl: {'6-7!': C.blue}},
   {from: F(26.1), to: F(29.4), text: "SO, REF… WHAT'S NEXT?", hl: {"NEXT?": C.yellow}},
   {from: F(29.4), to: EP6_FRAMES, text: 'A OR B IN THE COMMENTS.', hl: {A: C.yellow, B: C.yellow}},
 ];
@@ -665,10 +665,10 @@ const SOUND: Sfx[] = [
   {at: 20.55, src: 'ep5/big-kick.wav'},
   {at: 20.55, src: 'ep5/whoosh.wav', vol: 0.8},
   {at: 21.4, src: 'ep6/twinkle.wav', vol: 0.6},
-  {at: 21.9, src: 'ep5/whistle.wav', vol: 0.9},
-  {at: 22.05, src: 'ep6/j-missed.mp3'},
-  {at: 22.7, src: 'ep5/crowd-roar.wav', vol: 0.6},
-  {at: 22.85, src: 'ep6/blue-67.wav', vol: 1},
+  {at: 21.8, src: 'ep5/whistle.wav', vol: 0.7},
+  {at: 22.05, src: 'ep6/j-missed.mp3', vol: 1.3},
+  {at: 23.45, src: 'ep5/crowd-roar.wav', vol: 0.6},
+  {at: 23.5, src: 'ep6/blue-67.wav', vol: 1},
   {at: 26.0, src: 'ep5/bass-hit.wav', vol: 0.8},
   {at: 26.15, src: 'ep6/nar-vote.mp3'},
 ];
@@ -677,6 +677,7 @@ const bedVolume = (T: number) => {
   if (T >= 26.0) return 0.08;
   if (T >= 5.8 && T < 8.4) return 0.12;
   if (T >= 17.4 && T < 19.5) return 0.08;
+  if (T >= 21.9 && T < 23.5) return 0.06; // silence for "Missed. Blue win."
   if (T >= 14.0 && T < 17.4) return 0.3;
   return 0.5;
 };
@@ -694,8 +695,8 @@ const SHOTS: ShotDef[] = [
   {from: F(15.0), to: F(17.4), C: ShotMontage},
   {from: F(17.4), to: F(19.4), C: ShotPlace},
   {from: F(19.4), to: F(21.8), C: ShotRocket},
-  {from: F(21.8), to: F(23.8), C: ShotWin},
-  {from: F(23.8), to: F(26.0), C: ShotLeave},
+  {from: F(21.8), to: F(24.5), C: ShotWin},
+  {from: F(24.5), to: F(26.0), C: ShotLeave},
   {from: F(26.0), to: EP6_FRAMES, C: ShotVote},
 ];
 
