@@ -996,7 +996,7 @@ def build_heli():
     disc = new_obj('heli_blur', cyl_mesh('heli_blur', 3.8, 3.8, .01, 48), glow_mat('rotor_blur', (.05, .06, .08), .0, .12)); disc.parent = root; disc.location = (0, 0, 1.16)
     S['heli'] = root; S['rotor'] = rotor
     spot = bpy.data.lights.new('search', 'SPOT'); spot.energy = 25000; spot.spot_size = math.radians(16); spot.spot_blend = .4; spot.color = (1, .96, .85); spot.shadow_soft_size = .2
-    so = link(bpy.data.objects.new('search', spot)); S['spot'] = so
+    so = link(bpy.data.objects.new('search', spot)); so.visible_camera = False; S['spot'] = so
     beam = new_obj('beam', cyl_mesh('beam', 1.6, .12, 1.0, 32, cap=False), glow_mat('beam', (1, .97, .85), .35, .06)); S['beam'] = beam
 
 
@@ -1101,12 +1101,22 @@ COP = dict(walk=(STOP_T, 12.3), crouch=(12.3, 12.6), stand=(12.95, 13.3))
 REST_ANKLE = fk({})['ankleR'].y
 
 
+HELI_TRAIL, HELI_HOVER_Z = 14.0, 4.0
+HELI_SLOW_T = CREST_T + (-6 - CREST + HELI_TRAIL) / PINK_V   # when the chase reaches z = -6 and it starts to slow
+
+
 def heli_pos(s):
     if 8.4 <= s < STOP_T:   # low shot: buildings fill its sky, so the helicopter stays fully off screen right and only its beam shows
         return B(6 + math.sin(s * .7) * .6, 12 + math.sin(s * 1.9) * .3, lerp(-20, -13, prog(s, 8.4, 11.6)))
     if s >= STOP_T:         # cop shot: off screen
         return B(-1 + math.sin(s * .7) * .6, 10 + math.sin(s * 1.9) * .3, lerp(-20, -13, prog(s, 8.4, 11.6)))
-    return B(-2 + math.sin(s * .7) * .8, 12 + math.sin(s * 1.9) * .4, lerp(-40, 0, prog(s, 3, 9)))
+    # chase: comes over the hill with the cars, right behind the pink car, then slows to hover over the crash
+    if s < HELI_SLOW_T:
+        z = CREST + (s - CREST_T) * PINK_V - HELI_TRAIL
+    else:
+        k = prog(s, HELI_SLOW_T, HELI_SLOW_T + .9); z = -6 + (HELI_HOVER_Z + 6) * (1 - (1 - k) ** 2)
+    hv = prog(s, HELI_SLOW_T, HELI_SLOW_T + .9)   # drift left and a little lower while it hovers, so the rotor stays in the hit shot
+    return B(lerp(-1, -2.4, hv) + math.sin(s * .7) * .5, hill(z) + lerp(9, 8, hv) + math.sin(s * 1.9) * .3, z)
 
 
 def spot_pos(s):
@@ -1193,16 +1203,16 @@ def update(frame):
         c['rl'].energy = 400 if on else 0; c['bl'].energy = 0 if on else 400
     # helicopter, searchlight, beam
     # the helicopter flies low over the street so the whole body stays in frame (hook, wide and hit shots)
-    heli = S['heli']; heli.location = heli_pos(s); heli.scale = (1.3, 1.3, 1.3); heli.rotation_euler = (-.12, math.sin(s) * .05, math.pi - .5)
+    heli = S['heli']; heli.location = heli_pos(s); heli.scale = (1.3, 1.3, 1.3); heli.rotation_euler = (-.12 if s < HELI_SLOW_T else -.05, math.sin(s) * .05, math.pi - (lerp(.8, .15, prog(s, HELI_SLOW_T, HELI_SLOW_T + .9)) if s < 8.4 else .5))
     S['rotor'].rotation_euler = (0, 0, s * 38)
-    if s < T['hit']:
-        tgt = B(NPC_START_X + (min(s, T['closeStart']) - 1.5) * ((NPC_STOP_X - NPC_START_X) / 3) if s < T['closeStart'] else NPC_STOP_X, 0, 0)
+    if s < T['hit']:   # the searchlight is on the pink car it is chasing
+        tgt = B(LANE_X, py + .6, pz)
     elif s < T['land']:
         u, lx, ly, lz = npc_launch(s); tgt = B(lx, ly, lz)
     else:
         tgt = B(LANE_X, 0, LAND_Z + .2)
     # the searchlight lamp itself stays high and off screen; only the visible beam starts at the helicopter
-    lamp = spot_pos(s)
+    lamp = spot_pos(s) if s >= T['hit'] else heli.location + Vector((0, 0, -1.4))
     sp = S['spot']; sp.location = lamp; sp.rotation_euler = (tgt - lamp).to_track_quat('-Z', 'Y').to_euler()
     src = heli.location + Vector((0, 0, -1))
     beam = S['beam']; d = tgt - src

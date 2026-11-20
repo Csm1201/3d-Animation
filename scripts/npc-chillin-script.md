@@ -13,11 +13,11 @@
 | 0.0–1.0 | **Hook**: wide, camera tilted up | The NPC spins high in the sky, coffee and sunglasses flying. Below him: the pink car (★★★★★), five police cars, a helicopter. Freeze on frame 20. | Text (top): **"GTA 6 pedestrians on release day:"** | Sirens, whoosh, then a record scratch on the freeze |
 | 1.0–1.5 | Same shot, rewinding | A fast rewind: he flies backwards down onto the car, the cars reverse back over the hill, and he un-sips his coffee. | Text: **"6 SECONDS EARLIER"** | Tape rewind sound |
 | 1.5–3.0 | Wide, street running up to a hill | Back at the start: he strolls off the curb and across the road, sipping his coffee. A faint red/blue glow appears behind the hill. | Caption from the hook stays up until 3.0s | Lazy beach music, faint sirens |
-| 3.0–4.5 | Same wide | The pink sports car flies over the crest of the hill, airborne, **★★★★★** floating above it. Five police cars and a helicopter pour over behind it. | | Engine roar, sirens get loud |
+| 3.0–4.5 | Same wide | The pink sports car flies over the crest of the hill, airborne, **★★★★★** floating above it. Five police cars pour over behind it, with the helicopter right on its tail, searchlight locked on the pink car. After the hit the helicopter slows and hovers over the crash. | | Engine roar, sirens get loud |
 | 4.5–6.0 | Close-up on NPC | He stops. Slowly lowers his coffee. Doesn't run. Stares at the camera. | NPC (flat, sarcastic): **"Fantastic."** | Music cuts on the word |
 | 6.0–7.5 | Wide, camera tilts up | *BONK.* The pink car hits him. He rolls over the hood and roof and launches into the sky, the same shot as the hook, this time without the freeze. | | Bonk, whoosh |
 | 7.5–8.5 | Wide | He lands flat on his back in the middle of the road. *Splat.* Lifts his head: five sets of headlights. | | Splat, sirens swell |
-| 8.5–10.5 | Low angle down the road | All five police cars drive over him, one after another. The helicopter passes over last. | (no dialogue) | Five suspension bumps |
+| 8.5–10.5 | Low angle down the road | All five police cars drive over him, one after another. The helicopter hovers out of shot; only its searchlight beam shows. | (no dialogue) | Five suspension bumps |
 | 10.5–12.5 | Medium, road | The last police car stops. A cop jogs round with the ticket in hand, squats beside the flattened NPC, and presses the ticket onto his chest. He stands up and the ticket stays there. Hold one beat on the flat NPC with the ticket on his chest. | Cop: **"Jaywalking."** | Ticket slap |
 | 13.4–14.4 | **Title card** over the last shot, darkened | The title slams in with a pink neon glow. | **"LIFE AS A GTA 6 NPC"** | Whoosh, bright chord sting |
 
