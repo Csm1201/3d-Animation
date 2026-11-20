@@ -519,17 +519,41 @@ const ShotRocket: React.FC<{from: number}> = ({from}) => {
   );
 };
 
+/** "6 7" hands: forearms out, palms up, bobbing up and down in turn (as in Episode 5). */
+const sixSeven = (base: BodySpec, t: number, k: number): BodySpec => ({
+  ...base,
+  nearArm: [lerp(base.nearArm[0], 24 + 28 * Math.sin(t * 15), k), lerp(base.nearArm[1], 70, k)],
+  farArm: [lerp(base.farArm[0], 24 - 28 * Math.sin(t * 15), k), lerp(base.farArm[1], 70, k)],
+});
+const SIX7_AT = 1.05; // into ShotWin: Blue (and the whole crowd) start doing the 67
+
 // ================================================================ SHOT 11 — "Missed. Blue win." (21.8–23.8)
 const ShotWin: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
   const fr = from + f;
+  const six = smooth(clamp01((t - SIX7_AT) / 0.2));
+  if (t >= SIX7_AT) {
+    // cut: the whole Blue team doing the 67 at the camera, the crowd doing it behind them
+    const tt = t - SIX7_AT;
+    const cam: Cam = {position: v3(lerp(39.2, 39.6, tt), 1.45, lerp(3.4, 3.1, tt)), target: v3(43.9, 1.35, -0.8), fov: 38};
+    return (
+      <Scene cam={cam} frame={fr} centre={v3(44, 0, -1)} extent={12} excite={1.8} sixSeven={1}>
+        {BLUES.map((st, i) => {
+          const k = i - 2;
+          const x = 43.6 + 0.62 * k + (i % 2) * 0.5;
+          const z = -0.6 + 0.67 * k + (i % 2) * -0.45;
+          return <Actor key={`b${i}`} style={st} x={x} z={z} y={0.06 * Math.max(0, Math.sin(t * 15 + i))} yaw={yawFor(39.4 - x, 3.2 - z) + 0.75} spec={sixSeven(idleSpec(fr + i * 7, 0.2), t + i * 0.13, 1)} frame={fr} look={{...JOY, mouth: 'open', mouthOpen: 0.35 + 0.35 * Math.abs(Math.sin(t * 7.5 + i))}} />;
+        })}
+      </Scene>
+    );
+  }
   const jSpec = keyedSpec([[0, {...THINK, nearArm: [150, 150]}], [0.35, {...THINK, nearArm: [150, 150]}], [0.55, POINT], [2, POINT]], t);
   const talk = t > 0.2 && t < 2.0 ? 1 : 0;
   const cam: Cam = {position: v3(38.6, 1.55, 2.6), target: v3(41.2, 1.45, 0.6), fov: 40};
   const party = t > 0.9 ? 1 : 0;
   return (
-    <Scene cam={cam} frame={fr} centre={v3(42, 0, 0)} extent={12} excite={1.6}>
+    <Scene cam={cam} frame={fr} centre={v3(42, 0, 0)} extent={12} excite={1.6} sixSeven={six}>
       <JimmyA x={40.4} z={1.4} yaw={yawFor(-1.5, 0.95)} spec={jSpec} frame={fr} look={{...WORN(0.8, talk, t), yaw: 0}} />
       {[0, 1, 2].map((i) => (
         <Actor key={`b${i}`} style={BLUES[i]} x={43.2 + i * 0.9} z={-1.2 + i * 0.8} yaw={yawFor(-1, 0.4)} spec={armsUp({...idleSpec(fr + i * 7, 0.2), lift: party * Math.max(0, Math.sin((t + i * 0.3) * 9)) * 30}, t + i, party)} frame={fr} look={party ? JOY : CALM} />
@@ -549,13 +573,13 @@ const ShotLeave: React.FC<{from: number}> = ({from}) => {
   const r = runAlong((tt) => ({x: 41.0 - 2.2 * tt / 2.2, z: 1.0 + 0.4 * tt / 2.2}), t, 0.3);
   const cam: Cam = {position: v3(r.pos.x - 2.6, 1.6, r.pos.z + 0.9), target: v3(r.pos.x, 1.45, r.pos.z), fov: 42};
   return (
-    <Scene cam={cam} frame={fr} centre={v3(41, 0, 0)} extent={12} excite={1.6}>
+    <Scene cam={cam} frame={fr} centre={v3(41, 0, 0)} extent={12} excite={1.6} sixSeven={1}>
       <JimmyA x={r.pos.x} z={r.pos.z} yaw={r.yaw} spec={{...r.spec, nearArm: [-4, 20], farArm: [4, 20]}} frame={fr} look={WORN(0.9)} />
       {[0, 1, 2].map((i) => (
         <Actor key={`o${i}`} style={ORANGES[i]} x={42.6 + i * 0.7} z={-0.6 + (i % 2) * 1.3} yaw={yawFor(-1, -0.3 + i * 0.3)} spec={{...idleSpec(fr + i * 5, 0.2), nearArm: [120 + 30 * Math.sin(t * 8 + i), 40], farArm: [110, 50]}} frame={fr} look={ANGRY(t + i)} />
       ))}
-      {[0, 1].map((i) => (
-        <Actor key={`b${i}`} style={BLUES[i + 2]} x={43.0 + i * 0.9} z={1.6 + i * 0.5} yaw={yawFor(-1, -0.4)} spec={armsUp({...idleSpec(fr + i * 7, 0.2), lift: Math.max(0, Math.sin((t + i * 0.3) * 9)) * 30}, t + i)} frame={fr} look={JOY} />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Actor key={`b${i}`} style={BLUES[i]} x={[44.4, 45.2, 44.9, 45.6, 44.2][i]} z={[-1.5, -0.1, 1.2, 0.9, 0.15][i]} yaw={yawFor(-1, 0.3)} spec={sixSeven(idleSpec(fr + i * 7, 0.2), t + 2 + i * 0.13, 1)} frame={fr} look={{...JOY, mouth: 'open', mouthOpen: 0.35 + 0.35 * Math.abs(Math.sin(t * 7.5 + i))}} />
       ))}
     </Scene>
   );
@@ -607,7 +631,8 @@ const CUES: Cue[] = [
   {from: F(1.5), to: F(3.9), text: 'LAST TIME… DOES LEBRON MOG?', hl: {LEBRON: C.gold, 'MOG?': C.gold}},
   {from: F(5.3), to: F(6.0), text: 'MOGS.', hl: {'MOGS.': C.gold}},
   {from: F(18.6), to: F(19.4), text: 'FUCK THIS.', hl: {FUCK: C.red}},
-  {from: F(22.0), to: F(23.8), text: 'MISSED. BLUE WIN.', hl: {'BLUE': C.blue, 'WIN.': C.blue}},
+  {from: F(22.0), to: F(22.85), text: 'MISSED. BLUE WIN.', hl: {'BLUE': C.blue, 'WIN.': C.blue}},
+  {from: F(22.85), to: F(25.9), text: '6-7! 6-7!', hl: {'6-7!': C.blue}},
   {from: F(26.1), to: F(29.4), text: "SO, REF… WHAT'S NEXT?", hl: {"NEXT?": C.yellow}},
   {from: F(29.4), to: EP6_FRAMES, text: 'A OR B IN THE COMMENTS.', hl: {A: C.yellow, B: C.yellow}},
 ];
@@ -642,7 +667,8 @@ const SOUND: Sfx[] = [
   {at: 21.4, src: 'ep6/twinkle.wav', vol: 0.6},
   {at: 21.9, src: 'ep5/whistle.wav', vol: 0.9},
   {at: 22.05, src: 'ep6/j-missed.mp3'},
-  {at: 22.7, src: 'ep5/crowd-roar.wav', vol: 0.8},
+  {at: 22.7, src: 'ep5/crowd-roar.wav', vol: 0.6},
+  {at: 22.85, src: 'ep6/blue-67.wav', vol: 1},
   {at: 26.0, src: 'ep5/bass-hit.wav', vol: 0.8},
   {at: 26.15, src: 'ep6/nar-vote.mp3'},
 ];
