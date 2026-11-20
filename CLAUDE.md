@@ -13,3 +13,12 @@
 - Never put real people in scenes with Epstein.
 - Don't overuse catchphrases: "MOGGED" appears once at most.
 - Voices are generic stock voices, never imitations of real people.
+
+## Self-review before delivery
+
+- **Review every final render yourself, more than once.** When the polished render is done, go over the whole video at least three times before sending it, without waiting to be asked:
+  1. **Picture:** a contact sheet of one frame per second, then close-up stills of every key beat. Check framing, characters hidden or clipping, anything cut off by captions or overlays, and continuity (scores, props, who's where).
+  2. **Sound:** transcribe the audio and check every line is there, clear and on time. Check nothing is buried under crowd noise, and that removed lines are really gone.
+  3. **Story and rules:** the hook rule, the series rules, the latest script and every change the user asked for.
+- **Fix what you find before delivering.** Re-render, then review the new render the same way.
+- **Report it.** When you send the video, list what the review caught and changed, and anything still open.
