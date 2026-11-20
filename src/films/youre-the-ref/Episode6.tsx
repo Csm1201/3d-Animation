@@ -664,8 +664,8 @@ const SOUND: Sfx[] = [
   {at: 19.9, src: 'ep5/crowd-gasp.wav', vol: 0.8},
   {at: 20.55, src: 'ep5/big-kick.wav'},
   {at: 20.55, src: 'ep5/whoosh.wav', vol: 0.8},
-  {at: 21.4, src: 'ep6/twinkle.wav', vol: 0.6},
-  {at: 21.8, src: 'ep5/whistle.wav', vol: 0.7},
+  {at: 21.2, src: 'ep6/twinkle.wav', vol: 0.6},
+  {at: 21.35, src: 'ep5/whistle.wav', vol: 0.7}, // done before "Missed"
   {at: 22.05, src: 'ep6/j-missed.mp3', vol: 1.3},
   {at: 23.45, src: 'ep5/crowd-roar.wav', vol: 0.6},
   {at: 23.5, src: 'ep6/blue-67.wav', vol: 1},
