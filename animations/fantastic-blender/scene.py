@@ -1102,6 +1102,8 @@ REST_ANKLE = fk({})['ankleR'].y
 
 
 def heli_pos(s):
+    if s >= 8.4:   # low shot onwards: hovers further down the road, fully in frame behind the cars running him over
+        return B(-1 + math.sin(s * .7) * .6, 10 + math.sin(s * 1.9) * .3, lerp(-20, -13, prog(s, 8.4, 11.6)))
     return B(-2 + math.sin(s * .7) * .8, 12 + math.sin(s * 1.9) * .4, lerp(-40, 0, prog(s, 3, 9)))
 
 
