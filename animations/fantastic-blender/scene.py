@@ -1102,7 +1102,9 @@ REST_ANKLE = fk({})['ankleR'].y
 
 
 def heli_pos(s):
-    if s >= 8.4:   # low shot onwards: hovers further down the road, fully in frame behind the cars running him over
+    if 8.4 <= s < STOP_T:   # low shot: buildings fill its sky, so the helicopter stays fully off screen right and only its beam shows
+        return B(6 + math.sin(s * .7) * .6, 12 + math.sin(s * 1.9) * .3, lerp(-20, -13, prog(s, 8.4, 11.6)))
+    if s >= STOP_T:         # cop shot: off screen
         return B(-1 + math.sin(s * .7) * .6, 10 + math.sin(s * 1.9) * .3, lerp(-20, -13, prog(s, 8.4, 11.6)))
     return B(-2 + math.sin(s * .7) * .8, 12 + math.sin(s * 1.9) * .4, lerp(-40, 0, prog(s, 3, 9)))
 
@@ -1249,7 +1251,7 @@ def update(frame):
     # landing dust
     k2 = prog(s, T['land'], T['land'] + .8)
     for k, o in enumerate(S['dust']):
-        o.hide_render = not (s >= T['land'] and k2 < 1)
+        o.hide_render = True   # the translucent puffs read as bubbles, not dust
         a = k * math.pi / 5
         o.location = B(LANE_X + math.cos(a) * (.5 + k2 * 1.8), .25 + k2 * .5, LAND_Z + math.sin(a) * (.5 + k2 * 1.8))
         o.scale = (.35 + k2 * .9,) * 3
@@ -1262,7 +1264,7 @@ def update(frame):
 
 
 SHOTS = dict(wide=((-.6, 1.75, 17), (-2.6, 2.4, -60), 52), close=((-1.05, 1.72, 1.85), (-2.0, 1.66, 0), 38),
-             hit=((2.6, 1.6, 24), (-2, 1.6, 0), 52), land=((4.2, 1.6, 21), (-1.8, .4, 14), 52),
+             hit=((2.6, 1.6, 24), (-2, 1.6, 0), 52), land=((2.6, 1.8, 21), (-1.8, .4, 14), 52),
              low=((2.6, .55, 20.5), (-1.8, .4, 13.2), 60), cop=((3.2, 1.5, 17.0), (-1.2, .5, 13.9), 50))
 HOOK_POS = (1.4, 1.35, 27)
 
