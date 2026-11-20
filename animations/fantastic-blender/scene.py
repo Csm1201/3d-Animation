@@ -1101,6 +1101,14 @@ COP = dict(walk=(STOP_T, 12.3), crouch=(12.3, 12.6), stand=(12.95, 13.3))
 REST_ANKLE = fk({})['ankleR'].y
 
 
+def heli_pos(s):
+    return B(-2 + math.sin(s * .7) * .8, 12 + math.sin(s * 1.9) * .4, lerp(-40, 0, prog(s, 3, 9)))
+
+
+def spot_pos(s):
+    return B(9 + math.sin(s * .7) * 1.5, 24 + math.sin(s * 1.9) * .4, lerp(-30, 10, prog(s, 3, 9))) + Vector((0, 0, -1))
+
+
 def npc_flat(s):
     f = 1.0
     for b in BUMPS:
@@ -1180,8 +1188,8 @@ def update(frame):
         set_emit(c['red'], 25 if on else .5); set_emit(c['blue'], .5 if on else 25)
         c['rl'].energy = 400 if on else 0; c['bl'].energy = 0 if on else 400
     # helicopter, searchlight, beam
-    hz = lerp(-30, 10, prog(s, 3, 9)); hx = 9 + math.sin(s * .7) * 1.5
-    heli = S['heli']; heli.location = B(hx, 24 + math.sin(s * 1.9) * .4, hz); heli.rotation_euler = (-.12, math.sin(s) * .05, math.pi - .5)
+    # the helicopter flies low over the street so the whole body stays in frame (hook, wide and hit shots)
+    heli = S['heli']; heli.location = heli_pos(s); heli.scale = (1.3, 1.3, 1.3); heli.rotation_euler = (-.12, math.sin(s) * .05, math.pi - .5)
     S['rotor'].rotation_euler = (0, 0, s * 38)
     if s < T['hit']:
         tgt = B(NPC_START_X + (min(s, T['closeStart']) - 1.5) * ((NPC_STOP_X - NPC_START_X) / 3) if s < T['closeStart'] else NPC_STOP_X, 0, 0)
@@ -1189,8 +1197,10 @@ def update(frame):
         u, lx, ly, lz = npc_launch(s); tgt = B(lx, ly, lz)
     else:
         tgt = B(LANE_X, 0, LAND_Z + .2)
+    # the searchlight lamp itself stays high and off screen; only the visible beam starts at the helicopter
+    lamp = spot_pos(s)
+    sp = S['spot']; sp.location = lamp; sp.rotation_euler = (tgt - lamp).to_track_quat('-Z', 'Y').to_euler()
     src = heli.location + Vector((0, 0, -1))
-    sp = S['spot']; sp.location = src; sp.rotation_euler = (tgt - src).to_track_quat('-Z', 'Y').to_euler()
     beam = S['beam']; d = tgt - src
     beam.location = (src + tgt) / 2; beam.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler(); beam.scale = (1, 1, d.length)
     beam.hide_render = s <= 3
