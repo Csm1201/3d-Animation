@@ -3,10 +3,10 @@
  *
  *   0.0  HOOK: Jimmy on a wobbly stepladder, red card in LeBron's face, at eye level at last
  *   1.4  ◀◀ LAST TIME: "does LeBron mog?"
- *   3.9  tape measure: "Mogs."  ·  6.0 the red card reaches his belly button: "...It has to be seen."
+ *   3.9  tape measure: "Mogs."  ·  6.0 the red card only reaches his belly button (silent beat, one cricket)
  *   8.4  Jimmy fetches a stepladder  ·  10.0 climbs it: RED CARD  ·  12.0 LeBron walks off, gone for good
  *  14.0  3 HOURS LATER: PENS 66-65  ·  15.0 everyone keeps scoring (66-66, 67-66), Jimmy falls apart
- *  17.4  next taker places the ball: "Fuck this."  ·  19.4 Jimmy shoves him and smashes it out of the stadium
+ *  17.4  next taker places the ball: "Fuck this."  ·  19.4 Jimmy marches up, two-handed shoves him over and smashes it out of the stadium
  *  21.8  "Missed. Blue win."  ·  23.8 Jimmy walks out
  *  26.0  vote: A SEASON 2 vs B JIMMY IN GTA 6
  *
@@ -256,14 +256,14 @@ const ShotMeasure: React.FC<{from: number}> = ({from}) => {
   );
 };
 
-// ================================================================ SHOT 3 — belly button (6.0–8.4): "...It has to be seen."
+// ================================================================ SHOT 3 — belly button (6.0–8.4): silent beat
 const ShotBelly: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
   const fr = from + f;
   const raise = smooth(clamp01((t - 0.1) / 0.35));
   const jSpec: BodySpec = {...idleSpec(fr, 0.05), headTilt: -22, nearArm: [lerp(10, 92, raise), lerp(30, 4, raise)], farArm: [8, 20]};
-  const talk = t > 1.0 && t < 2.3 ? 1 : 0;
+  const talk = 0; // no line here: just the silent stare
   const cam: Cam = {position: v3(44.3, 0.95, 4.2), target: v3(44.35, 1.45, 0), fov: 42};
   return (
     <Scene cam={cam} frame={fr} centre={v3(44.5, 0, 0)} extent={8} excite={0.3}>
@@ -450,30 +450,62 @@ const ShotPlace: React.FC<{from: number}> = ({from}) => {
 };
 
 // ================================================================ SHOT 10 — Jimmy takes it (19.4–21.8): shove, rocket, out of the stadium
-const KT = 0.95;
+// 0–0.42 Jimmy marches up to the taker · 0.42–0.6 two-handed shove (contact ~0.47) · 0.6–KT run-up · KT kick
+const KT = 1.15;
+const FLY = 1.2;
+const SH_AT = 0.47;
 const ShotRocket: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const t = f / EP6_FPS;
   const fr = from + f;
-  const path = (tt: number) => ({x: lerp(39.5, SPOT.x - 0.58, smooth(clamp01(tt / KT))), z: lerp(1.6, 0.52, smooth(clamp01(tt / KT)))});
-  const r = runAlong(path, Math.min(t, KT - 0.1), 0.95);
-  const jSpec = t < KT - 0.18 ? {...r.spec, nearArm: (t > 0.25 && t < 0.5 ? [95, 5] : r.spec.nearArm) as [number, number]} : keyedSpec([[KT - 0.18, KICK_BACK], [KT, KICK_HIT], [KT + 0.3, KICK_FOLLOW], [KT + 1.0, {...KICK_FOLLOW, lift: 0}]], t);
-  const jPos = t < KT - 0.1 ? r.pos : path(KT);
-  // the taker, shoved flying sideways at 0.35
-  const sh = smooth(clamp01((t - 0.35) / 0.5));
-  const takerX = SPOT.x - 1.6 + 0.3 * sh;
-  const takerZ = 0.0 - 1.8 * sh;
+  const TK = {x: 39.9, z: 0.1}; // the taker, stood back for his run-up
+  const SHOVE_AT = {x: 39.85, z: 0.88}; // where Jimmy plants to shove him
+  const walk = (tt: number) => ({x: lerp(39.0, SHOVE_AT.x, smooth(clamp01(tt / 0.42))), z: lerp(2.2, SHOVE_AT.z, smooth(clamp01(tt / 0.42)))});
+  const run = (tt: number) => {
+    const k = smooth(clamp01((tt - 0.6) / (KT - 0.6)));
+    return {x: lerp(SHOVE_AT.x, SPOT.x - 0.58, k), z: lerp(SHOVE_AT.z, 0.52, k)};
+  };
+  // the shove: both arms straight out, a lunge into him
+  const push = Math.sin(Math.PI * clamp01((t - 0.36) / 0.3));
+  const SHOVE: BodySpec = {lean: 16, headTilt: -6, near: {thigh: 26, knee: 22, foot: 0}, far: {thigh: -22, knee: 10, foot: 0}, nearArm: [86, 4], farArm: [84, 6]};
+  let jSpec: BodySpec;
+  let jPos: {x: number; z: number};
+  let jYaw: number;
+  if (t < 0.6) {
+    const w = runAlong(walk, Math.min(t, 0.4), 0.5);
+    jPos = walk(t);
+    jYaw = yawFor(TK.x - jPos.x + 0.05, TK.z - jPos.z);
+    jSpec = lerpSpec(w.spec, SHOVE, clamp01((t - 0.3) / 0.12) * (t < 0.5 ? 1 : 1 - 0.6 * clamp01((t - 0.5) / 0.1)));
+    jPos = {x: jPos.x, z: jPos.z - 0.12 * push};
+  } else if (t < KT - 0.18) {
+    const r = runAlong(run, t, 0.95);
+    jPos = r.pos;
+    jYaw = r.yaw;
+    jSpec = r.spec;
+  } else {
+    jPos = run(KT);
+    jYaw = 0;
+    jSpec = keyedSpec([[KT - 0.18, KICK_BACK], [KT, KICK_HIT], [KT + 0.3, KICK_FOLLOW], [KT + 1.0, {...KICK_FOLLOW, lift: 0}]], t);
+  }
+  // the taker: knocked flying sideways at contact, tumbling across the grass
+  const sh = smooth(clamp01((t - SH_AT) / 0.55));
+  const jolt = clamp01((t - SH_AT) / 0.08);
+  const takerX = TK.x + 0.4 * sh;
+  const takerZ = TK.z - 2.2 * sh;
+  const takerSpec = t < SH_AT
+    ? {...idleSpec(fr, 0.1), headTilt: -4}
+    : lerpSpec({...idleSpec(fr, 0.1), lean: -14, headTilt: 18, nearArm: [-35, 75], farArm: [-25, 85]}, {...idleSpec(fr, 0.1), lean: -6, nearArm: [-60, 70], farArm: [40, 80], near: {thigh: 30, knee: 30}, far: {thigh: -20, knee: 20}}, sh);
   // the ball: rockets up and over the stand behind the goal
-  const u = clamp01((t - KT) / 1.35);
+  const u = clamp01((t - KT) / FLY);
   const ball = t < KT ? v3(SPOT.x, BALL_R, SPOT.z) : v3(lerp(SPOT.x, 92, u), BALL_R + 30 * (1 - (1 - u) * (1 - u)) * 0.9, lerp(0, -3, u));
   const follow = smooth(clamp01((t - KT - 0.15) / 0.5));
-  const camTarget = v3(40.8, 1.0, 0.6).lerp(v3(58, 9, -1), follow);
-  const cam: Cam = {position: v3(lerp(39.6, 36.5, follow), lerp(1.4, 1.3, follow), lerp(5.2, 2.6, follow)), target: camTarget, fov: lerp(44, 50, follow)};
-  const ballAt = (tt: number) => { const uu = clamp01((tt - KT) / 1.35); return v3(lerp(SPOT.x, 92, uu), BALL_R + 30 * (1 - (1 - uu) * (1 - uu)) * 0.9, lerp(0, -3, uu)); };
+  const camTarget = v3(40.3, 1.0, 0.5).lerp(v3(58, 9, -1), follow);
+  const cam: Cam = {position: v3(lerp(36.6, 36.5, follow), lerp(1.55, 1.3, follow), lerp(3.6, 2.6, follow)), target: camTarget, fov: lerp(46, 50, follow)};
+  const ballAt = (tt: number) => { const uu = clamp01((tt - KT) / FLY); return v3(lerp(SPOT.x, 92, uu), BALL_R + 30 * (1 - (1 - uu) * (1 - uu)) * 0.9, lerp(0, -3, uu)); };
   return (
     <Scene cam={cam} frame={fr} centre={v3(44, 0, 0)} extent={14} excite={t > KT ? 1.8 : 0.6}>
-      <JimmyA x={jPos.x} z={jPos.z} yaw={t < KT - 0.1 ? r.yaw : 0} spec={jSpec} frame={fr} look={{...WORN(0.8), brows: -0.9, browLift: -0.3, mouth: 'frown'}} />
-      <Actor style={TAKER} x={takerX} z={takerZ} y={0.35 * Math.sin(Math.PI * sh)} yaw={0} roll={80 * sh} spec={lerpSpec(idleSpec(fr, 0.1), {...idleSpec(fr, 0.1), nearArm: [150, 30], farArm: [140, 30]}, sh)} frame={fr} look={{...CALM, brows: 0.8, browLift: 0.8, mouth: 'open', mouthOpen: 0.6}} />
+      <JimmyA x={jPos.x} z={jPos.z} yaw={jYaw} spec={jSpec} frame={fr} look={{...WORN(0.8), brows: -0.9, browLift: -0.3, mouth: 'frown'}} />
+      <Actor style={TAKER} x={takerX} z={takerZ} y={0.4 * Math.sin(Math.PI * sh)} yaw={0} roll={85 * sh + 6 * jolt * (1 - sh)} spec={takerSpec} frame={fr} look={t < SH_AT ? CALM : {...CALM, brows: 0.8, browLift: 0.8, mouth: 'open', mouthOpen: 0.7}} />
       <Ball pos={ball} spin={t > KT ? t * 40 : 0} axisYaw={0} />
       {t > KT + 0.08
         ? [0, 0.03, 0.06, 0.09, 0.12, 0.15].map((d, i) => (
@@ -532,7 +564,7 @@ const ShotLeave: React.FC<{from: number}> = ({from}) => {
 // ================================================================ SHOT 13 — the vote (26.0–33.6): A SEASON 2 vs B JIMMY IN GTA 6
 const EP6_ENDING: EndingCfg = {
   a: {title: 'SEASON 2', sub: 'back to the stadium'},
-  b: {title: 'JIMMY IN GTA 6', sub: 'Jimmy refs the police chase'},
+  b: {title: 'JIMMY IN GTA 6', sub: ''},
   commentAt: 3.2,
   nextAt: 5.6,
   nextLabel: 'YOU DECIDE',
@@ -574,7 +606,6 @@ const C = {orange: '#ff8a2a', blue: '#5a95ff', red: '#ff4d4d', green: '#45e070',
 const CUES: Cue[] = [
   {from: F(1.5), to: F(3.9), text: 'LAST TIME… DOES LEBRON MOG?', hl: {LEBRON: C.gold, 'MOG?': C.gold}},
   {from: F(5.3), to: F(6.0), text: 'MOGS.', hl: {'MOGS.': C.gold}},
-  {from: F(7.0), to: F(8.4), text: '…IT HAS TO BE SEEN.'},
   {from: F(18.6), to: F(19.4), text: 'FUCK THIS.', hl: {FUCK: C.red}},
   {from: F(22.0), to: F(23.8), text: 'MISSED. BLUE WIN.', hl: {'BLUE': C.blue, 'WIN.': C.blue}},
   {from: F(26.1), to: F(29.4), text: "SO, REF… WHAT'S NEXT?", hl: {"NEXT?": C.yellow}},
@@ -591,7 +622,6 @@ const SOUND: Sfx[] = [
   {at: 4.05, src: 'ep6/zip.wav', vol: 0.6},
   {at: 5.3, src: 'ep6/j-mogs.mp3'},
   {at: 6.5, src: 'ep6/cricket.wav', vol: 0.45},
-  {at: 7.0, src: 'ep6/j-seen.mp3'},
   {at: 8.8, src: 'ep6/steps.wav', vol: 0.5},
   {at: 9.4, src: 'ep6/steps.wav', vol: 0.5},
   {at: 11.0, src: 'ep5/whistle.wav', vol: 0.9},
@@ -605,10 +635,11 @@ const SOUND: Sfx[] = [
   {at: 16.7, src: 'ep5/net.wav', vol: 0.7},
   {at: 16.7, src: 'ep6/ding.wav', vol: 0.5},
   {at: 18.65, src: 'ep6/j-fuck.mp3'},
-  {at: 19.75, src: 'ep5/crowd-gasp.wav', vol: 0.8},
-  {at: 20.35, src: 'ep5/big-kick.wav'},
-  {at: 20.35, src: 'ep5/whoosh.wav', vol: 0.8},
-  {at: 21.25, src: 'ep6/twinkle.wav', vol: 0.6},
+  {at: 19.87, src: 'ep5/stamp.wav', vol: 0.9},
+  {at: 19.9, src: 'ep5/crowd-gasp.wav', vol: 0.8},
+  {at: 20.55, src: 'ep5/big-kick.wav'},
+  {at: 20.55, src: 'ep5/whoosh.wav', vol: 0.8},
+  {at: 21.4, src: 'ep6/twinkle.wav', vol: 0.6},
   {at: 21.9, src: 'ep5/whistle.wav', vol: 0.9},
   {at: 22.05, src: 'ep6/j-missed.mp3'},
   {at: 22.7, src: 'ep5/crowd-roar.wav', vol: 0.8},
@@ -678,9 +709,9 @@ export const Episode6: React.FC = () => {
 
       {/* titles */}
       {inRange(frame, F(11.0), F(12.0)) ? <BigTitle text="RED CARD" frame={frame - F(11.0)} fps={fps} top={300} size={140} rot={-6} color="#ffffff" stroke="#e5262b" /> : null}
-      {inRange(frame, F(20.9), F(21.8)) ? <BigTitle text="OUT OF THE STADIUM" frame={frame - F(20.9)} fps={fps} top={320} size={72} rot={-4} color="#ffd23a" /> : null}
-      {inRange(frame, F(21.0), F(21.8)) ? (
-        <div style={{position: 'absolute', left: 700, top: 200, fontSize: 90, color: '#fff', transform: `scale(${interpolate(frame, [F(21.15), F(21.3), F(21.6)], [0, 1.4, 0.6], clampO)}) rotate(${frame * 9}deg)`, textShadow: '0 0 30px #fff'}}>✦</div>
+      {inRange(frame, F(21.05), F(21.8)) ? <BigTitle text="OUT OF THE STADIUM" frame={frame - F(21.05)} fps={fps} top={320} size={72} rot={-4} color="#ffd23a" /> : null}
+      {inRange(frame, F(21.2), F(21.8)) ? (
+        <div style={{position: 'absolute', left: 700, top: 200, fontSize: 90, color: '#fff', transform: `scale(${interpolate(frame, [F(21.35), F(21.47), F(21.75)], [0, 1.4, 0.6], clampO)}) rotate(${frame * 9}deg)`, textShadow: '0 0 30px #fff'}}>✦</div>
       ) : null}
 
       {flash || vote || board ? null : <Badge episode={6} />}
