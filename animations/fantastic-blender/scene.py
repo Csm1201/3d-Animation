@@ -726,7 +726,7 @@ def fk(pose):
         knee = hip + rh @ Vector((0, -.45, 0))
         rk = rh @ R(pose.get('knee' + side, 0))
         ankle = knee + rk @ Vector((0, -.44, 0))
-        toe = ankle + rk @ Vector((0, -.04, .17))
+        toe = ankle + (Vector((0, -.06, .17)) if pose.get('flatfeet') else rk @ Vector((0, -.04, .17)))
         P['hip' + side], P['knee' + side], P['ankle' + side], P['toe' + side] = hip, knee, ankle, toe
         sh = Vector((s * .2, 1.46 + by, 0))
         rs = R(-pose.get('sh' + side, 0), 0, s * pose.get('shz' + side, .08))
@@ -736,6 +736,13 @@ def fk(pose):
         hand = wr + re @ Vector((0, -.08, 0))
         P['sh' + side], P['el' + side], P['wr' + side], P['hand' + side] = sh, el, wr, hand
         P['sleeve' + side] = sh + rs @ Vector((0, -.13, 0))
+    P['badge'] = Vector((.09, 1.38 + by, .115))
+    bend = pose.get('bend', 0.0)
+    if bend:   # bow forward at the waist: everything above the pelvis rotates about the hips
+        piv = Vector((0, .96 + by, 0)); rb = R(bend)
+        for k in list(P):
+            if not k.startswith(('hip', 'knee', 'ankle', 'toe', 'pelvis')):
+                P[k] = piv + rb @ (P[k] - piv)
     return P
 
 
@@ -788,12 +795,13 @@ def apply_person(parts, root_m, pose, head_rot=(0, 0, 0), mouth=1.0):
         # point the shoe along the foot
         fm = toe.to_track_quat('-Y', 'Z').to_matrix().to_4x4(); fm.translation = W['ankle' + s_] + toe * .45
         parts['shoe' + s_].matrix_world = fm @ Matrix.Diagonal(Vector((sc.x, sc.x, sc.y, 1)))
-    hm = M @ Matrix.Translation(P['headb'] + Vector((0, .1, 0))) @ Euler(head_rot, 'XYZ').to_matrix().to_4x4() @ CONV.inverted()
+    bend = pose.get('bend', 0.0)
+    hm = M @ Matrix.Translation(P['headb'] + Matrix.Rotation(bend, 3, 'X') @ Vector((0, .1, 0))) @ Euler((head_rot[0] + bend, head_rot[1], head_rot[2]), 'XYZ').to_matrix().to_4x4() @ CONV.inverted()
     parts['head'].matrix_world = hm
     parts['mouth'].scale = (1, 1, mouth)
     bob = Vector((0, pose.get('bob', 0), 0))
     if 'badge' in parts:
-        parts['badge'].matrix_world = M @ Matrix.Translation(Vector((.09, 1.38, .115)) + bob) @ CONV.inverted()
+        parts['badge'].matrix_world = M @ Matrix.Translation(P['badge']) @ Matrix.Rotation(bend, 4, 'X') @ CONV.inverted()
         parts['belt'].matrix_world = tm @ Matrix.Translation(Vector((0, 0, .05)))
     if 'phone' in parts:
         parts['phone'].matrix_world = M @ Matrix.Translation(P['handR'] + Vector((0, .02, .03))) @ CONV.inverted()
@@ -1089,6 +1097,10 @@ def npc_launch(s):
     return u, lerp(NPC_STOP_X, LANE_X + .3, u), 15 * 4 * u * (1 - u), lerp(0, LAND_Z, u)
 
 
+COP = dict(walk=(STOP_T, 12.3), crouch=(12.3, 12.6), stand=(12.95, 13.3))
+REST_ANKLE = fk({})['ankleR'].y
+
+
 def npc_flat(s):
     f = 1.0
     for b in BUMPS:
@@ -1182,24 +1194,46 @@ def update(frame):
     beam = S['beam']; d = tgt - src
     beam.location = (src + tgt) / 2; beam.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler(); beam.scale = (1, 1, d.length)
     beam.hide_render = s <= 3
-    # cop on foot
+    # cop on foot: jogs round the NPC's feet, squats beside him, presses the ticket onto his chest and leaves it there
     cop = S['cop']; vis = s >= STOP_T
     for o in all_objects(cop):
         o.hide_render = not vis
-    if vis:
-        wk = prog(s, STOP_T, STOP_T + .6)
-        x = lerp(LANE_X + 1.4, LANE_X + .85, wk); z = lerp(LAND_Z + 5.5, LAND_Z + .1, wk)
-        ry = math.pi if wk < 1 else -math.pi / 2 + .25
-        pose = pose_of('walk' if wk < 1 else 'stand', s * 7)
-        if wk >= 1:
-            sk = prog(s, T['slap'] - .25, T['slap'])
-            pose.update(shR=lerp(.2, 1.3, math.sin(math.pi * sk * .5)), elR=lerp(.3, .2, sk))
-        jm = 5 if (T['jay'] <= t < T['jay'] + .85 and int(t * 12) % 2) else 1
-        apply_person(cop, person_root(x, 0, z, ry), pose, (.35 if wk >= 1 else 0, 0, 0), jm)
-    tk = S['ticket']; tk.hide_render = s < T['slap']
+    f = npc_flat(s)
+    chest = Vector((LANE_X + .2, .2 * f + .06, LAND_Z - .4))
+    ticket_on = (chest.x, chest.y - .02, chest.z)
+    tk = S['ticket']; tk.hide_render = s < STOP_T
     for ch in tk.children:
         ch.hide_render = tk.hide_render
-    tk.location = B(LANE_X + .2, .2 * npc_flat(s) + .04, LAND_Z - .3); tk.rotation_euler = (0, 0, math.pi + .25)
+    tk.location = B(*ticket_on); tk.rotation_euler = (0, 0, math.pi + .25)
+    if vis:
+        path = [(LANE_X + 1.3, LAND_Z + 3.8), (LANE_X - .75, LAND_Z + 1.7), (chest.x - .45, chest.z + .2)]
+        w0, w1 = COP['walk']
+        u = prog(s, w0, w1) * 2; seg = min(int(u), 1); k = u - seg
+        a, b = path[seg], path[seg + 1]
+        x, z = lerp(a[0], b[0], k), lerp(a[1], b[1], k)
+        walking = s < w1
+        ry = math.atan2(b[0] - a[0], b[1] - a[1])
+        c0, c1 = COP['crouch']; d0, d1 = COP['stand']
+        kc = ease(prog(s, c0, c1)) * (1 - ease(prog(s, d0, d1)))      # 0 standing .. 1 squatting
+        if not walking:
+            ry = lerp(ry, math.pi / 2, ease(prog(s, w1, c1)))
+        if walking:
+            pose = pose_of('walk', s * 9, .9)
+            pose.update(shR=.2, elR=.9)
+        else:
+            reach = ease(prog(s, T['slap'] - .2, T['slap'])) * (1 - ease(prog(s, d0, d1)))
+            pose = dict(hipL=.96 * kc, hipR=.96 * kc, kneeL=1.92 * kc, kneeR=1.92 * kc, bend=1.1 * kc, flatfeet=True,
+                        shL=.25 * kc, elL=.6 * kc, shzL=.15,
+                        shR=lerp(lerp(.2, .75, kc), 1.0, reach), elR=lerp(lerp(.9, .95, kc), .15, reach))
+        drop = REST_ANKLE - fk(pose)['ankleR'].y
+        jm = 5 if (T['jay'] <= t < T['jay'] + .85 and int(t * 12) % 2) else 1
+        P, M = apply_person(cop, person_root(x, drop, z, ry), pose, (lerp(.35, -.25, kc), 0, 0), jm)
+        # the ticket is in his hand until it is slapped down, then it stays on the chest
+        if s < T['slap']:
+            hand = (M @ (P['handR'] + Vector((0, -.04, .08))).to_4d()).to_3d()
+            k2 = ease(prog(s, T['slap'] - .15, T['slap']))
+            tk.location = hand.lerp(B(*ticket_on), k2)
+            tk.rotation_euler = Euler((lerp(math.pi / 2, 0, k2), 0, lerp(math.pi / 2 + ry, math.pi + .25, k2)), 'XYZ')
     # landing dust
     k2 = prog(s, T['land'], T['land'] + .8)
     for k, o in enumerate(S['dust']):
