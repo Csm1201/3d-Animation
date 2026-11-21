@@ -13,42 +13,104 @@
 (() => {
 const W = 1080, H = 1920, DUR = 14.4;
 const T = { hookEnd: 0.67, freezeEnd: 1.0, rewindEnd: 1.5, fant: 4.55, jay: 12.0, title: 13.4 };
-const FONT = '"Inter Display", "DejaVu Sans", sans-serif';
+const HEAD = '"Anton", "Inter Display", sans-serif';      // condensed, heavy: hook text and captions
+const PUNCH = '"Bangers", "Anton", sans-serif';            // comic punch: title and rewind stamp
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const prog = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const lerp = (a, b, k) => a + (b - a) * k;
 const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+const backOut = x => { const c = 2.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };   // overshoot pop
 const octx = document.getElementById('c').getContext('2d');
-// ---------- overlays ----------
-function outlined(text, x, y, size, fill, weight = 900) {
-  octx.font = `${weight} ${size}px ${FONT}`; octx.textAlign = 'center'; octx.textBaseline = 'middle';
-  octx.lineJoin = 'round'; octx.lineWidth = size * .16; octx.strokeStyle = '#000'; octx.strokeText(text, x, y);
-  octx.fillStyle = fill; octx.fillText(text, x, y);
+const fonts = [new FontFace('Anton', 'url(fonts/anton.woff2)'), new FontFace('Bangers', 'url(fonts/bangers.woff2)')];
+const fontsReady = Promise.all(fonts.map(f => f.load().then(ff => document.fonts.add(ff))));
+// ---------- text helpers ----------
+// thick black outline + hard drop shadow: reads on any background, even a phone in sunlight
+function bold(text, x, y, size, fill, face = HEAD, opts = {}) {
+  const c = octx; c.save();
+  c.font = `${size}px ${face}`; c.textAlign = opts.align || 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+  const sh = size * .07;
+  c.lineWidth = size * .2; c.strokeStyle = '#000'; c.fillStyle = '#000';
+  c.strokeText(text, x + sh, y + sh); c.fillText(text, x + sh, y + sh);           // hard shadow
+  c.strokeText(text, x, y);                                                        // outline
+  if (opts.glow) { c.shadowColor = opts.glow; c.shadowBlur = size * .35; }
+  c.fillStyle = fill; c.fillText(text, x, y); c.restore();
 }
-const SUBS = [[T.fant, T.fant + 1.75, 'Oh... fantastic.'], [T.jay, T.jay + 1.0, '"Jaywalking."']];
+function sticker(text, x, y, size, bg, fg, rot) {   // tilted colour block with text, like a sticker slapped on
+  const c = octx; c.save(); c.translate(x, y); c.rotate(rot); c.font = `${size}px ${HEAD}`;
+  const w = c.measureText(text).width + size * .6, h = size * 1.25;
+  c.fillStyle = '#000'; c.fillRect(-w / 2 + 10, -h / 2 + 10, w, h);
+  c.fillStyle = bg; c.fillRect(-w / 2, -h / 2, w, h);
+  c.lineWidth = 6; c.strokeStyle = '#000'; c.strokeRect(-w / 2, -h / 2, w, h);
+  c.fillStyle = fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 0, size * .04); c.restore();
+}
+function pop(t, t0, dur = .18) { return t0 === undefined ? 1 : backOut(prog(t, t0, t0 + dur)); }
+// spoken words: [start, end, words] where each word is [text, time it is spoken]
+const SUBS = [
+  [T.fant, T.fant + 1.75, [['OH...', T.fant], ['FANTASTIC.', T.fant + .65]]],
+  [T.jay, T.jay + 1.0, [['"JAYWALKING."', T.jay]]],
+];
+function caption(t, words) {   // word-by-word: each word pops in as it is said, the newest one in yellow
+  const size = 118, y = 1430, gap = 34;
+  octx.font = `${size}px ${HEAD}`;
+  const shown = words.filter(w => t >= w[1]);
+  const widths = shown.map(w => octx.measureText(w[0]).width);
+  let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (shown.length - 1)) / 2;
+  shown.forEach(([w, ts], i) => {
+    const k = pop(t, ts), cx = x + widths[i] / 2;
+    octx.save(); octx.translate(cx, y); octx.scale(k, k); octx.rotate(i === shown.length - 1 ? -.03 : 0);
+    bold(w, 0, 0, size, i === shown.length - 1 ? '#ffe03a' : '#fff'); octx.restore();
+    x += widths[i] + gap;
+  });
+}
 function overlays(t) {
   const vg = octx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.3)'); octx.fillStyle = vg; octx.fillRect(0, 0, W, H);
-  if (t < 3.0) { octx.save(); octx.globalAlpha = t < 2.7 ? 1 : 1 - prog(t, 2.7, 3.0); outlined('GTA 6 pedestrians', W / 2, 250, 84, '#fff'); outlined('on release day:', W / 2, 345, 84, '#fff'); octx.restore(); }
+  // hook text: fully on screen from frame 0 (no fade-in), with a small beat pulse
+  if (t < 3.0) {
+    octx.save(); octx.globalAlpha = t < 2.7 ? 1 : 1 - prog(t, 2.7, 3.0);
+    const pulse = 1 + .025 * Math.max(0, Math.sin(t * 9));
+    octx.translate(W / 2, 250); octx.scale(pulse, pulse);
+    bold('GTA 6 PEDESTRIANS', 0, 0, 120, '#fff');
+    sticker('ON RELEASE DAY:', 0, 132, 84, '#ff2f90', '#fff', -.045);
+    octx.restore();
+  }
   if (t >= T.hookEnd && t < T.hookEnd + .12) { octx.fillStyle = `rgba(255,255,255,${.6 * (1 - prog(t, T.hookEnd, T.hookEnd + .12))})`; octx.fillRect(0, 0, W, H); }
+  // rewind: VHS scanlines, then a glitchy RGB-split stamp
   if (t >= T.freezeEnd && t < T.rewindEnd + .25) {
     octx.save(); octx.globalAlpha = t < T.rewindEnd ? 1 : 1 - prog(t, T.rewindEnd, T.rewindEnd + .25);
     if (t < T.rewindEnd) { for (let y = 0; y < H; y += 6) { octx.fillStyle = 'rgba(0,0,0,.18)'; octx.fillRect(0, y, W, 3); } octx.fillStyle = 'rgba(255,255,255,.22)'; octx.fillRect(0, (t * 3000) % H, W, 40); }
-    outlined('◀◀', W / 2, 820, 120, '#fff'); outlined('6 SECONDS EARLIER', W / 2, 960, 76, '#ffd23f'); octx.restore();
+    const k = pop(t, T.freezeEnd, .22), j = Math.sin(t * 97) * 6;
+    octx.translate(W / 2, 900); octx.scale(k, k); octx.rotate(-.05);
+    bold('◀◀', 0, -150, 130, '#fff', HEAD);
+    octx.globalCompositeOperation = 'lighter';
+    for (const [dx, col] of [[-8 + j, 'rgba(255,0,80,.8)'], [8 - j, 'rgba(0,220,255,.8)']]) { octx.font = `150px ${PUNCH}`; octx.textAlign = 'center'; octx.textBaseline = 'middle'; octx.fillStyle = col; octx.fillText('6 SECONDS', dx, 0); octx.fillText('EARLIER', dx, 140); }
+    octx.globalCompositeOperation = 'source-over';
+    bold('6 SECONDS', 0, 0, 150, '#ffe03a', PUNCH); bold('EARLIER', 0, 140, 150, '#ffe03a', PUNCH);
+    octx.restore();
   }
-  for (const [a, b, s] of SUBS) if (t >= a && t < b) outlined(s, W / 2, 1440, 72, '#fff');
+  for (const [a, b, words] of SUBS) if (t >= a && t < b) caption(t, words);
+  // title card: dark wash, then the title slams in and five stars pop one by one
   if (t >= T.title) {
     const k = prog(t, T.title, T.title + .25);
     octx.fillStyle = `rgba(20,8,40,${.72 * k})`; octx.fillRect(0, 0, W, H);
-    const s = lerp(1.6, 1, ease(k));
-    octx.save(); octx.globalAlpha = k; octx.translate(W / 2, 900); octx.scale(s, s); octx.rotate(-.06);
-    outlined('LIFE AS A', 0, -120, 92, '#ffd23f');
-    octx.shadowColor = '#ff4fa3'; octx.shadowBlur = 40; outlined('GTA 6 NPC', 0, 30, 170, '#ff4fa3'); octx.shadowBlur = 0; octx.restore();
+    const s1 = pop(t, T.title, .22), s2 = pop(t, T.title + .12, .28);
+    octx.save(); octx.translate(W / 2, 760); octx.scale(s1, s1); sticker('LIFE AS A', 0, 0, 96, '#000', '#fff', -.06); octx.restore();
+    octx.save(); octx.translate(W / 2, 960); octx.scale(s2, s2); octx.rotate(-.06);
+    for (let d = 14; d > 0; d -= 2) bold('GTA 6 NPC', d, d, 230, '#7a1046', PUNCH);   // extruded 3D edge
+    octx.font = `230px ${PUNCH}`;
+    const g = octx.createLinearGradient(0, -110, 0, 110); g.addColorStop(0, '#ffe03a'); g.addColorStop(.55, '#ff6fb5'); g.addColorStop(1, '#ff2f90');
+    bold('GTA 6 NPC', 0, 0, 230, g, PUNCH, { glow: 'rgba(255,47,144,.8)' });
+    octx.restore();
+    for (let i = 0; i < 5; i++) {
+      const ks = pop(t, T.title + .3 + i * .08, .2); if (ks <= 0) continue;
+      octx.save(); octx.translate(W / 2 + (i - 2) * 120, 1150); octx.scale(ks, ks); octx.rotate(-.06);
+      bold('★', 0, 0, 120, '#ffe03a', HEAD); octx.restore();
+    }
   }
 }
 
 
 function render(t) { octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, W, H); overlays(clamp(t, 0, DUR - 1e-6)); }
-window.__anim = { duration: DUR, fps: 30, render, ready: document.fonts.ready };
+window.__anim = { duration: DUR, fps: 30, render, ready: fontsReady };
 })();
 </script>
 </body>
