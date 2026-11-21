@@ -11,8 +11,8 @@
 // Captions, rewind effect, vignette and title card for the Blender render, drawn on a transparent canvas.
 // Same timings as animations/fantastic-3d. render.js captures it; compose.sh lays it over the Cycles frames.
 (() => {
-const W = 1080, H = 1920, DUR = 15.5;
-const T = { hookEnd: 2.3, freezeEnd: 2.3, rewindEnd: 2.9, title: 14.5 };
+const W = 1080, H = 1920, DUR = 13.0;
+const T = { hookEnd: 2.3, freezeEnd: 2.3, rewindEnd: 2.9, title: 12.0 };
 const HEAD = '"Anton", "Inter Display", sans-serif';      // condensed, heavy: hook text and captions
 const PUNCH = '"Bangers", "Anton", sans-serif';            // comic punch: title and rewind stamp
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -50,11 +50,9 @@ function page(a, b, text) {
   let acc = 0; return [a, b, ws.map(w => { const r = [w, a + (b - a - .15) * acc / total]; acc += w.length + 1; return r; })];
 }
 const SUBS = [
-  page(.15, .95, 'DO YOU HAVE'), page(.95, 2.3, 'THESE IN A SIZE 5?'),
   page(3.0, 4.6, 'OOH, SHOES.'), page(4.87, 6.6, 'MY WIFE NEEDS NEW HEELS.'),
   [6.95, 8.85, [["THIS...", 6.95], ["ISN'T", 7.6], ["A", 7.85], ["SHOE", 7.98], ["SHOP?", 8.25]]],   // confused: a beat after "this..."
-  page(9.6, 10.45, 'SIR.'), page(10.56, 11.8, "THAT'S NOT FOR SALE."),
-  page(13.55, 14.5, 'ONE STAR.'),
+  page(11.0, 11.95, 'ONE STAR.'),
 ];
 function caption(t, words) {   // word-by-word: each word pops in as it is said, the newest one in yellow
   const size = words.length > 3 ? 104 : 118, y = 1430, gap = 48;

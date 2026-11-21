@@ -20,14 +20,16 @@ base = importlib.util.module_from_spec(_spec); sys.modules['ep1_scene'] = base; 
 from ep1_scene import (B, CONV, S, apply_person, box, clamp, cyl_mesh, ease, emissive, fk, glow_mat, hexc, hsh,  # noqa: E402
                    lerp, link, make_person, mat, new_obj, person_root, pose_of, prog, sphere_mesh)
 
-FPS, DUR = 30, 15.5
+FPS, DUR = 30, 13.0
 base.FPS = FPS
-# timeline (seconds). Hook first: frames 0..hookEnd show the kneeling-with-the-heel moment.
-T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, kneel=8.0, bouncer=9.3, outside=11.8, land=12.75, close=13.35, title=14.5)
-LINES = dict(size5=(.15, 'size5'), heels=(3.0, 'heels'), notshop=(6.95, 'notshop'), notforsale=(9.6, 'notforsale'), onestar=(13.55, 'onestar'))
-TALK = [(.15, 2.21), (3.0, 6.44), (6.95, 8.61), (9.6, 11.78), (13.65, 14.45)]   # spoken spans (voice files trimmed of silence)
-NPC_TALK = [TALK[0], TALK[1], TALK[2], TALK[4]]
-BOUNCER_TALK = [TALK[3]]
+# timeline (seconds). Hook first: frames 0..hookEnd show him flying out of the club door, in slow motion.
+T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, grab=8.7, outside=9.2, land=10.15, close=10.75, title=12.0)
+LINES = dict(heels=(3.0, 'heels'), notshop=(6.95, 'notshop'), onestar=(11.0, 'onestar'))
+TALK = [(3.0, 6.44), (6.95, 8.61), (11.1, 11.9)]   # spoken spans (voice files trimmed of silence)
+NPC_TALK = TALK
+BOUNCER_TALK = []
+HOOK_S = (T['outside'] + .28, T['land'] + .55)      # story span the hook plays (already mid-air on frame 0)
+BOUNCER_SCALE = (2.15, 1.42, 1.9)                  # a wall of a man: much wider and taller than the NPC
 
 IX = 300.0                        # the club interior is built far away from the street, at story x = IX
 SHOP_X, DOOR_Z = -8.6, -4.5       # shopfront plane and door on the left side of Ep. 1's street
@@ -264,14 +266,14 @@ def build_club():
         pl = bpy.data.lights.new(f'cl_fill{k}', 'POINT'); pl.energy = e; pl.color = hexc(c); pl.shadow_soft_size = .02
         link(bpy.data.objects.new(f'cl_fill{k}', pl)).location = I(*lc)
     key = bpy.data.lights.new('cl_key', 'AREA'); key.energy = 220; key.size = 1.6; key.color = hexc(0xffd0e0)   # soft key on the two characters
-    ko = link(bpy.data.objects.new('cl_key', key)); ko.location = I(KNEEL_AT[0] + .8, 2.4, KNEEL_AT[1] + 2.6)
-    ko.rotation_euler = (I(KNEEL_AT[0] + .5, 1.1, KNEEL_AT[1]) - ko.location).to_track_quat('-Z', 'Y').to_euler()
+    ko = link(bpy.data.objects.new('cl_key', key)); ko.location = I(-1.4, 2.6, 3.0)   # on the NPC and the bouncer
+    ko.rotation_euler = (I(-2.85, 1.2, .7) - ko.location).to_track_quat('-Z', 'Y').to_euler()
 
 
 # ---------- people and props ----------
 def build_people():
     S['npc'] = make_person('npc', dict(skin=0xc98b5e, pants=0xd8c8a8, shorts=True, shirt=0x2fa8f0, dot=0xffe14d, kind='flowers', hair=0x2b1a12, shades=True, shoes=0xf0f0f0))
-    S['bouncer'] = make_person('bouncer', dict(skin=0x6b4430, pants=0x0d0d10, shirt=0x0d0d10, hair=0x6b4430, shades=True, shoes=0x050505))
+    S['bouncer'] = make_person('bouncer', dict(skin=0x6b4430, pants=0x15151a, shirt=0x2a2c34, hair=0x6b4430, shades=True, shoes=0x050505))
     ear = new_obj('bouncer_earpiece', cyl_mesh('bouncer_ep', .006, .006, .18, 8), mat('ep', (.05, .05, .05), .3)); S['earpiece'] = ear
     cup = bpy.data.objects.new('cup', None); link(cup)
     plastic = mat('cup_plastic', (.9, .95, 1.0), .05, transmission=1.0)
@@ -305,10 +307,10 @@ def build():
 
 # ---------- animation ----------
 def story_time(t):
-    if t < T['hookEnd']:                      # hook: the moment he holds up the heel, 9.4 s into the story
-        return 9.45 + t * .05
-    if t < T['rewindEnd']:
-        return lerp(9.45 + T['hookEnd'] * .05, T['rewindEnd'], ease(prog(t, T['hookEnd'], T['rewindEnd'])))
+    if t < T['hookEnd']:                      # hook: thrown out of the club, slowed down
+        return lerp(*HOOK_S, t / T['hookEnd'])
+    if t < T['rewindEnd']:                    # rewind: he flies back in through the door
+        return lerp(HOOK_S[1], T['outside'] - .05, ease(prog(t, T['hookEnd'], T['rewindEnd'])))
     return t
 
 
@@ -329,7 +331,9 @@ def root_on_floor(pose, x, y, z, ry, foot='ankleR', floor_off=.07):
 KNEEL = dict(hipR=1.5, kneeR=1.45, hipL=-.05, kneeL=1.6, flatfeet=True)
 # street path: along the left pavement towards the camera, stop under the sign, turn into the door
 WALK = [(2.9, (-7.0, -7.4)), (4.55, (-7.0, -5.5)), (5.55, (-7.0, -5.45)), (6.6, (SHOP_X + .2, DOOR_Z))]
-CLUB_PATH = [(6.6, (CLUB_DOOR[0] + .1, CLUB_DOOR[1])), (7.85, (-1.0, HEELS_Z + 1.05))]
+CLUB_PATH = [(6.6, (CLUB_DOOR[0] + .1, CLUB_DOOR[1])), (7.55, (-2.9, 1.1))]
+BAR_SPOT = (-3.3, -1.2)                                  # where the bouncer stands, arms crossed
+B_SPOT = (-2.75, .25)                                    # where he stops in front of the NPC
 KNEEL_AT = (HEEL_XS[GRAB] + .2, HEELS_Z + .6)
 SIT = (-5.25, DOOR_Z + 1.1)
 SIT_POSE = dict(hipL=1.75, hipR=1.6, kneeL=1.95, kneeR=1.8, hipzL=-.15, hipzR=.15, shL=.5, elL=.9, shzL=.35)
@@ -372,9 +376,7 @@ def update(frame):
     t = frame / FPS
     s = story_time(t)
     npc, bouncer, cup = S['npc'], S['bouncer'], S['cup']
-    grab = S['heels'][GRAB]
-    rest_heel = I(HEEL_XS[GRAB], STAGE['h'], HEELS_Z)
-    m_npc = mouth_of(t, NPC_TALK); m_b = mouth_of(t, BOUNCER_TALK)
+    m_npc = mouth_of(t, NPC_TALK)
     # ambient club motion (runs on story time so the rewind also rewinds it)
     S['ball'].rotation_euler = (0, 0, s * .8)
     for o, k in S['spots']:
@@ -387,9 +389,29 @@ def update(frame):
         y = max(3.9 - (s * (.32 + .2 * c) + a * 3.4) % 3.4, (STAGE['h'] if on_stage else 0) + .01)
         o.location = I(x, y, z)
         o.rotation_euler = (math.sin(s * 3 + a * 9) * .9, math.cos(s * 2.5 + c * 9) * .9, s * (1 + b) + c * 6)
+    # ---------- bouncer first (in the grab the NPC hangs from his hands) ----------
+    crossed = dict(arms()['crossed'])
+    grip = {**arm_ik((.17, 1.32, .5), {}, 'R'), **arm_ik((-.17, 1.32, .5), {}, 'L')}
+    stop = Vector(CLUB_PATH[-1][1])
+    if s < T['outside']:                                       # by the bar, then straight over to grab him
+        k = ease(prog(s, 8.05, 8.6))
+        x, z = lerp(BAR_SPOT[0], B_SPOT[0], k), lerp(BAR_SPOT[1], B_SPOT[1], k)
+        face = math.atan2(stop.x - x, stop.y - z)
+        ry = lerp(math.pi / 2 + .3, face, ease(prog(s, 7.9, 8.2)))
+        ry = lerp(ry, math.atan2(CLUB_DOOR[0] - x, CLUB_DOOR[1] - z), ease(prog(s, 8.9, 9.2)))   # turns for the door, carrying him
+        walking = 8.05 < s < 8.6
+        pose = pose_of('walk', s * 5.5, .7) if walking else {}
+        pose.update(blend(crossed, grip, ease(prog(s, 8.5, 8.7))))
+        b_root = person_root(IX + x, 0, z, ry, scale=BOUNCER_SCALE)
+        Pb, Mb = apply_person(bouncer, b_root, pose, (.25 * ease(prog(s, 8.2, 8.5)), 0, 0), 1)
+    else:                                                      # in the doorway after the throw, then back inside
+        k = ease(prog(s, T['outside'], T['outside'] + .25))
+        pose = blend(dict(shL=1.6, elL=.2, shR=1.6, elR=.2), crossed, k)
+        gone = s > T['land'] + .25
+        b_root = person_root(SHOP_X + (.35 if not gone else -3), .16, DOOR_Z, math.pi / 2, scale=BOUNCER_SCALE)
+        Pb, Mb = apply_person(bouncer, b_root, pose, (.2, 0, 0), 1)
+    S['earpiece'].matrix_world = Mb @ Matrix.Translation(Pb['headb'] + Vector((-.11, .02, .02))) @ Matrix.Rotation(.4, 4, 'X') @ CONV.inverted()
     # ---------- NPC ----------
-    heel_loc, heel_rot = rest_heel, (0, 0, math.pi / 2 + (hsh(GRAB, 3) - .5) * .5)
-    cup_loc = None
     if s < T['enter']:                                         # street: walk, stop, look up at the sign, go in
         p, yaw = path_at(WALK, s)
         moving = s < WALK[1][0] or s >= WALK[2][0]
@@ -404,37 +426,27 @@ def update(frame):
             pose.update(shL=lerp(0, 2.3, look), elL=lerp(.15, .1, look), shzL=.2)
         root = person_root(p.x, .16, p.y, ry)
         P, M = apply_person(npc, root, pose, (lerp(0, -.5, look), 0, 0), m_npc)
-        cup_loc = (CONV @ root @ (P['handR'] + Vector((0, .02, .04))).to_4d()).to_3d()
-    elif s < T['kneel']:                                       # club: walk in, look around, put the coffee down
+    elif s < T['grab']:                                        # club: walk in, stop, look around: "This... isn't a shoe shop?"
         p, yaw = path_at(CLUB_PATH, s)
         moving = s < CLUB_PATH[1][0]
         pose = pose_of('walk', s * 6.4, .8) if moving else {}
-        ry = yaw if moving else lerp(yaw, math.pi, ease(prog(s, 7.85, 8.0)))
+        bx, bz = (lerp(BAR_SPOT[0], B_SPOT[0], ease(prog(s, 8.05, 8.6))), lerp(BAR_SPOT[1], B_SPOT[1], ease(prog(s, 8.05, 8.6))))
+        ry = yaw if moving else lerp(yaw, math.atan2(bx - p.x, bz - p.y), ease(prog(s, 8.2, 8.55)))   # turns as the bouncer looms up
         root = person_root(IX + p.x, 0, p.y, ry)
-        gaze = math.sin(s * 2.2) * .5 if s < 7.6 else 0
-        P, M = apply_person(npc, root, pose, (-.25 if s < 7.6 else 0, gaze, 0), m_npc)
-        cup_loc = (CONV @ root @ (P['handR'] + Vector((0, .02, .04))).to_4d()).to_3d()
-    elif s < T['outside']:                                     # kneel at the stage, pick up a heel, hold it up to the bouncer
-        k = ease(prog(s, 8.0, 8.4))
-        pose = {kk: v * k for kk, v in KNEEL.items() if kk != 'flatfeet'}; pose['flatfeet'] = True
-        reach = ease(prog(s, 8.35, 8.6)) * (1 - ease(prog(s, 8.6, 8.9)))
-        lift = ease(prog(s, 8.85, 9.2))
-        A = arms(); low = dict(shR=.3, elR=.4, shzR=.12)
-        pose.update(blend(blend(low, A['reach'], reach), A['offer'], lift))
-        ry = lerp(math.pi, math.pi / 2 + .35, ease(prog(s, 8.8, 9.3)))      # turn from the stage to the bouncer
-        x0, z0 = path_at(CLUB_PATH, 99)[0]
-        x, z = lerp(x0, KNEEL_AT[0], k), lerp(z0, KNEEL_AT[1], k)
-        drop = (fk(pose)['kneeL'].y - .06) * k              # sink the hips as the knee goes down
-        root = person_root(IX + x, -drop, z, ry)
-        hr = (lerp(.3, -.35, lift), 0, 0)
-        P, M = apply_person(npc, root, pose, hr, m_npc)
-        if s >= 8.6:
-            heel_loc = heel_in_hand(P, M)
-            heel_rot = (0, lerp(0, -.35, lift), ry - math.pi / 2)
-        cup_loc = I(KNEEL_AT[0] - .5, STAGE['h'], HEELS_Z - .1)
+        gaze = math.sin(s * 2.4) * .55 * (1 - ease(prog(s, 8.0, 8.3)))
+        P, M = apply_person(npc, root, pose, (lerp(-.3, -.15, ease(prog(s, 7.5, 7.9))) - .35 * ease(prog(s, 8.3, 8.6)), gaze, 0), m_npc)
+    elif s < T['outside']:                                     # lifted off the floor by his shirt, legs kicking
+        hand = (b_root @ ((Pb['handL'] + Pb['handR']) / 2).to_4d()).to_3d()
+        ry = math.atan2(-(hand.x - b_root.translation.x), -(hand.z - b_root.translation.z))   # facing the bouncer
+        lift = ease(prog(s, 8.7, 8.85))
+        pose = pose_of('flail', s * 16); pose = blend({}, pose, lift)
+        R = Matrix.Rotation(ry, 4, 'Y')
+        p0 = Vector((IX + stop.x, 0, stop.y)); p1 = hand - (R @ Vector((0, 1.38, .16, 1))).to_3d()
+        root = Matrix.Translation(p0.lerp(p1, lift)) @ R
+        P, M = apply_person(npc, root, pose, (-.45, 0, 0), m_npc)
     else:                                                      # thrown out of the door, lands on the kerb, sits
         u = prog(s, T['outside'], T['land'])
-        door = Vector((SHOP_X + .3, DOOR_Z)); seat = Vector(SIT)
+        door = Vector((SHOP_X + 1.15, DOOR_Z)); seat = Vector(SIT)   # leaves from the bouncer's hands
         if u < 1:
             pp = door.lerp(seat, u); y = .9 + 1.3 * 4 * u * (1 - u) - .55 * u
             root = Matrix.Translation(Vector((pp.x, y, pp.y))) @ Euler((0, 0, -u * math.pi * 1.6), 'XYZ').to_matrix().to_4x4() @ Matrix.Rotation(math.pi / 2, 4, 'Y') @ Matrix.Translation(Vector((0, -.9, 0)))
@@ -443,40 +455,16 @@ def update(frame):
             P, M = apply_person(npc, root, pose, (0, 0, 0), m_npc)
         else:
             bounce = math.sin(math.pi * prog(s, T['land'], T['land'] + .18)) * .08
-            look = ease(prog(s, 13.4, 13.65))
-            pose = dict(SIT_POSE); A = arms()
-            pose.update(blend(A['sitrest'], A['sitlook'], look))
+            back = ease(prog(s, T['land'] + .2, T['land'] + .45)) * (1 - ease(prog(s, T['land'] + .7, T['land'] + .9)))
+            cam = ease(prog(s, T['land'] + .7, T['land'] + .9))
+            pose = dict(SIT_POSE); pose.update(arms()['sitrest'])
             P0 = fk(pose); seat_y = .2 + bounce
             root = person_root(seat.x, seat_y - P0['hipR'].y + .1, seat.y, math.pi / 2 + .25)
-            P, M = apply_person(npc, root, pose, (lerp(-.05, .35, look), lerp(0, .75, look), 0), m_npc)
-        heel_loc = heel_in_hand(P, M)
-        heel_rot = (0, -.3, s * 14) if u < 1 else (0, .15, -1.26)
-        cup_loc = I(KNEEL_AT[0] - .5, STAGE['h'], HEELS_Z - .1)
-    held = heel_loc is not rest_heel
-    sc = (1.45 if s >= T['land'] else 2.1) if held else 1.6      # the one in his hand is played big so it reads
-    if held:   # grip it round the middle, not by the sole
-        heel_loc = heel_loc - Euler(heel_rot).to_matrix() @ Vector((0, 0, .1 * sc))
-    grab.location = heel_loc; grab.rotation_euler = heel_rot; grab.scale = (sc,) * 3
+            P, M = apply_person(npc, root, pose, (-.05 + .1 * cam, 1.1 * back + .45 * cam, 0), m_npc)   # glances back at the club, then to camera
+    cup_loc = (CONV @ root @ (P['handR'] + Vector((0, .02, .04))).to_4d()).to_3d()   # he never lets go of his coffee
+    grab = S['heels'][GRAB]                                    # every heel stays on the stage
+    grab.location = I(HEEL_XS[GRAB], STAGE['h'], HEELS_Z); grab.rotation_euler = (0, 0, math.pi / 2 + (hsh(GRAB, 3) - .5) * .5); grab.scale = (1.6,) * 3
     cup.location = cup_loc; cup.rotation_euler = (0, 0, 0)
-    # ---------- bouncer ----------
-    crossed = dict(arms()['crossed'])
-    if s < 8.85:                                               # by the bar, arms crossed, watching
-        root = person_root(IX - 3.3, 0, -1.2, math.pi / 2 + .3, scale=(1.25,) * 3)
-        P, M = apply_person(bouncer, root, dict(crossed), (0, 0, 0), m_b)
-    elif s < T['outside']:                                     # steps in beside him
-        k = ease(prog(s, 8.85, 9.35))
-        pose = pose_of('walk', s * 5.5, .7 * (1 - k)) if k < 1 else {}
-        pose.update(crossed)
-        x, z = lerp(-3.3, KNEEL_AT[0] + 1.05, k), lerp(-1.2, KNEEL_AT[1] + .1, k)
-        root = person_root(IX + x, 0, z, -math.pi / 2 - .35, scale=(1.25,) * 3)
-        P, M = apply_person(bouncer, root, pose, (.3 * k, 0, 0), m_b)
-    else:                                                      # in the doorway after the throw, then back inside
-        k = ease(prog(s, T['outside'], T['outside'] + .25))
-        pose = blend(dict(shL=1.6, elL=.2, shR=1.6, elR=.2), crossed, k)
-        gone = s > 13.0
-        root = person_root(SHOP_X + (.55 if not gone else -3), .16, DOOR_Z, math.pi / 2, scale=(1.25,) * 3)
-        P, M = apply_person(bouncer, root, pose, (.2, 0, 0), m_b)
-    S['earpiece'].matrix_world = M @ Matrix.Translation(P['headb'] + Vector((-.11, .02, .02))) @ Matrix.Rotation(.4, 4, 'X') @ CONV.inverted()
     set_camera(t, s)
 
 
@@ -488,6 +476,7 @@ SHOTS = dict(
     throw=((-.9, 1.35, 1.2), (-6.4, 1.7, -4.3), 54),
     close=((-3.25, 1.0, -4.35), (-5.15, .8, -3.55), 46),
 )
+WIDE_END = (-2.8, 1.45, .7)
 
 
 def aim(pos, look, fov, interior=False):
@@ -498,16 +487,17 @@ def aim(pos, look, fov, interior=False):
 
 def set_camera(t, s):
     t = min(t, T['title'] - 1e-6)
-    if t < T['rewindEnd'] or T['bouncer'] <= t < T['outside']:
-        m = SHOTS['med']; drift = math.sin(t * .7) * .05
-        return aim((m[0][0] + drift, m[0][1], m[0][2]), m[1], m[2], True)
+    if t < T['rewindEnd']:                                     # hook + rewind: the throw, framed tight
+        return aim(SHOTS['throw'][0], (-6.8, 1.5, -4.0), 36)
     if t < T['enter']:
         m = SHOTS['street']; k = ease(prog(t, 2.9, 6.6))
         return aim((m[0][0] - .4 * k, m[0][1] + .2 * k, m[0][2] - 1.5 * k), m[1], m[2])
-    if t < T['bouncer']:
-        m = SHOTS['wide']; k = ease(prog(t, 6.6, 9.3)); pan = ease(prog(t, 6.8, 8.1))   # follow him from the door to the stage
-        look = tuple(lerp(a, b, pan) for a, b in zip((-4.0, 1.15, 2.2), (-.9, .95, -1.6)))
-        return aim((m[0][0] - .6 * k, m[0][1] - .3 * k, m[0][2] - 1.2 * k), look, m[2], True)
+    if t < T['outside']:
+        m = SHOTS['wide']; k = ease(prog(t, T['enter'], T['outside'])); pan = ease(prog(t, 6.8, 7.7))   # follow him in, then hold on the two of them
+        look = tuple(lerp(a, b, pan) for a, b in zip((-4.0, 1.15, 2.2), WIDE_END))
+        push = ease(prog(t, 7.4, 8.9))                                 # creep in on the two of them
+        pos = (lerp(m[0][0] - .6 * k, .1, push), lerp(m[0][1] - .3 * k, 1.55, push), lerp(m[0][2] - 1.2 * k, 3.3, push))
+        return aim(pos, look, m[2], True)
     if t < T['close']:
         return aim(*SHOTS['throw'])
     m = SHOTS['close']; k = ease(prog(t, T['close'], T['title']))

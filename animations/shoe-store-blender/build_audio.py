@@ -2,7 +2,7 @@
 sound effects and the voice lines. Reuses the synth helpers from Ep. 1 (animations/fantastic-3d/build_audio.py).
 
 Usage: python3 build_audio.py <voice_dir> <out.wav>
-voice_dir holds size5.mp3, heels.mp3, notshop.mp3, notforsale.mp3 and onestar.mp3.
+voice_dir holds heels.mp3, notshop.mp3 and onestar.mp3.
 Timings match T and LINES in scene.py.
 """
 import importlib.util
@@ -17,7 +17,7 @@ spec = importlib.util.spec_from_file_location('ep1_audio', os.path.join(HERE, '.
 ep1 = importlib.util.module_from_spec(spec); spec.loader.exec_module(ep1)
 
 SR = ep1.SR
-DUR = 15.5
+DUR = 13.0
 N = int(SR * DUR)
 ep1.N, ep1.DUR = N, DUR
 ep1.mix = np.zeros(N)
@@ -25,8 +25,10 @@ mix = ep1.mix
 at, add, tt, lowpass, highpass = ep1.at, ep1.add, ep1.tt, ep1.lowpass, ep1.highpass
 rng = np.random.default_rng(11)
 
-T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, outside=11.8, land=12.75, slam=13.05, title=14.5)
-LINES = [('size5', .15), ('heels', 3.0), ('notshop', 6.95), ('notforsale', 9.6), ('onestar', 13.55)]
+T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, grab=8.7, outside=9.2, land=10.15, slam=10.45, title=12.0)
+# the hook replays the throw in slow motion: story time outside+.28 .. land+.55 over 0 .. hookEnd
+HOOK_LAND = (T['land'] - (T['outside'] + .28)) / ((T['land'] + .55) - (T['outside'] + .28)) * T['hookEnd']
+LINES = [('heels', 3.0), ('notshop', 6.95), ('onestar', 11.0)]
 
 
 def kick():
@@ -70,17 +72,19 @@ def door_bang():
 
 def main():
     voice_dir, out_path = sys.argv[1], sys.argv[2]
-    # club: full inside (hook, 6.6-11.8), muffled and quieter on the street, a bit louder as the door opens / he flies out
+    # club: full inside (6.6-9.2), muffled on the street, louder while the door is open (hook and the throw)
     club = club_track()
     muffled = lowpass(lowpass(club, 220), 220)
     ts = np.arange(N) / SR
-    inside = ((ts < T['hookEnd']) | ((ts >= T['enter']) & (ts < T['outside']))).astype(float)
+    inside = ((ts >= T['enter']) & (ts < T['outside'])).astype(float)
     inside = lowpass(inside, 30)
-    street_level = np.interp(ts, [0, T['rewindEnd'], 5.6, T['enter'], T['outside'], T['slam'], T['slam'] + .1, DUR], [.25, .25, .25, .45, .55, .55, .18, .18])
+    street_level = np.interp(ts, [0, T['hookEnd'], T['rewindEnd'], 5.6, T['enter'], T['outside'], T['slam'], T['slam'] + .1, DUR], [.55, .45, .25, .25, .45, .55, .55, .18, .18])
     mix[:] += club * .55 * inside + muffled * 1.4 * (1 - inside) * street_level
     mix[:] += ep1.beach_music(T['rewindEnd'], T['enter']) * .3
     add(ep1.tape_rewind(), T['hookEnd'], .35)
     add(ep1.whoosh(.4), T['enter'] - .15, .25)                 # door swings open
+    add(ep1.whoosh(.5), 0, .4); add(ep1.thud(80, .3), HOOK_LAND, .8)     # hook: mid-air, slowed-down landing
+    add(ep1.whoosh(.3), T['grab'] - .05, .3)                   # bouncer grabs him
     add(door_bang(), T['outside'], .7)                         # door bursts open
     add(ep1.whoosh(.7), T['outside'] + .05, .45)
     add(ep1.thud(80, .3), T['land'], .8)
