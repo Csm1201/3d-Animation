@@ -1,7 +1,7 @@
 """Life as a GTA 6 NPC, Ep. 2: "The Shoe Store". Blender/Cycles scene.
 
 Reuses Ep. 1's street, materials and character rig from animations/fantastic-blender/scene.py (imported as `base`)
-and adds a shopfront with a neon "SHOES" sign and the club interior. Story coordinates as in Ep. 1:
+and adds a shopfront with a big neon high-heel sign and the club interior. Story coordinates as in Ep. 1:
 x right, y up, z towards the camera's side of the street; B() converts to Blender.
 All implied and Shorts-safe: no dancers, just the stage, pole, heels, cash and a bouncer.
 """
@@ -143,9 +143,9 @@ def build_shopfront():
     for nm, sz_, lc in (('top', (.05, .05, 1.42), (SHOP_X + .19, 2.58, DOOR_Z)), ('l', (.05, 2.42, .05), (SHOP_X + .19, 1.37, DOOR_Z - .69)),
                         ('r', (.05, 2.42, .05), (SHOP_X + .19, 1.37, DOOR_Z + .69))):
         sbox(f'club_doorneon_{nm}', sz_, lc, pink)
-    # the sign: big neon SHOES plus a neon stiletto, facing the road (+x)
-    neon_text('club_sign', 'SHOES', 1.05, B(SHOP_X + .2, SIGN_Y - .05, zc - 1.25), (math.pi / 2, 0, math.pi / 2), pink, .04)
-    heel_icon('club_heel', B(SHOP_X + .2, SIGN_Y - .55, z1 - 2.2), Vector((0, -1, 0)), Vector((0, 0, 1)), 2.2, pink)
+    # the sign: no words, just one big neon stiletto across the fascia, facing the road (+x)
+    HS = 3.3
+    heel_icon('club_sign', B(SHOP_X + .2, SIGN_Y - .21 * HS, zc - 1.25 - .25 * HS), Vector((0, -1, 0)), Vector((0, 0, 1)), HS, pink)
     neon_text('club_open', 'OPEN 24/7', .32, B(SHOP_X + .19, 2.95, DOOR_Z + 1.9), (math.pi / 2, 0, math.pi / 2), teal, .02)
     # velvet rope and brass stanchions by the door
     posts = [(SHOP_X + 1.05, DOOR_Z + 1.0), (SHOP_X + 1.05, DOOR_Z + 2.4)]
