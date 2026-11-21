@@ -57,7 +57,7 @@ const SUBS = [
   page(13.55, 14.5, 'ONE STAR.'),
 ];
 function caption(t, words) {   // word-by-word: each word pops in as it is said, the newest one in yellow
-  const size = words.length > 3 ? 104 : 118, y = 1430, gap = 30;
+  const size = words.length > 3 ? 104 : 118, y = 1430, gap = 48;
   octx.font = `${size}px ${HEAD}`;
   const total = words.reduce((n, w) => n + octx.measureText(w[0]).width + gap, 0);
   if (total > W - 80) {   // two rows: first half of the words above, the rest below
