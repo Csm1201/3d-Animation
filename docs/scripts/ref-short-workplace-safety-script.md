@@ -18,7 +18,7 @@ Deaths are slapstick only: squash-and-stretch, soot, a halo, or a little gravest
 | 2.4-5.8 | **LESSON 1: CONSTRUCTION.** Jimmy wears a hard hat on top of his ref kit. A crane swings a steel beam overhead. Jimmy blows his whistle, jogs to the crane cab, and shows the operator a yellow card. The startled operator throws his hands up and lets go of the controls. The beam drops. Wide shot: Jimmy is flat as a pancake under the beam, and a little halo spins above the hard hat. | LESSON 1: CONSTRUCTION ❌ | Crane hum. Whistle. Jimmy (flat): "Dangerous play." Beam CLANG, then a cartoon "boing". Halo twinkle. |
 | 5.8-9.2 | **LESSON 2: KITCHEN.** A restaurant kitchen. A pressure cooker starts whistling. Jimmy, offended, blows his whistle back. The cooker whistles louder, and so does Jimmy. In a whistle duel, both get faster and higher, and Jimmy turns red. The cooker explodes. When the smoke clears, Jimmy is a black soot silhouette, and only his eyes blink. | LESSON 2: KITCHEN ❌ | Cooker whistle vs ref whistle, rising. BOOM. A single blink sound. |
 | 9.2-12.6 | **LESSON 3: OFFICE.** Cubicles. A printer flashes "PAPER JAM". Jimmy marches over and shows it a red card. The printer whirs angrily and machine-guns paper at him. The camera pulls back to a mountain of paper, with only Jimmy's hand sticking out of the top, holding the whistle. | LESSON 3: OFFICE ❌ | Printer beeps. Whistle. Rapid-fire paper "fwip-fwip-fwip". A muffled, sad "peep". |
-| 12.6-17.0 | **LESSON 4: NIGHT SHIFT.** A dark back alley under one flickering streetlight. A gang of cartoon 1920s-style mobsters (pinstripe suits, fedoras, toothpicks) is huddled around a barrel. Jimmy strolls up in his ref kit and blows his whistle. The mobsters freeze, thinking he's a cop, and all slowly raise their hands. Jimmy looks at their raised hands, nods, and points to the ground: penalty. The mobsters look at each other. Hard cut to a wide shot of the outside of the alley: a flash lights up the brick wall and pigeons scatter off the roof. Cut back: Jimmy is flat on his back with his arms out, a halo spinning above him, and his whistle rolling away. No blood, nothing shown. | LESSON 4: NIGHT SHIFT ❌ | Distant city hum, the light buzzing. Whistle. Jimmy (flat): "Hands where I can see them." A beat while they raise them. Jimmy (flat, pointing): "Handball." A long beat of silence. One cartoon BANG, a flutter of pigeons, then the whistle rattling to a stop. |
+| 12.6-17.0 | **LESSON 4: NIGHT SHIFT.** A dark back alley under one flickering streetlight. A gang of cartoon 1920s-style mobsters (pinstripe suits, fedoras, toothpicks) is huddled around a barrel. Jimmy strolls up in his ref kit and blows his whistle. The mobsters freeze, thinking he's a cop, and all slowly raise their hands. Jimmy looks at their raised hands, nods approvingly, and pulls out his referee's notebook and pencil, ready to write. The mobsters slowly lower their hands and look at each other. Hard cut to a wide shot of the outside of the alley: a flash lights up the brick wall and pigeons scatter off the roof. Cut back: Jimmy is flat on his back with a small dark pool of blood under him, a halo spinning above him, and his whistle rolling away. No wound shown. | LESSON 4: NIGHT SHIFT ❌ | Distant city hum, the light buzzing. Whistle. Jimmy (flat): "Hands where I can see them." A beat while they raise them. Jimmy (flat, notebook out): "I'll need all your names." A long beat of silence. One cartoon BANG, a flutter of pigeons, then the whistle rattling to a stop. |
 | 17.0-21.4 | **LESSON 5: FACTORY.** The hook, paid off. Boxes travel along a conveyor belt. One box is slightly ahead of the line. Jimmy raises his arm and points: offside. He steps onto the belt to fetch it and is carried along, still pointing, into the press. CLANG. The press lifts and the cube Jimmy pops out, the hook shot. | LESSON 5: FACTORY ❌ | Conveyor rattle. Whistle. Jimmy (flat, riding the belt): "Offside." CLANG. "Peep." |
 | 21.4-25.0 | **ENDING.** A tiny gravestone on grass with a whistle resting on top. It reads "HE WAS RIGHT". Pan over: Jimmy is standing next to it, back to normal, deadpan, and looks at the camera. Number cards for the five jobs slam in, with TAP TO COMMENT. Loops back to the hook. | WORST JOB? 1 · 2 · 3 · 4 · 5 | Narrator: "Which job did Jimmy fail worst? Comment the number." |
 
@@ -29,13 +29,13 @@ Deaths are slapstick only: squash-and-stretch, soot, a halo, or a little gravest
 - "bro refereed a printer"
 - "why does he keep the uniform on at every job"
 - "3. the little peep at the end"
-- "4. 'HANDBALL' 💀 he set them up"
+- "4. 'I'll need all your names' 💀 bro asked the MOB for names"
 
 ## Voices
 
 All voices are generic stock voices, not imitations of anyone:
 - **Narrator:** Daniel, in a bright corporate tone.
-- **Jimmy:** George, deadpan. He has four lines: "Dangerous play.", "Hands where I can see them.", "Handball." and "Offside."
+- **Jimmy:** George, deadpan. He has four lines: "Dangerous play.", "Hands where I can see them.", "I'll need all your names." and "Offside."
 
 ## Production notes
 
@@ -56,6 +56,8 @@ All voices are generic stock voices, not imitations of anyone:
   - the paper mountain
   - the explosion smoke puff
   - the muzzle-flash light on the alley wall, with nothing else shown
+  - Jimmy's referee notebook
+  - a small blood pool under Jimmy
 - **Graphics:**
   - the retro safety title card
   - LESSON cards with a red ❌
@@ -71,4 +73,5 @@ All voices are generic stock voices, not imitations of anyone:
   - "Dangerous play" and "Offside" are clear over the machine noise
   - the cartoon deaths stay cartoonish, with no gore
   - the alley death happens off-screen: only the flash, the bang and the pigeons are shown, with no gun aimed at camera and no wound
+  - the blood is a small dark pool under him only (cartoon, no splatter)
   - nothing is cut off by the captions

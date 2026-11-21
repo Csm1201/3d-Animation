@@ -1,10 +1,10 @@
 /**
  * Preview of the "Workplace Safety with Jimmy" Short, Lesson 4 (Night Shift). Script: docs/scripts/ref-short-workplace-safety-script.md
  *
- *   0.0  the mobsters already have their hands up; Jimmy looks at their hands, nods, points at the ground: "Handball."
- *   1.6  the mobsters look at each other
- *   2.3  outside the alley: a flash on the brick wall, BANG, pigeons scatter (nothing else shown)
- *   2.9  Jimmy flat on his back, halo spinning, whistle rolling away
+ *   0.0  the mobsters already have their hands up; Jimmy looks at their hands, nods, pulls out his notebook: "I'll need all your names."
+ *   2.1  the mobsters look at each other
+ *   2.8  outside the alley: a flash on the brick wall, BANG, pigeons scatter (nothing else shown)
+ *   3.4  Jimmy flat on his back in a small pool of blood, halo spinning, whistle rolling away
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
@@ -16,12 +16,12 @@ import {Cam} from '../../character3d/stage';
 import {canvasTex, once} from '../../character3d/common';
 import {Look, Style} from '../../character3d/Worker3D';
 import {Actor} from './Episode2';
-import {DEADPAN, JIMMY} from './Episode4';
+import {DEADPAN, handLocal, JIMMY} from './Episode4';
 import {Captions, Cue} from './Overlays';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const SAFETY_PREVIEW_FPS = 30;
-export const SAFETY_PREVIEW_FRAMES = 108; // 3.6 s
+export const SAFETY_PREVIEW_FRAMES = 123; // 4.1 s
 const F = (s: number) => Math.round(s * SAFETY_PREVIEW_FPS);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -86,6 +86,12 @@ const bulbGeo = new SphereGeometry(0.11, 16, 12);
 const pigeonGeo = new SphereGeometry(0.12, 12, 8);
 const wingGeo = new BoxGeometry(0.12, 0.01, 0.34);
 const haloGeo = new TorusGeometry(0.16, 0.025, 12, 32);
+const bookGeo = new BoxGeometry(0.025, 0.2, 0.14);
+const pageGeo = new BoxGeometry(0.004, 0.18, 0.12);
+const bookMat = new MeshStandardMaterial({color: '#c9a46a', roughness: 0.6});
+const pageMat = new MeshStandardMaterial({color: '#f4f1e8', roughness: 0.8});
+const bloodMat = new MeshStandardMaterial({color: '#6e0a0e', roughness: 0.15, metalness: 0.1});
+const bloodGeo = new CylinderGeometry(1, 1, 0.004, 40);
 const whistleGeo = new CylinderGeometry(0.03, 0.03, 0.08, 14);
 const blockGeo = new BoxGeometry(6, 9, 6);
 
@@ -120,24 +126,35 @@ const Alley: React.FC<{flicker: number}> = ({flicker}) => (
 );
 
 // ---------------------------------------------------------------- shots
-/** Jimmy looks at their raised hands, nods, points at the ground: "Handball." */
+/** Jimmy looks at their raised hands, nods, pulls out his notebook: "I'll need all your names." */
 const ShotHandball: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const nod = Math.sin(clamp01((t - 0.12) / 0.3) * Math.PI) * 12;
-  const point = smooth(clamp01((t - 0.32) / 0.16));
-  const talk = t >= 0.42 && t < 1.18 ? 1 : 0;
+  const point = smooth(clamp01((t - 0.3) / 0.2)); // notebook up
+  const talk = t >= LINE_AT && t < LINE_AT + LINE_LEN ? 1 : 0;
   const base = idleSpec(frame, 0.08);
   const jimmy: BodySpec = {
     ...base,
     headTilt: (base.headTilt ?? 0) + nod + 6 * point,
-    nearArm: [lerp(base.nearArm[0], 48, point), lerp(base.nearArm[1], 4, point)],
+    nearArm: [lerp(base.nearArm[0], 46, point), lerp(base.nearArm[1], 70, point)],
+    farArm: [lerp(base.farArm[0], 40, point), lerp(base.farArm[1], 70, point)],
   };
-  const cam: Cam = {position: v3(lerp(-1.75, -1.6, t / 1.6), 1.6, lerp(1.25, 1.15, t / 1.6)), target: v3(1.6, 1.05, -0.3), fov: 54};
+  const cam: Cam = {position: v3(lerp(-1.75, -1.6, t / 2.1), 1.6, lerp(1.25, 1.15, t / 2.1)), target: v3(1.6, 1.05, -0.3), fov: 54};
   return (
-    <Night cam={cam} centre={v3(1.2, 0, 0)} flicker={t > 1.0 && t < 1.07 ? 0.35 : 1}>
-      <Alley flicker={t > 1.0 && t < 1.07 ? 0.35 : 1} />
-      <Actor style={JIMMY} x={0} z={0.25} yaw={-0.12} spec={jimmy} frame={frame} look={{...DEADPAN(talk, t), yaw: -8}} />
+    <Night cam={cam} centre={v3(1.2, 0, 0)} flicker={t > 1.9 && t < 1.97 ? 0.35 : 1}>
+      <Alley flicker={t > 1.9 && t < 1.97 ? 0.35 : 1} />
+      <Actor style={JIMMY} x={0} z={0.25} yaw={-0.12} spec={jimmy} frame={frame} look={{...DEADPAN(talk, t), yaw: -8}}>
+        {(pose) => {
+          const h = handLocal(pose, false);
+          return point > 0.3 ? (
+            <group position={h} rotation={[0, 0, 0.35]}>
+              <mesh geometry={bookGeo} material={bookMat} position={[0.02, 0.06, -0.04]} />
+              <mesh geometry={pageGeo} material={pageMat} position={[0.031, 0.06, -0.04]} />
+            </group>
+          ) : null;
+        }}
+      </Actor>
       {MOBS.map((m, i) => (
         <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={Math.PI + (m.z - 0.25) * 0.25} spec={HANDS_UP(t, i)} frame={frame + i * 9} look={WARY} />
       ))}
@@ -224,6 +241,9 @@ const ShotDown: React.FC = () => {
   return (
     <Night cam={cam} centre={v3(0, 0, 0)} flicker={t > 0.32 && t < 0.38 ? 0.35 : 1}>
       <Alley flicker={1} />
+      {/* a dark pool under his upper body, slowly spreading */}
+      <mesh geometry={bloodGeo} material={bloodMat} position={[0.05, 0.004, -0.55]} scale={[0.28 + 0.06 * smooth(clamp01(t / 0.7)), 1, 0.36 + 0.08 * smooth(clamp01(t / 0.7))]} receiveShadow />
+      <mesh geometry={bloodGeo} material={bloodMat} position={[0.3, 0.005, -0.3]} scale={[0.12 + 0.04 * smooth(clamp01(t / 0.7)), 1, 0.1 + 0.03 * smooth(clamp01(t / 0.7))]} />
       <Actor style={JIMMY} x={0} z={0.45} yaw={-Math.PI / 2} pitch={90} y={0.16} spec={DOWN} frame={frame} look={{tired: 0, droop: 0, eyesClosed: true, mouth: 'open', mouthOpen: 0.2}} shadow={false} />
       <group position={[0, 0.5 + 0.03 * Math.sin(t * 6), HEAD_Z - 0.08]} rotation={[0.35, t * 5, 0]}>
         <mesh geometry={haloGeo} material={haloMat} rotation={[Math.PI / 2, 0, 0]} />
@@ -234,39 +254,41 @@ const ShotDown: React.FC = () => {
   );
 };
 
-const CUES: Cue[] = [{from: F(0.45), to: F(1.6), text: 'HANDBALL.', hl: {'HANDBALL.': '#ffd23a'}}];
+const LINE_AT = 0.38;
+const LINE_LEN = 1.5;
+const CUES: Cue[] = [{from: F(LINE_AT), to: F(2.1), text: "I'LL NEED ALL YOUR NAMES.", hl: {'NAMES.': '#ffd23a'}}];
 
 export const ShortSafetyPreview: React.FC = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   return (
     <AbsoluteFill style={{backgroundColor: '#070a16'}}>
-      <Sequence from={0} durationInFrames={F(1.6)}>
+      <Sequence from={0} durationInFrames={F(2.1)}>
         <ShotHandball />
       </Sequence>
-      <Sequence from={F(1.6)} durationInFrames={F(2.3) - F(1.6)}>
-        <ShotLook from={F(1.6)} />
+      <Sequence from={F(2.1)} durationInFrames={F(2.8) - F(2.1)}>
+        <ShotLook from={F(2.1)} />
       </Sequence>
-      <Sequence from={F(2.3)} durationInFrames={F(2.9) - F(2.3)}>
+      <Sequence from={F(2.8)} durationInFrames={F(3.4) - F(2.8)}>
         <ShotBang />
       </Sequence>
-      <Sequence from={F(2.9)}>
+      <Sequence from={F(3.4)}>
         <ShotDown />
       </Sequence>
       <Captions cues={CUES} frame={frame} fps={fps} />
       <Sequence from={0}>
         <Audio src={staticFile('ep5/whistle.wav')} volume={0.25} endAt={6} />
       </Sequence>
-      <Sequence from={F(0.42)}>
-        <Audio src={staticFile('short-safety/j-handball.mp3')} volume={1.3} />
+      <Sequence from={F(LINE_AT)}>
+        <Audio src={staticFile('short-safety/j-names.mp3')} volume={1.3} />
       </Sequence>
-      <Sequence from={F(2.33)}>
+      <Sequence from={F(2.83)}>
         <Audio src={staticFile('short-safety/bang.wav')} volume={0.9} />
       </Sequence>
-      <Sequence from={F(2.38)}>
+      <Sequence from={F(2.88)}>
         <Audio src={staticFile('short-safety/pigeons.wav')} volume={0.55} />
       </Sequence>
-      <Sequence from={F(3.0)}>
+      <Sequence from={F(3.5)}>
         <Audio src={staticFile('ep4/twinkle.wav')} volume={0.5} />
       </Sequence>
     </AbsoluteFill>
