@@ -48,6 +48,8 @@ export type Style = {
   brow?: string;
   /** Full short beard and moustache, in the hair colour. */
   beard?: boolean;
+  /** A hat on top of the head. */
+  hat?: {kind: 'fedora'; color: string; band: string};
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -356,6 +358,25 @@ const Hair: React.FC<{st: Style; M: Mats}> = ({st, M}) => {
 
 const teethGeo = new BoxGeometry(0.01, 0.012, 0.06);
 
+// fedora: a wide brim, a pinched crown and a band, sitting low on the head (tilted a touch forward)
+const brimGeo = new CylinderGeometry(0.235, 0.235, 0.014, 32);
+const crownGeo = new CylinderGeometry(0.125, 0.15, 0.13, 32);
+const hatBandGeo = new CylinderGeometry(0.152, 0.152, 0.03, 32);
+const pinchGeo = new BoxGeometry(0.2, 0.03, 0.05);
+const hatMats = new Map<string, MeshStandardMaterial>();
+const hatMat = (c: string) => {
+  if (!hatMats.has(c)) hatMats.set(c, new MeshStandardMaterial({color: c, roughness: 0.7}));
+  return hatMats.get(c)!;
+};
+const Fedora: React.FC<{color: string; band: string}> = ({color, band}) => (
+  <group position={[0.005, 0.1, 0]} rotation={[0, 0, -0.08]}>
+    <mesh geometry={brimGeo} material={hatMat(color)} scale={[1.05, 1, 0.92]} castShadow />
+    <mesh geometry={crownGeo} material={hatMat(color)} position={[0, 0.072, 0]} scale={[1.05, 1, 0.9]} castShadow />
+    <mesh geometry={hatBandGeo} material={hatMat(band)} position={[0, 0.024, 0]} scale={[1.05, 1, 0.9]} />
+    <mesh geometry={pinchGeo} material={hatMat(color)} position={[0, 0.135, 0]} />
+  </group>
+);
+
 const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}> = ({pose, frame, look, st, M}) => {
   const neck = to3(pose.neck, 0);
   const R = 0.15;
@@ -412,6 +433,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         <group position={[0.02, 0.2, 0]}>
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
+          {st.hat ? <Fedora color={st.hat.color} band={st.hat.band} /> : null}
           {st.beard ? (
             // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache
             <group>
