@@ -50,9 +50,9 @@ function page(a, b, text) {
   let acc = 0; return [a, b, ws.map(w => { const r = [w, a + (b - a - .15) * acc / total]; acc += w.length + 1; return r; })];
 }
 const SUBS = [
-  page(.15, .95, 'DO YOU HAVE'), page(.95, 2.15, 'THESE IN A SIZE 11?'),
-  page(3.3, 4.85, 'OOH, SHOES.'), page(5.18, 6.6, 'I NEED NEW SANDALS.'),
-  page(6.95, 8.75, "THIS ISN'T A SHOE SHOP."),
+  page(.15, .95, 'DO YOU HAVE'), page(.95, 2.3, 'THESE IN A SIZE 5?'),
+  page(3.0, 4.6, 'OOH, SHOES.'), page(4.87, 6.6, 'MY WIFE NEEDS NEW HEELS.'),
+  [6.95, 8.85, [["THIS...", 6.95], ["ISN'T", 7.6], ["A", 7.85], ["SHOE", 7.98], ["SHOP?", 8.25]]]   // confused: a beat after "this...",
   page(9.6, 10.45, 'SIR.'), page(10.56, 11.8, "THAT'S NOT FOR SALE."),
   page(13.55, 14.5, 'ONE STAR.'),
 ];

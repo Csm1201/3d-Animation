@@ -2,7 +2,7 @@
 sound effects and the voice lines. Reuses the synth helpers from Ep. 1 (animations/fantastic-3d/build_audio.py).
 
 Usage: python3 build_audio.py <voice_dir> <out.wav>
-voice_dir holds size11.mp3, sandals.mp3, notshop.mp3, notforsale.mp3 and onestar.mp3.
+voice_dir holds size5.mp3, heels.mp3, notshop.mp3, notforsale.mp3 and onestar.mp3.
 Timings match T and LINES in scene.py.
 """
 import importlib.util
@@ -26,7 +26,7 @@ at, add, tt, lowpass, highpass = ep1.at, ep1.add, ep1.tt, ep1.lowpass, ep1.highp
 rng = np.random.default_rng(11)
 
 T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, outside=11.8, land=12.75, slam=13.05, title=14.5)
-LINES = [('size11', .15), ('sandals', 3.3), ('notshop', 6.95), ('notforsale', 9.6), ('onestar', 13.55)]
+LINES = [('size5', .15), ('heels', 3.0), ('notshop', 6.95), ('notforsale', 9.6), ('onestar', 13.55)]
 
 
 def kick():

@@ -24,8 +24,8 @@ FPS, DUR = 30, 15.5
 base.FPS = FPS
 # timeline (seconds). Hook first: frames 0..hookEnd show the kneeling-with-the-heel moment.
 T = dict(hookEnd=2.3, rewindEnd=2.9, enter=6.6, kneel=8.0, bouncer=9.3, outside=11.8, land=12.75, close=13.35, title=14.5)
-LINES = dict(size11=(.15, 'size11'), sandals=(3.3, 'sandals'), notshop=(6.95, 'notshop'), notforsale=(9.6, 'notforsale'), onestar=(13.55, 'onestar'))
-TALK = [(.15, 2.0), (3.3, 6.42), (6.95, 8.51), (9.6, 11.78), (13.65, 14.45)]   # spoken spans (voice files trimmed of silence)
+LINES = dict(size5=(.15, 'size5'), heels=(3.0, 'heels'), notshop=(6.95, 'notshop'), notforsale=(9.6, 'notforsale'), onestar=(13.55, 'onestar'))
+TALK = [(.15, 2.21), (3.0, 6.44), (6.95, 8.61), (9.6, 11.78), (13.65, 14.45)]   # spoken spans (voice files trimmed of silence)
 NPC_TALK = [TALK[0], TALK[1], TALK[2], TALK[4]]
 BOUNCER_TALK = [TALK[3]]
 
