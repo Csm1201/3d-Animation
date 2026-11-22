@@ -1,7 +1,7 @@
 /**
  * Preview of the "Workplace Safety with Jimmy" Short, Lesson 4 (Night Shift). Script: docs/scripts/ref-short-workplace-safety-script.md
  *
- *   0.0  low angle on the gang: four mobsters glaring, the boss tapping a bat on his palm
+ *   0.0  low angle on the gang: four mobsters glaring, tommy guns held at the hip
  *   0.8  Jimmy, deadpan, does the scuba dance right in front of them (nose pinched, arm waving, knees bouncing lower and lower)
  *   2.6  the music cuts out; the mobsters look at each other
  *   3.2  outside the alley: a flash on the brick wall, BANG, pigeons scatter (nothing else shown)
@@ -45,16 +45,11 @@ const MOBS = [
   {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.05, z: 1.35},
   {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.15, z: -1.4},
 ];
-/** Menacing stance: shoulders forward, arms hanging heavy, a slow breath. i=0 is the boss with the bat. */
+/** Menacing stance: shoulders forward, a tommy gun held at the hip pointing down at the ground, a slow breath. */
 const MENACE = (t: number, i: number): BodySpec => {
   const s = idleSpec(Math.round(t * 30) + i * 17, 0.04);
-  const legs = {near: {thigh: 10, knee: 8, foot: 0}, far: {thigh: -10, knee: 8, foot: 0}};
-  if (i === 0) {
-    // bat in the near hand, slapping into the far palm
-    const tap = Math.pow(Math.abs(Math.sin(t * 4.2)), 3);
-    return {...s, ...legs, lean: 9, headTilt: -10, nearArm: [18 + 8 * tap, 24 + 10 * tap], farArm: [12, 30]};
-  }
-  return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [14 + 4 * (i % 2), 26], farArm: [12, 30]};
+  const legs = {near: {thigh: 12, knee: 8, foot: 0}, far: {thigh: -12, knee: 8, foot: 0}};
+  return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [26 + 3 * Math.sin(t * 2 + i), 58], farArm: [48, 34]};
 };
 const GLARE: Look = {tired: 0.2, droop: -5, eyesClosed: false, brows: -1, browLift: -0.45, mouth: 'flat', noBlink: true};
 
@@ -83,8 +78,8 @@ const rust = new MeshStandardMaterial({color: '#6b3b22', roughness: 0.85, metaln
 const bulbMat = new MeshBasicMaterial({color: '#ffe3a1'});
 const flashMat = new MeshBasicMaterial({color: '#fff3c4', transparent: true});
 const pigeonMat = new MeshStandardMaterial({color: '#6c7380', roughness: 0.8});
-const haloMat = new MeshStandardMaterial({color: '#ffd84a', emissive: '#ffcf33', emissiveIntensity: 1.2, roughness: 0.3});
-const whistleMat = new MeshStandardMaterial({color: '#cfd4da', roughness: 0.25, metalness: 0.8});
+export const haloMat = new MeshStandardMaterial({color: '#ffd84a', emissive: '#ffcf33', emissiveIntensity: 1.2, roughness: 0.3});
+export const whistleMat = new MeshStandardMaterial({color: '#cfd4da', roughness: 0.25, metalness: 0.8});
 const groundGeo = new PlaneGeometry(40, 40);
 const wallGeo = new PlaneGeometry(16, 8);
 const barrelGeo = new CylinderGeometry(0.3, 0.3, 0.9, 20);
@@ -93,15 +88,33 @@ const armGeo = new BoxGeometry(0.7, 0.05, 0.05);
 const bulbGeo = new SphereGeometry(0.11, 16, 12);
 const pigeonGeo = new SphereGeometry(0.12, 12, 8);
 const wingGeo = new BoxGeometry(0.12, 0.01, 0.34);
-const haloGeo = new TorusGeometry(0.16, 0.025, 12, 32);
-const batGeo = new CylinderGeometry(0.035, 0.018, 0.78, 14);
-const batMat = new MeshStandardMaterial({color: '#8a5a32', roughness: 0.55});
-const bloodMat = new MeshStandardMaterial({color: '#6e0a0e', roughness: 0.15, metalness: 0.1});
-const bloodGeo = new CylinderGeometry(1, 1, 0.004, 40);
-const whistleGeo = new CylinderGeometry(0.03, 0.03, 0.08, 14);
+export const haloGeo = new TorusGeometry(0.16, 0.025, 12, 32);
+const gunMetal = new MeshStandardMaterial({color: '#2b2d31', roughness: 0.4, metalness: 0.7});
+const gunWood = new MeshStandardMaterial({color: '#7a4a28', roughness: 0.6});
+const recvGeo = new BoxGeometry(0.3, 0.07, 0.05);
+const barrelG = new CylinderGeometry(0.012, 0.012, 0.22, 10);
+const jacketGeo = new CylinderGeometry(0.024, 0.024, 0.14, 14);
+const drumGeo = new CylinderGeometry(0.075, 0.075, 0.045, 24);
+const stockGeo = new BoxGeometry(0.22, 0.06, 0.035);
+const gripGeo = new BoxGeometry(0.035, 0.09, 0.03);
+/** A 1920s-style drum-fed tommy gun, muzzle along +x, origin at the pistol grip (where the hand goes). */
+export const TommyGun: React.FC = () => (
+  <group position={[0.03, 0.07, 0]}>
+    <mesh geometry={recvGeo} material={gunMetal} position={[0.05, 0, 0]} castShadow />
+    <mesh geometry={barrelG} material={gunMetal} position={[0.31, 0, 0]} rotation={[0, 0, Math.PI / 2]} />
+    <mesh geometry={jacketGeo} material={gunMetal} position={[0.24, 0, 0]} rotation={[0, 0, Math.PI / 2]} />
+    <mesh geometry={drumGeo} material={gunMetal} position={[0.08, -0.08, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow />
+    <mesh geometry={stockGeo} material={gunWood} position={[-0.2, -0.02, 0]} castShadow />
+    <mesh geometry={gripGeo} material={gunWood} position={[-0.03, -0.07, 0]} />
+    <mesh geometry={gripGeo} material={gunWood} position={[0.2, -0.06, 0]} />
+  </group>
+);
+export const bloodMat = new MeshStandardMaterial({color: '#6e0a0e', roughness: 0.15, metalness: 0.1});
+export const bloodGeo = new CylinderGeometry(1, 1, 0.004, 40);
+export const whistleGeo = new CylinderGeometry(0.03, 0.03, 0.08, 14);
 const blockGeo = new BoxGeometry(6, 9, 6);
 
-const Night: React.FC<{cam: Cam; centre: Vector3; flicker: number; children: React.ReactNode}> = ({cam, centre, flicker, children}) => (
+export const Night: React.FC<{cam: Cam; centre: Vector3; flicker: number; children: React.ReactNode}> = ({cam, centre, flicker, children}) => (
   <ThreeCanvas width={WIDTH} height={HEIGHT} frameloop="demand" dpr={1} shadows="variance" gl={{antialias: true}} camera={{fov: cam.fov, position: [0, 2, 5]}}>
     <color attach="background" args={['#070a16']} />
     <fog attach="fog" args={['#070a16', 9, 30]} />
@@ -112,7 +125,7 @@ const Night: React.FC<{cam: Cam; centre: Vector3; flicker: number; children: Rea
   </ThreeCanvas>
 );
 
-const Alley: React.FC<{flicker: number}> = ({flicker}) => (
+export const Alley: React.FC<{flicker: number}> = ({flicker}) => (
   <group>
     <mesh geometry={groundGeo} material={asphalt} rotation={[-Math.PI / 2, 0, 0]} receiveShadow />
     <mesh geometry={wallGeo} position={[1, 4, -1.8]} receiveShadow>
@@ -136,23 +149,19 @@ const Gang: React.FC<{t: number; frame: number; look: (i: number) => Look}> = ({
   <>
     {MOBS.map((m, i) => (
       <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
-        {i === 0
-          ? (pose) => {
-              const h = handLocal(pose, false);
-              return (
-                <group position={h} rotation={[0, 0, -0.35]}>
-                  <mesh geometry={batGeo} material={batMat} position={[0, -0.3, 0]} castShadow />
-                </group>
-              );
-            }
-          : undefined}
+        {(pose) => (
+          // held at the hip, muzzle angled down at the ground in front of them
+          <group position={handLocal(pose, false).add(v3(0, 0, -0.15))} rotation={[0, 0, -0.5]}>
+            <TommyGun />
+          </group>
+        )}
       </Actor>
     ))}
   </>
 );
 
 /** Low angle on the gang, from Jimmy's side: they glare down at him. */
-const ShotGang: React.FC = () => {
+export const ShotGang: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const push = smooth(clamp01(t / 0.8));
@@ -167,7 +176,7 @@ const ShotGang: React.FC = () => {
 
 /** Jimmy does the scuba dance: nose pinched, far arm out and waving, knees bouncing lower and lower. */
 const BEAT = 0.4; // 150 bpm
-const ShotDance: React.FC<{from: number}> = ({from}) => {
+export const ShotDance: React.FC<{from: number}> = ({from}) => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const into = smooth(clamp01(t / 0.18));
@@ -197,7 +206,7 @@ const ShotDance: React.FC<{from: number}> = ({from}) => {
 };
 
 /** The music cuts out; the mobsters look at each other. */
-const ShotLook: React.FC<{from: number}> = ({from}) => {
+export const ShotLook: React.FC<{from: number}> = ({from}) => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const cam: Cam = {position: v3(-0.9, 1.5, 0.2), target: v3(1.75, 1.45, 1.1), fov: 40};
@@ -212,7 +221,7 @@ const ShotLook: React.FC<{from: number}> = ({from}) => {
 
 /** Outside the alley: a flash on the wall, BANG, pigeons scatter. Nothing else is shown. */
 const PIGEONS = [0, 1, 2, 3, 4, 5, 6].map((i) => ({x: -2.6 + i * 0.85 + (i % 2) * 0.25, vx: (i - 3) * 0.9, vy: 3.2 + (i % 3) * 0.7, ph: i * 1.3}));
-const ShotBang: React.FC = () => {
+export const ShotBang: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const flash = t >= 0.1 && t < 0.2 ? 1 : t >= 0.2 && t < 0.27 ? 0.35 : 0;
@@ -253,9 +262,9 @@ const ShotBang: React.FC = () => {
 };
 
 /** Jimmy flat on his back, a halo spinning above him, his whistle rolling away. */
-const DOWN: BodySpec = {lean: 0, headTilt: 4, near: {thigh: 4, knee: 4, foot: 0}, far: {thigh: -6, knee: 6, foot: 0}, nearArm: [28, 10], farArm: [22, 14]};
+export const DOWN: BodySpec = {lean: 0, headTilt: 4, near: {thigh: 4, knee: 4, foot: 0}, far: {thigh: -6, knee: 6, foot: 0}, nearArm: [28, 10], farArm: [22, 14]};
 const HEAD_Z = -1.05;
-const ShotDown: React.FC = () => {
+export const ShotDown: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const roll = Math.min(t, 0.5) * 1.1 + 0.08 * t;

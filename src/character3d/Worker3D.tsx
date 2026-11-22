@@ -49,7 +49,7 @@ export type Style = {
   /** Full short beard and moustache, in the hair colour. */
   beard?: boolean;
   /** A hat on top of the head. */
-  hat?: {kind: 'fedora'; color: string; band: string};
+  hat?: {kind: 'fedora' | 'hardhat'; color: string; band: string};
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -368,6 +368,17 @@ const hatMat = (c: string) => {
   if (!hatMats.has(c)) hatMats.set(c, new MeshStandardMaterial({color: c, roughness: 0.7}));
   return hatMats.get(c)!;
 };
+// construction hard hat: a dome with a centre ridge and a short peak at the front
+const domeGeo = new SphereGeometry(0.168, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+const peakGeo = new CylinderGeometry(0.19, 0.19, 0.012, 32, 1, false, -Math.PI / 2.4, Math.PI / 1.2);
+const ridgeGeo = new BoxGeometry(0.3, 0.025, 0.035);
+const HardHat: React.FC<{color: string}> = ({color}) => (
+  <group position={[0.005, 0.045, 0]} rotation={[0, 0, -0.06]}>
+    <mesh geometry={domeGeo} material={hatMat(color)} scale={[1.05, 0.95, 1]} castShadow />
+    <mesh geometry={peakGeo} material={hatMat(color)} position={[0.02, 0.004, 0]} rotation={[0, Math.PI / 2, 0]} />
+    <mesh geometry={ridgeGeo} material={hatMat(color)} position={[0, 0.155, 0]} />
+  </group>
+);
 const Fedora: React.FC<{color: string; band: string}> = ({color, band}) => (
   <group position={[0.005, 0.1, 0]} rotation={[0, 0, -0.08]}>
     <mesh geometry={brimGeo} material={hatMat(color)} scale={[1.05, 1, 0.92]} castShadow />
@@ -433,7 +444,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         <group position={[0.02, 0.2, 0]}>
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
-          {st.hat ? <Fedora color={st.hat.color} band={st.hat.band} /> : null}
+          {st.hat ? st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
           {st.beard ? (
             // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache
             <group>

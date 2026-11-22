@@ -1,5 +1,6 @@
 import {Episode6, EP6_FRAMES} from './films/youre-the-ref/Episode6';
 import {SAFETY_PREVIEW_FRAMES, ShortSafetyPreview} from './films/youre-the-ref/ShortSafetyPreview';
+import {SAFETY_FRAMES, ShortWorkplaceSafety} from './films/youre-the-ref/ShortWorkplaceSafety';
 import {Episode5, EP5_FRAMES} from './films/youre-the-ref/Episode5';
 import {Ep5CastTest, EP5_CAST_FRAMES} from './films/youre-the-ref/Ep5Cast';
 import {Episode4, EP4_FRAMES} from './films/youre-the-ref/Episode4';
@@ -20,6 +21,7 @@ import {SCENE1_FRAMES, Scene1Trapped} from './films/sleep-experiment/scenes/Scen
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="RefWorkplaceSafety" component={ShortWorkplaceSafety} durationInFrames={SAFETY_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefSafetyPreview" component={ShortSafetyPreview} durationInFrames={SAFETY_PREVIEW_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefEpisode6" component={Episode6} durationInFrames={EP6_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefEpisode5" component={Episode5} durationInFrames={EP5_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
