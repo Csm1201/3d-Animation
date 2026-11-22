@@ -20,7 +20,7 @@ About 12.5 s, vertical, and it stands on its own. It takes the Night Shift lesso
 | 8.0-9.0 | The music dies. The mobsters slowly look at each other. | | Record scratch, then silence. |
 | 9.0-9.6 | The boss brings his gun up level at Jimmy (pointed away from the camera). Jimmy freezes mid-crouch, nose still pinched, eyes wide. | | Click-clack. |
 | 9.6-10.2 | Outside the alley: a flash lights the brick wall and pigeons scatter off the roof. | | BANG, wing flaps. |
-| 10.2-12.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. No end card. Loops back to the hook. | | A twinkle. |
+| 10.2-12.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. At 10.8 a red card flutters down from above and lands on his chest (11.3). Loops back to the hook. | | A twinkle, then a stamp as the card lands. |
 
 ## Fake comments
 

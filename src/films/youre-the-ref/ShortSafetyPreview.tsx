@@ -278,7 +278,11 @@ export const ShotBang: React.FC = () => {
 /** Jimmy flat on his back, a halo spinning above him, his whistle rolling away. */
 export const DOWN: BodySpec = {lean: 0, headTilt: 4, near: {thigh: 4, knee: 4, foot: 0}, far: {thigh: -6, knee: 6, foot: 0}, nearArm: [28, 10], farArm: [22, 14]};
 const HEAD_Z = -1.05;
-export const ShotDown: React.FC = () => {
+const redCardGeo = new BoxGeometry(0.2, 0.006, 0.28);
+const redCardMat = new MeshStandardMaterial({color: '#e5262b', roughness: 0.35});
+export const CHEST = v3(0.05, 0.34, -0.52);
+/** cardAt: seconds into the shot when a red card flutters down and lands on his chest (omit for none). */
+export const ShotDown: React.FC<{cardAt?: number}> = ({cardAt}) => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
   const roll = Math.min(t, 0.5) * 1.1 + 0.08 * t;
@@ -294,6 +298,21 @@ export const ShotDown: React.FC = () => {
         <mesh geometry={haloGeo} material={haloMat} rotation={[Math.PI / 2, 0, 0]} />
         <pointLight intensity={0.6} distance={1.5} color="#ffd84a" />
       </group>
+      {cardAt !== undefined && t >= cardAt - 0.5
+        ? (() => {
+            const k = clamp01((t - (cardAt - 0.5)) / 0.5);
+            const fall = 1 - k;
+            return (
+              <mesh
+                geometry={redCardGeo}
+                material={redCardMat}
+                position={[CHEST.x + 0.18 * Math.sin(k * 9) * fall, CHEST.y + 1.4 * fall * fall, CHEST.z + 0.05 * fall]}
+                rotation={[0.5 * Math.sin(k * 11) * fall, 0.35 + 1.2 * fall, 0.4 * Math.cos(k * 8) * fall]}
+                castShadow
+              />
+            );
+          })()
+        : null}
       <mesh geometry={whistleGeo} material={whistleMat} position={[0.45 + roll * 0.8, 0.03, -0.2 + roll * 0.3]} rotation={[Math.PI / 2, 0, -roll * 6]} castShadow />
     </Night>
   );

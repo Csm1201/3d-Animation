@@ -8,7 +8,7 @@
  *   8.0  record scratch, the music dies, the mobsters look at each other
  *   9.0  the boss raises his gun at Jimmy (click-clack); Jimmy freezes mid-dance
  *   9.6  outside the alley: flash, BANG, pigeons (nothing else shown)
- *  10.2  Jimmy flat on his back in a small pool of blood, halo, whistle rolling away
+ *  10.2  Jimmy flat on his back in a small pool of blood, halo, whistle rolling away; 11.3 a red card flutters down onto his chest
  *  12.5  end; loops to the hook
  */
 import React from 'react';
@@ -38,6 +38,7 @@ const T_COCK = 9.0;
 const T_BANG = 9.6;
 const T_DOWN = 10.2;
 export const GANG_FRAMES = F(12.5);
+const CARD_AT = 1.1; // into the down shot: a red card lands on his chest
 
 /** Jimmy strolls into the alley (seen from behind him), stops in front of the gang and blows his whistle. */
 const WALK0 = 0.4;
@@ -124,6 +125,7 @@ const SOUNDS: S[] = [
   {at: T_BANG + 0.1, src: 'short-safety/bang.wav', vol: 0.95},
   {at: T_BANG + 0.15, src: 'short-safety/pigeons.wav', vol: 0.55},
   {at: T_DOWN + 0.1, src: 'ep4/twinkle.wav', vol: 0.5},
+  {at: T_DOWN + CARD_AT, src: 'ep5/stamp.wav', vol: 0.55},
 ];
 
 export const ShortGang: React.FC = () => {
@@ -144,7 +146,7 @@ export const ShortGang: React.FC = () => {
       {seq(T_LOOK, T_COCK, <ShotLook from={F(T_LOOK)} />)}
       {seq(T_COCK, T_BANG, <ShotCock />)}
       {seq(T_BANG, T_DOWN, <ShotBang />)}
-      {seq(T_DOWN, GANG_FRAMES / GANG_FPS, <ShotDown />)}
+      {seq(T_DOWN, GANG_FRAMES / GANG_FPS, <ShotDown cardAt={CARD_AT} />)}
       <HookCaption frame={frame} fps={fps} />
       <Rewind frame={frame} />
       {SOUNDS.map((s, i) => (
