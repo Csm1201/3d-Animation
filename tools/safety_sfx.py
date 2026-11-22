@@ -137,3 +137,9 @@ tt = T(1.0)
 chord = sum(np.sin(2 * np.pi * f * tt) for f in (261.63, 329.63, 392.0)) * np.exp(-tt * 2.5) * 0.5
 ev.append((0.56, chord))
 save('jingle.wav', place(1.7, ev), 0.6)
+
+# gun cocking: two sharp metallic clacks (back, then forward)
+def clack(n_s, f0):
+    tt = T(n_s)
+    return (noise(tt.size) * np.exp(-tt * 140) * 0.8 + sum(np.sin(2 * np.pi * f * tt) * np.exp(-tt * 60) * 0.3 for f in (f0, f0 * 1.63, f0 * 2.41)))
+save('cock.wav', place(0.45, [(0.0, clack(0.12, 1900)), (0.16, clack(0.14, 1500))]), 0.8)

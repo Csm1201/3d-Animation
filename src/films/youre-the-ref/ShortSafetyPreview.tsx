@@ -39,19 +39,19 @@ const mobster = (skin: string, hair: string, band: string): Style => ({
   kit: {shirt: '#2a2c33', shorts: '#2a2c33', socks: '#15151a', trim: '#4a4c55', longSleeves: true, trousers: true},
   hat: {kind: 'fedora', color: '#18181d', band},
 });
-const MOBS = [
+export const MOBS = [
   {st: mobster('#e9b991', '#2b211c', '#7a1c1c'), x: 1.3, z: 0.95},
   {st: mobster('#c98f6b', '#1f1714', '#1c3a7a'), x: 1.4, z: -0.85},
   {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.05, z: 1.35},
   {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.15, z: -1.4},
 ];
 /** Menacing stance: shoulders forward, a tommy gun held at the hip pointing down at the ground, a slow breath. */
-const MENACE = (t: number, i: number): BodySpec => {
+export const MENACE = (t: number, i: number): BodySpec => {
   const s = idleSpec(Math.round(t * 30) + i * 17, 0.04);
   const legs = {near: {thigh: 12, knee: 8, foot: 0}, far: {thigh: -12, knee: 8, foot: 0}};
   return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [26 + 3 * Math.sin(t * 2 + i), 58], farArm: [48, 34]};
 };
-const GLARE: Look = {tired: 0.2, droop: -5, eyesClosed: false, brows: -1, browLift: -0.45, mouth: 'flat', noBlink: true};
+export const GLARE: Look = {tired: 0.2, droop: -5, eyesClosed: false, brows: -1, browLift: -0.45, mouth: 'flat', noBlink: true};
 
 // ---------------------------------------------------------------- set
 const brickTex = () =>
@@ -145,13 +145,13 @@ export const Alley: React.FC<{flicker: number}> = ({flicker}) => (
 );
 
 // ---------------------------------------------------------------- shots
-const Gang: React.FC<{t: number; frame: number; look: (i: number) => Look}> = ({t, frame, look}) => (
+export const Gang: React.FC<{t: number; frame: number; look: (i: number) => Look; raise?: number}> = ({t, frame, look, raise = 0}) => (
   <>
     {MOBS.map((m, i) => (
-      <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
+      <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={i === 0 && raise > 0 ? {...MENACE(t, i), nearArm: [lerp(26, 62, raise), lerp(58, 40, raise)], farArm: [lerp(48, 80, raise), lerp(34, 20, raise)]} : MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
         {(pose) => (
           // held at the hip, muzzle angled down at the ground in front of them
-          <group position={handLocal(pose, false).add(v3(0, 0, -0.15))} rotation={[0, 0, -0.5]}>
+          <group position={handLocal(pose, false).add(v3(0, 0, -0.15))} rotation={[0, 0, i === 0 ? lerp(-0.5, -0.02, raise) : -0.5]}>
             <TommyGun />
           </group>
         )}
@@ -176,30 +176,44 @@ export const ShotGang: React.FC = () => {
 
 /** Jimmy does the scuba dance: nose pinched, far arm out and waving, knees bouncing lower and lower. */
 const BEAT = 0.4; // 150 bpm
-export const ShotDance: React.FC<{from: number}> = ({from}) => {
-  const frame = useCurrentFrame();
-  const t = frame / SAFETY_PREVIEW_FPS;
+export const danceSpec = (t: number, frame: number): {spec: BodySpec; sway: number; into: number} => {
   const into = smooth(clamp01(t / 0.18));
   const bounce = Math.abs(Math.sin((Math.PI * t) / BEAT));
   const sink = smooth(clamp01(t / 1.6)); // goes "deeper" as the song goes on
   const wave = Math.sin((2 * Math.PI * t) / BEAT);
   const base = idleSpec(frame, 0.05);
   const knee = (30 + 22 * sink) * bounce + 12 + 18 * sink;
-  const jimmy: BodySpec = {
-    lean: lerp(0, 14 + 6 * sink, into),
-    headTilt: lerp(0, -6, into),
-    near: {thigh: lerp(base.near.thigh, knee * 0.55, into), knee: lerp(base.near.knee, knee, into), foot: 0},
-    far: {thigh: lerp(base.far.thigh, knee * 0.55 - 6, into), knee: lerp(base.far.knee, knee, into), foot: 0},
-    // near hand pinches his nose; far arm straight out, rippling up and down like a fin
-    nearArm: [lerp(base.nearArm[0], 30, into), lerp(base.nearArm[1], 138, into)],
-    farArm: [lerp(base.farArm[0], 86 + 9 * wave, into), lerp(base.farArm[1], 8 + 22 * Math.max(0, -wave), into)],
+  return {
+    into,
+    sway: 0.12 * wave * into,
+    spec: {
+      lean: lerp(0, 14 + 6 * sink, into),
+      headTilt: lerp(0, -6, into),
+      near: {thigh: lerp(base.near.thigh, knee * 0.55, into), knee: lerp(base.near.knee, knee, into), foot: 0},
+      far: {thigh: lerp(base.far.thigh, knee * 0.55 - 6, into), knee: lerp(base.far.knee, knee, into), foot: 0},
+      // near hand pinches his nose; far arm straight out, rippling up and down like a fin
+      nearArm: [lerp(base.nearArm[0], 30, into), lerp(base.nearArm[1], 138, into)],
+      farArm: [lerp(base.farArm[0], 86 + 9 * wave, into), lerp(base.farArm[1], 8 + 22 * Math.max(0, -wave), into)],
+    },
   };
-  const sway = 0.12 * wave * into;
-  const cam: Cam = {position: v3(lerp(3.7, 3.35, t / 1.8), 1.3, 0.3), target: v3(0, 0.95, 0.3), fov: 44};
+};
+export const DancingJimmy: React.FC<{t: number; frame: number}> = ({t, frame}) => {
+  const d = danceSpec(t, frame);
+  return <Actor style={{...JIMMY, nearHandZ: d.into > 0.5 ? 0.03 : undefined}} x={0} z={0.3} yaw={0.5 + d.sway} spec={d.spec} frame={frame} look={{...DEADPAN(0, t), yaw: 6, mouth: 'flat'}} />;
+};
+/** view 'behind': from behind the gang, Jimmy dancing straight at them. 'side': low and close on Jimmy, guns in the foreground. */
+export const ShotDance: React.FC<{from: number; t0?: number; view?: 'behind' | 'side'; len?: number}> = ({from, t0 = 0, view = 'behind', len = 1.8}) => {
+  const frame = useCurrentFrame();
+  const t = frame / SAFETY_PREVIEW_FPS + t0;
+  const k = (t - t0) / len;
+  const cam: Cam =
+    view === 'behind'
+      ? {position: v3(lerp(3.7, 3.35, k), 1.3, 0.3), target: v3(0, 0.95, 0.3), fov: 44}
+      : {position: v3(lerp(2.2, 1.95, k), 0.9, 0.12), target: v3(0.0, 0.85, 0.3), fov: 48};
   return (
     <Night cam={cam} centre={v3(1.0, 0, 0)} flicker={1}>
       <Alley flicker={1} />
-      <Actor style={{...JIMMY, nearHandZ: into > 0.5 ? 0.03 : undefined}} x={0} z={0.3} yaw={0.5 + sway} spec={jimmy} frame={frame} look={{...DEADPAN(0, t), yaw: 6, mouth: 'flat'}} />
+      <DancingJimmy t={t} frame={frame + Math.round(t0 * SAFETY_PREVIEW_FPS)} />
       <Gang t={(from + frame) / SAFETY_PREVIEW_FPS} frame={from + frame} look={() => GLARE} />
     </Night>
   );
