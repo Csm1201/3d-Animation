@@ -10,12 +10,12 @@
 
 | Time | Shot | Action | Dialogue / On screen | Sound |
 |---|---|---|---|---|
-| 0.0–2.3 | **Hook**: street, at the club door, slow motion | Already mid-air from frame 1: he cartwheels out of the door past the high-heel sign, the bouncer filling the doorway. He lands sitting on the kerb, coffee still in hand. | Text (top): **"GTA 6 NPCs visiting the 'shoe store':"** | Muffled club bass, whoosh, thud |
+| 0.0–2.3 | **Hook**: street, at the club door, slow motion | Already mid-air from frame 1: he cartwheels out of the door past the high-heel sign, the bouncer filling the doorway. He slams down butt-first on the kerb, coffee held high. | Text (top): **"GTA 6 NPCs visiting the 'shoe store':"** | Muffled club bass, whoosh, thud |
 | 2.3–2.9 | Same shot, rewinding | Fast rewind: he flies back in through the door. | Text: **"1 MINUTE EARLIER"** | Tape rewind |
 | 2.9–6.6 | Street, sunset (Ep. 1's street) | He strolls along the pavement sipping coffee, stops under a black-windowed shopfront with no name, just a giant pink neon high heel for a sign. He points up at it, delighted, and walks to the door. | NPC: **"Ooh, shoes. My wife needs new heels."** | Beach music, muffled bass |
 | 6.6–8.7 | Inside, wide, creeping in | He walks in. Dark club, neon, empty stage and pole, mirror ball, cash drifting down, platform heels along the stage edge. He stops and looks around. The bouncer, by the bar, uncrosses his arms and strides over. | NPC (confused): **"This isn't a shoe shop?"** | Bass loud as the door opens |
 | 8.7–9.2 | Same shot | The bouncer lifts him off the floor by his shirt, legs kicking, and turns for the door. | | Whoosh |
-| 9.2–10.75 | Street, at the club door | The door bursts open; he's thrown out, cartwheels across the pavement and lands sitting on the kerb. The bouncer stands in the doorway, then goes back in. | | Door bang, whoosh, thud, door slam |
+| 9.2–10.75 | Street, at the club door | The door bursts open; he's thrown out, cartwheels across the pavement and slams down butt-first on the kerb: two bounces, legs kicked up, coffee held high, the camera jolts. He rocks forward into a sit. The bouncer stands in the doorway, then goes back in. | | Door bang, whoosh, thud, door slam |
 | 10.75–12.0 | Close on him at the kerb | He glances back at the club, then turns to camera. Deadpan. | NPC: **"One star."** | Bass muffled |
 | 12.0–13.0 | **Title card** over the last shot, darkened | Title slams in, five stars pop, episode sticker. | **"LIFE AS A GTA 6 NPC"** · **"EP. 2: THE SHOE STORE"** | Whoosh, sting |
 
