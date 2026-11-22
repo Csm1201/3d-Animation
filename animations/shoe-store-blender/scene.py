@@ -407,8 +407,13 @@ def update(frame):
     else:                                                      # in the doorway after the throw, then back inside
         k = ease(prog(s, T['outside'], T['outside'] + .25))
         pose = blend(dict(shL=1.6, elL=.2, shR=1.6, elR=.2), crossed, k)
-        gone = s > T['land'] + .25
-        b_root = person_root(SHOP_X + (.35 if not gone else -3), .16, DOOR_Z, math.pi / 2, scale=BOUNCER_SCALE)
+        turn = ease(prog(s, T['land'] + .05, T['land'] + .35))     # turns his back on him...
+        back = ease(prog(s, T['land'] + .25, T['land'] + .85))     # ...and strolls back inside
+        if 0 < back < 1:
+            pose.update(pose_of('walk', s * 5.5, .7))
+            pose.update(crossed)
+        bx = lerp(.35, -1.6, back) if back < 1 else -3
+        b_root = person_root(SHOP_X + bx, .16, DOOR_Z, lerp(math.pi / 2, 3 * math.pi / 2, turn), scale=BOUNCER_SCALE)
         Pb, Mb = apply_person(bouncer, b_root, pose, (.2, 0, 0), 1)
     S['earpiece'].matrix_world = Mb @ Matrix.Translation(Pb['headb'] + Vector((-.11, .02, .02))) @ Matrix.Rotation(.4, 4, 'X') @ CONV.inverted()
     # ---------- NPC ----------
