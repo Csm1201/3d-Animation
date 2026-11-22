@@ -588,7 +588,7 @@ const ShotEnd: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_FPS;
   const pan = smooth(clamp01((t - 0.1) / 1.0));
-  const cam: Cam = {position: v3(lerp(0.0, 0.4, pan), lerp(0.7, 1.0, pan), lerp(1.4, 3.9, pan)), target: v3(lerp(0.0, 0.4, pan), lerp(0.55, 1.3, pan), 0), fov: 44};
+  const cam: Cam = {position: v3(lerp(0.0, 0.3, pan), lerp(0.7, 1.0, pan), lerp(1.4, 4.7, pan)), target: v3(lerp(0.0, 0.3, pan), lerp(0.55, 1.62, pan), 0), fov: 44};
   return (
     <Day cam={cam} centre={v3(0.3, 0, 0)} bg="#f2c7a3" sky="#ffe2c4" ground="#6f9a55">
       <mesh geometry={plane} material={grass} rotation={[-Math.PI / 2, 0, 0]} scale={[30, 30, 1]} receiveShadow />
@@ -597,7 +597,7 @@ const ShotEnd: React.FC = () => {
         <mesh geometry={new CylinderGeometry(0.25, 0.25, 0.12, 24, 1, false, 0, Math.PI)} material={mat('#9ea3a8', 0.9)} position={[0, 0.62, 0]} rotation={[Math.PI / 2, Math.PI / 2, 0]} castShadow />
         <mesh geometry={whistleGeo} material={whistleMat} position={[0.02, 0.89, 0]} rotation={[0, 0.4, Math.PI / 2]} castShadow />
       </group>
-      <Actor style={JIMMY} x={0.75} z={0.15} yaw={-Math.PI / 2 + 0.25} spec={idleSpec(frame, 0.5)} frame={frame} look={DEADPAN(0, t)} />
+      <Actor style={JIMMY} x={0.95} z={0.15} yaw={-Math.PI / 2 + 0.25} spec={idleSpec(frame, 0.5)} frame={frame} look={DEADPAN(0, t)} />
     </Day>
   );
 };
@@ -720,7 +720,7 @@ const SOUNDS: S[] = [
   {at: T_TITLE, src: 'short-safety/jingle.wav', vol: 0.7},
   {at: T_TITLE + 0.12, src: 'short-safety/nar-title.mp3', vol: 1.1},
   // 1 construction
-  {at: T_L1, src: 'short-safety/crane-hum.wav', vol: 0.5, dur: 2.5},
+  {at: T_L1, src: 'short-safety/crane-hum.wav', vol: 0.5, dur: 1.15}, // stops so "Dangerous play." is clear
   {at: T_L1 + 0.2, src: 'short-safety/peep.wav', vol: 0.8},
   {at: T_L1 + 1.2, src: 'short-safety/j-dangerous.mp3', vol: 1.25},
   {at: T_L1 + DROP_AT + DROP_LEN, src: 'short-safety/clang.wav', vol: 0.9},
