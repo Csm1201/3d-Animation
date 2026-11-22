@@ -1,13 +1,15 @@
 /**
  * Preview of the "Workplace Safety with Jimmy" Short, Lesson 4 (Night Shift). Script: docs/scripts/ref-short-workplace-safety-script.md
  *
- *   0.0  the mobsters already have their hands up; Jimmy looks at their hands, nods, pulls out his notebook: "I'll need all your names."
- *   2.1  the mobsters look at each other
- *   2.8  outside the alley: a flash on the brick wall, BANG, pigeons scatter (nothing else shown)
- *   3.4  Jimmy flat on his back in a small pool of blood, halo spinning, whistle rolling away
+ *   0.0  low angle on the gang: four mobsters glaring, the boss tapping a bat on his palm
+ *   0.8  Jimmy, deadpan, does the scuba dance right in front of them (nose pinched, arm waving, knees bouncing lower and lower)
+ *   2.6  the music cuts out; the mobsters look at each other
+ *   3.2  outside the alley: a flash on the brick wall, BANG, pigeons scatter (nothing else shown)
+ *   3.8  Jimmy flat on his back in a small pool of blood, halo spinning, whistle rolling away
  */
 import React from 'react';
-import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Audio, Sequence, staticFile} from 'remotion';
+import {useCurrentFrame} from 'remotion';
 import {ThreeCanvas} from '@remotion/three';
 import {BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, SphereGeometry, TorusGeometry, Vector3} from 'three';
 import {BodySpec, idleSpec} from '../../core/sportPoses';
@@ -17,11 +19,11 @@ import {canvasTex, once} from '../../character3d/common';
 import {Look, Style} from '../../character3d/Worker3D';
 import {Actor} from './Episode2';
 import {DEADPAN, handLocal, JIMMY} from './Episode4';
-import {Captions, Cue} from './Overlays';
+import {yawFor} from './Players';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const SAFETY_PREVIEW_FPS = 30;
-export const SAFETY_PREVIEW_FRAMES = 123; // 4.1 s
+export const SAFETY_PREVIEW_FRAMES = 135; // 4.5 s
 const F = (s: number) => Math.round(s * SAFETY_PREVIEW_FPS);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -38,17 +40,23 @@ const mobster = (skin: string, hair: string, band: string): Style => ({
   hat: {kind: 'fedora', color: '#18181d', band},
 });
 const MOBS = [
-  {st: mobster('#e9b991', '#2b211c', '#7a1c1c'), x: 1.45, z: 0.55},
-  {st: mobster('#c98f6b', '#1f1714', '#1c3a7a'), x: 1.7, z: -0.25},
-  {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.45, z: 0.25},
-  {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.3, z: -1.0},
+  {st: mobster('#e9b991', '#2b211c', '#7a1c1c'), x: 1.3, z: 0.95},
+  {st: mobster('#c98f6b', '#1f1714', '#1c3a7a'), x: 1.4, z: -0.85},
+  {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.05, z: 1.35},
+  {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.15, z: -1.4},
 ];
-const HANDS_UP = (t: number, i: number, k = 1): BodySpec => {
-  const s = idleSpec(Math.round(t * 30) + i * 17, 0.05);
-  return {...s, nearArm: [lerp(s.nearArm[0], 162, k), lerp(s.nearArm[1], 38, k)], farArm: [lerp(s.farArm[0], 158, k), lerp(s.farArm[1], 42, k)]};
+/** Menacing stance: shoulders forward, arms hanging heavy, a slow breath. i=0 is the boss with the bat. */
+const MENACE = (t: number, i: number): BodySpec => {
+  const s = idleSpec(Math.round(t * 30) + i * 17, 0.04);
+  const legs = {near: {thigh: 10, knee: 8, foot: 0}, far: {thigh: -10, knee: 8, foot: 0}};
+  if (i === 0) {
+    // bat in the near hand, slapping into the far palm
+    const tap = Math.pow(Math.abs(Math.sin(t * 4.2)), 3);
+    return {...s, ...legs, lean: 9, headTilt: -10, nearArm: [18 + 8 * tap, 24 + 10 * tap], farArm: [12, 30]};
+  }
+  return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [14 + 4 * (i % 2), 26], farArm: [12, 30]};
 };
-const WARY: Look = {tired: 0, droop: -2, eyesClosed: false, brows: 0.35, browLift: 0.3, mouth: 'flat', noBlink: true, pupils: 0.85};
-const CROSS = (yaw: number): Look => ({tired: 0, droop: 0, eyesClosed: false, brows: -0.9, browLift: -0.2, mouth: 'frown', noBlink: true, yaw});
+const GLARE: Look = {tired: 0.2, droop: -5, eyesClosed: false, brows: -1, browLift: -0.45, mouth: 'flat', noBlink: true};
 
 // ---------------------------------------------------------------- set
 const brickTex = () =>
@@ -86,10 +94,8 @@ const bulbGeo = new SphereGeometry(0.11, 16, 12);
 const pigeonGeo = new SphereGeometry(0.12, 12, 8);
 const wingGeo = new BoxGeometry(0.12, 0.01, 0.34);
 const haloGeo = new TorusGeometry(0.16, 0.025, 12, 32);
-const bookGeo = new BoxGeometry(0.025, 0.2, 0.14);
-const pageGeo = new BoxGeometry(0.004, 0.18, 0.12);
-const bookMat = new MeshStandardMaterial({color: '#c9a46a', roughness: 0.6});
-const pageMat = new MeshStandardMaterial({color: '#f4f1e8', roughness: 0.8});
+const batGeo = new CylinderGeometry(0.035, 0.018, 0.78, 14);
+const batMat = new MeshStandardMaterial({color: '#8a5a32', roughness: 0.55});
 const bloodMat = new MeshStandardMaterial({color: '#6e0a0e', roughness: 0.15, metalness: 0.1});
 const bloodGeo = new CylinderGeometry(1, 1, 0.004, 40);
 const whistleGeo = new CylinderGeometry(0.03, 0.03, 0.08, 14);
@@ -115,7 +121,7 @@ const Alley: React.FC<{flicker: number}> = ({flicker}) => (
     <mesh geometry={wallGeo} position={[-3.6, 4, 2]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
       <meshStandardMaterial map={brickTex()} roughness={0.9} />
     </mesh>
-    <mesh geometry={barrelGeo} material={rust} position={[3.1, 0.45, 0.1]} castShadow receiveShadow />
+    <mesh geometry={barrelGeo} material={rust} position={[2.6, 0.45, -1.55]} castShadow receiveShadow />
     <group position={[-1.3, 0, -1.4]}>
       <mesh geometry={poleGeo} material={steel} position={[0, 2.1, 0]} castShadow />
       <mesh geometry={armGeo} material={steel} position={[0.33, 4.15, 0]} />
@@ -126,64 +132,80 @@ const Alley: React.FC<{flicker: number}> = ({flicker}) => (
 );
 
 // ---------------------------------------------------------------- shots
-/** Jimmy looks at their raised hands, nods, pulls out his notebook: "I'll need all your names." */
-const ShotHandball: React.FC = () => {
+const Gang: React.FC<{t: number; frame: number; look: (i: number) => Look}> = ({t, frame, look}) => (
+  <>
+    {MOBS.map((m, i) => (
+      <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
+        {i === 0
+          ? (pose) => {
+              const h = handLocal(pose, false);
+              return (
+                <group position={h} rotation={[0, 0, -0.35]}>
+                  <mesh geometry={batGeo} material={batMat} position={[0, -0.3, 0]} castShadow />
+                </group>
+              );
+            }
+          : undefined}
+      </Actor>
+    ))}
+  </>
+);
+
+/** Low angle on the gang, from Jimmy's side: they glare down at him. */
+const ShotGang: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
-  const nod = Math.sin(clamp01((t - 0.12) / 0.3) * Math.PI) * 12;
-  const point = smooth(clamp01((t - 0.3) / 0.2)); // notebook up
-  const talk = t >= LINE_AT && t < LINE_AT + LINE_LEN ? 1 : 0;
-  const base = idleSpec(frame, 0.08);
-  const jimmy: BodySpec = {
-    ...base,
-    headTilt: (base.headTilt ?? 0) + nod + 6 * point,
-    nearArm: [lerp(base.nearArm[0], 46, point), lerp(base.nearArm[1], 70, point)],
-    farArm: [lerp(base.farArm[0], 40, point), lerp(base.farArm[1], 70, point)],
-  };
-  const cam: Cam = {position: v3(lerp(-1.75, -1.6, t / 2.1), 1.6, lerp(1.25, 1.15, t / 2.1)), target: v3(1.6, 1.05, -0.3), fov: 54};
+  const push = smooth(clamp01(t / 0.8));
+  const cam: Cam = {position: v3(lerp(-3.0, -2.55, push), 0.7, 0.2), target: v3(1.6, 1.35, 0.1), fov: 52};
   return (
-    <Night cam={cam} centre={v3(1.2, 0, 0)} flicker={t > 1.9 && t < 1.97 ? 0.35 : 1}>
-      <Alley flicker={t > 1.9 && t < 1.97 ? 0.35 : 1} />
-      <Actor style={JIMMY} x={0} z={0.25} yaw={-0.12} spec={jimmy} frame={frame} look={{...DEADPAN(talk, t), yaw: -8}}>
-        {(pose) => {
-          const h = handLocal(pose, false);
-          return point > 0.3 ? (
-            <group position={h} rotation={[0, 0, 0.35]}>
-              <mesh geometry={bookGeo} material={bookMat} position={[0.02, 0.06, -0.04]} />
-              <mesh geometry={pageGeo} material={pageMat} position={[0.031, 0.06, -0.04]} />
-            </group>
-          ) : null;
-        }}
-      </Actor>
-      {MOBS.map((m, i) => (
-        <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={Math.PI + (m.z - 0.25) * 0.25} spec={HANDS_UP(t, i)} frame={frame + i * 9} look={WARY} />
-      ))}
+    <Night cam={cam} centre={v3(1.8, 0, 0)} flicker={t > 0.5 && t < 0.56 ? 0.35 : 1}>
+      <Alley flicker={t > 0.5 && t < 0.56 ? 0.35 : 1} />
+      <Gang t={t} frame={frame} look={() => GLARE} />
     </Night>
   );
 };
 
-/** The mobsters lower their hands and look at each other. */
+/** Jimmy does the scuba dance: nose pinched, far arm out and waving, knees bouncing lower and lower. */
+const BEAT = 0.4; // 150 bpm
+const ShotDance: React.FC<{from: number}> = ({from}) => {
+  const frame = useCurrentFrame();
+  const t = frame / SAFETY_PREVIEW_FPS;
+  const into = smooth(clamp01(t / 0.18));
+  const bounce = Math.abs(Math.sin((Math.PI * t) / BEAT));
+  const sink = smooth(clamp01(t / 1.6)); // goes "deeper" as the song goes on
+  const wave = Math.sin((2 * Math.PI * t) / BEAT);
+  const base = idleSpec(frame, 0.05);
+  const knee = (30 + 22 * sink) * bounce + 12 + 18 * sink;
+  const jimmy: BodySpec = {
+    lean: lerp(0, 14 + 6 * sink, into),
+    headTilt: lerp(0, -6, into),
+    near: {thigh: lerp(base.near.thigh, knee * 0.55, into), knee: lerp(base.near.knee, knee, into), foot: 0},
+    far: {thigh: lerp(base.far.thigh, knee * 0.55 - 6, into), knee: lerp(base.far.knee, knee, into), foot: 0},
+    // near hand pinches his nose; far arm straight out, rippling up and down like a fin
+    nearArm: [lerp(base.nearArm[0], 30, into), lerp(base.nearArm[1], 138, into)],
+    farArm: [lerp(base.farArm[0], 86 + 9 * wave, into), lerp(base.farArm[1], 8 + 22 * Math.max(0, -wave), into)],
+  };
+  const sway = 0.12 * wave * into;
+  const cam: Cam = {position: v3(lerp(3.7, 3.35, t / 1.8), 1.3, 0.3), target: v3(0, 0.95, 0.3), fov: 44};
+  return (
+    <Night cam={cam} centre={v3(1.0, 0, 0)} flicker={1}>
+      <Alley flicker={1} />
+      <Actor style={{...JIMMY, nearHandZ: into > 0.5 ? 0.03 : undefined}} x={0} z={0.3} yaw={0.5 + sway} spec={jimmy} frame={frame} look={{...DEADPAN(0, t), yaw: 6, mouth: 'flat'}} />
+      <Gang t={(from + frame) / SAFETY_PREVIEW_FPS} frame={from + frame} look={() => GLARE} />
+    </Night>
+  );
+};
+
+/** The music cuts out; the mobsters look at each other. */
 const ShotLook: React.FC<{from: number}> = ({from}) => {
   const frame = useCurrentFrame();
   const t = frame / SAFETY_PREVIEW_FPS;
-  const down = smooth(clamp01((t - 0.15) / 0.4));
-  const cam: Cam = {position: v3(-0.4, 1.55, 1.5), target: v3(2.0, 1.4, -0.2), fov: 44};
+  const cam: Cam = {position: v3(-0.9, 1.5, 0.2), target: v3(1.75, 1.45, 1.1), fov: 40};
   const yaws = [-38, 34, -30, 40];
   return (
     <Night cam={cam} centre={v3(2, 0, 0)} flicker={1}>
       <Alley flicker={1} />
-      {MOBS.map((m, i) => (
-        <Actor
-          key={i}
-          style={m.st}
-          x={m.x}
-          z={m.z}
-          yaw={Math.PI + (m.z - 0.25) * 0.25}
-          spec={HANDS_UP(t, i, 1 - down)}
-          frame={from + frame + i * 9}
-          look={CROSS(yaws[i] * smooth(clamp01((t - 0.05) / 0.2)))}
-        />
-      ))}
+      <Gang t={(from + frame) / SAFETY_PREVIEW_FPS} frame={from + frame} look={(i) => ({...GLARE, yaw: yaws[i] * smooth(clamp01((t - 0.05) / 0.2))})} />
     </Night>
   );
 };
@@ -254,41 +276,41 @@ const ShotDown: React.FC = () => {
   );
 };
 
-const LINE_AT = 0.38;
-const LINE_LEN = 1.5;
-const CUES: Cue[] = [{from: F(LINE_AT), to: F(2.1), text: "I'LL NEED ALL YOUR NAMES.", hl: {'NAMES.': '#ffd23a'}}];
 
 export const ShortSafetyPreview: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
   return (
     <AbsoluteFill style={{backgroundColor: '#070a16'}}>
-      <Sequence from={0} durationInFrames={F(2.1)}>
-        <ShotHandball />
+      <Sequence from={0} durationInFrames={F(0.8)}>
+        <ShotGang />
       </Sequence>
-      <Sequence from={F(2.1)} durationInFrames={F(2.8) - F(2.1)}>
-        <ShotLook from={F(2.1)} />
+      <Sequence from={F(0.8)} durationInFrames={F(2.6) - F(0.8)}>
+        <ShotDance from={F(0.8)} />
       </Sequence>
-      <Sequence from={F(2.8)} durationInFrames={F(3.4) - F(2.8)}>
+      <Sequence from={F(2.6)} durationInFrames={F(3.2) - F(2.6)}>
+        <ShotLook from={F(2.6)} />
+      </Sequence>
+      <Sequence from={F(3.2)} durationInFrames={F(3.8) - F(3.2)}>
         <ShotBang />
       </Sequence>
-      <Sequence from={F(3.4)}>
+      <Sequence from={F(3.8)}>
         <ShotDown />
       </Sequence>
-      <Captions cues={CUES} frame={frame} fps={fps} />
       <Sequence from={0}>
-        <Audio src={staticFile('ep5/whistle.wav')} volume={0.25} endAt={6} />
+        <Audio src={staticFile('short-safety/drone.wav')} volume={0.7} />
       </Sequence>
-      <Sequence from={F(LINE_AT)}>
-        <Audio src={staticFile('short-safety/j-names.mp3')} volume={1.3} />
+      <Sequence from={F(0.8)} durationInFrames={F(2.6) - F(0.8)}>
+        <Audio src={staticFile('short-safety/scuba-beat.wav')} volume={0.8} />
       </Sequence>
-      <Sequence from={F(2.83)}>
+      <Sequence from={F(2.6)}>
+        <Audio src={staticFile('ep5/scratch.wav')} volume={0.5} />
+      </Sequence>
+      <Sequence from={F(3.23)}>
         <Audio src={staticFile('short-safety/bang.wav')} volume={0.9} />
       </Sequence>
-      <Sequence from={F(2.88)}>
+      <Sequence from={F(3.28)}>
         <Audio src={staticFile('short-safety/pigeons.wav')} volume={0.55} />
       </Sequence>
-      <Sequence from={F(3.5)}>
+      <Sequence from={F(3.9)}>
         <Audio src={staticFile('ep4/twinkle.wav')} volume={0.5} />
       </Sequence>
     </AbsoluteFill>
