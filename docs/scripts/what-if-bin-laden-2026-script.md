@@ -1,6 +1,6 @@
-# One-off Short: "What if Bin Laden woke up in 2026?" (script, draft 1)
+# One-off Short: "What if Bin Laden woke up in 2026?" (script, draft 2)
 
-About 21 s, vertical, and it stands on its own. It uses the same chunky 3D toy style as *You're the Ref*. It's a fish-out-of-water comedy: he wakes up in a cave after 15 years, and the modern world humiliates him at every turn. At the end Jimmy the ref turns up and sends him off.
+About 21 s, vertical, and it stands on its own. It uses the same chunky 3D toy style as *You're the Ref*. It's a fish-out-of-water comedy: he wakes up in a cave after 15 years, and the modern world humiliates him at every turn. In the end he gives up on 2026 and goes back to sleep.
 
 **Tone rules for this one:**
 - **He is the joke, every time.** He is confused, out of date and ignored; he never wins a beat, gets no speeches or ideology, and nothing makes him look cool or powerful.
@@ -11,7 +11,6 @@ About 21 s, vertical, and it stands on its own. It uses the same chunky 3D toy s
 **Characters:**
 - **Him:** dusty, baffled, increasingly deflated.
 - **Tourists:** a cheerful family and a teen with a phone, all generic. They have no lines; they take selfies.
-- **Jimmy the ref:** in his usual deadpan cameo, with one line.
 - **Narrator:** none. The question caption carries the premise.
 
 | Time | Visual | On-screen text | Voiceover / sound |
@@ -23,23 +22,25 @@ About 21 s, vertical, and it stands on its own. It uses the same chunky 3D toy s
 | 7.5-10.5 | He shuffles out of the cave into daylight. The cave is now a tourist attraction: a ticket booth ("CAVE TOURS $15"), a gift shop, a queue. A family spots him, cheers, and crowds in for selfies, thinking he's a costumed guide. Flash, flash, flash. He stands there, frozen. | CAVE TOURS $15 | Camera shutter clicks, a cheerful "say cheese!" crowd murmur. Him (flat): "...What is a selfie." |
 | 10.5-13.0 | The hook, paid off. The buzz returns: a small delivery drone drops toward him. He dives into the bush (the hook shot). The drone gently lowers a pizza box onto his back, beeps, and flies away. | ORDER DELIVERED ✓ | Drone buzz, yelp, a soft *thump*, two friendly beeps. |
 | 13.0-15.5 | He peeks out of the bush. A big street-side billboard camera swivels toward him, a green box locks onto his face, and it reads MATCH FOUND 99.9%. Every tourist's phone turns toward him at once. | MATCH FOUND: 99.9% | A scanning "bweep", then a rising alarm tone. |
-| 15.5-19.0 | A whistle. Jimmy jogs in, in his full referee kit, stops in front of him, deadpan, and holds up a red card. A beat. Jimmy points back toward the cave. He picks up his turban and trudges back inside, pizza box under his arm. | RED CARD | Sharp whistle. Jimmy (flat): "Back in the cave." Slow, sad footsteps. |
+| 15.5-19.0 | He grabs the pizza box and scurries back into the cave. Cut inside: he lies back down on the rug, pizza on his chest, and taps the phone to set an alarm. The screen shows **ALARM SET: 2040**. He pulls the rug over his head. | ALARM: 2040 | Hurried footsteps, the alarm "bloop". Him (muffled, under the rug): "Wake me up in 2040." |
 | 19.0-21.0 | **ENDING.** Two panels slam in over the cave mouth: **A: NAPOLEON** vs **B: CLEOPATRA**. TAP TO COMMENT, then loop to the hook. | WHO WAKES UP NEXT? A or B | Bass hit. A light "ding" on each panel. |
 
 ## Fake comments
 
 - "3 views 💀 the algorithm said no"
 - "the drone just wanted to give him pizza 😭"
-- "Jimmy refs EVERYTHING now"
+- "set an alarm for 2040 and went back to bed 😭 relatable"
 - "A. Napoleon would be so short on a ladder"
 - "B. Cleopatra finding out about TikTok"
 
 ## Voices
 
 All voices are generic stock voices, not imitations of anyone:
-- **Him:** George or another calm, older stock voice, read plainly with no accent impression. Three lines: "...How long was I asleep?", "...What is a selfie." and one yelp.
-- **Jimmy:** George, deadpan, with one line ("Back in the cave.").
-  - George can't voice both, so if Jimmy keeps George, he needs a different stock voice.
+- **Him:** a calm, older stock voice, read plainly with no accent impression. Three lines and a yelp:
+  - "...How long was I asleep?"
+  - "...What is a selfie."
+  - "Wake me up in 2040."
+- No Jimmy in this one.
 
 ## Production notes
 
@@ -52,9 +53,8 @@ All voices are generic stock voices, not imitations of anyone:
   - smartphone with a fake vertical video feed (3 VIEWS vs 12M VIEWS), drawn as a canvas texture;
   - a small white delivery drone with four rotors and a dangling box, generic with no logo;
   - a pizza box;
-  - the red card and whistle, reused.
+  - the phone alarm screen (ALARM SET: 2040).
 - **Reused:**
-  - Jimmy and his rig;
   - the VHS rewind from the gang Short;
   - the A vs B ending panels from `Ending.tsx`;
   - the comment button.
