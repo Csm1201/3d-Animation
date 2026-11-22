@@ -9,7 +9,7 @@
  *   9.0  the boss raises his gun at Jimmy (click-clack); Jimmy freezes mid-dance
  *   9.6  outside the alley: flash, BANG, pigeons (nothing else shown)
  *  10.2  Jimmy flat on his back in a small pool of blood, halo, whistle rolling away
- *  11.6  RATE THE DANCE 1-10 + comment; loops to the hook
+ *  10.9  RATE THE DANCE 1-10 + comment; loops to the hook
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
@@ -37,7 +37,7 @@ const T_LOOK = 8.0;
 const T_COCK = 9.0;
 const T_BANG = 9.6;
 const T_DOWN = 10.2;
-const T_RATE = 11.6;
+const T_RATE = 10.9;
 export const GANG_FRAMES = F(13.5);
 
 /** Jimmy strolls into the alley (seen from behind him), stops in front of the gang and blows his whistle. */
@@ -117,7 +117,7 @@ const RateCard: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   const n = spring({frame: local - 6, fps, config: {damping: 8, stiffness: 260}});
   return (
     <div style={{position: 'absolute', top: 250, left: 0, right: 0, textAlign: 'center', fontFamily: FONT}}>
-      <div style={{fontWeight: 900, fontSize: 112, color: '#fff', WebkitTextStroke: '5px #111', textShadow: '0 9px 0 #111', transform: `scale(${s})`}}>RATE THE DANCE</div>
+      <div style={{fontWeight: 900, fontSize: 92, color: '#fff', WebkitTextStroke: '5px #111', textShadow: '0 9px 0 #111', transform: `scale(${s})`}}>RATE THE DANCE</div>
       <div style={{display: 'inline-block', marginTop: 18, fontWeight: 900, fontSize: 96, color: '#111', background: '#ffd23a', borderRadius: 20, padding: '4px 40px', boxShadow: '0 10px 0 #111', transform: `scale(${local < 6 ? 0 : n}) rotate(-3deg)`}}>1-10</div>
     </div>
   );

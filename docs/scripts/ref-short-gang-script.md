@@ -20,7 +20,7 @@ About 13.5 s, vertical, and it stands on its own. It takes the Night Shift lesso
 | 8.0-9.0 | The music dies. The mobsters slowly look at each other. | | Record scratch, then silence. |
 | 9.0-9.6 | The boss brings his gun up level at Jimmy (pointed away from the camera). Jimmy freezes mid-crouch, nose still pinched, eyes wide. | | Click-clack. |
 | 9.6-10.2 | Outside the alley: a flash lights the brick wall and pigeons scatter off the roof. | | BANG, wing flaps. |
-| 10.2-13.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. Loops back to the hook. | RATE THE DANCE 1-10 / COMMENT | A twinkle, then a ding on the card. |
+| 10.2-13.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. The rating card lands at 10.9. Loops back to the hook. | RATE THE DANCE 1-10 / COMMENT | A twinkle, then a ding on the card. |
 
 ## Fake comments
 
