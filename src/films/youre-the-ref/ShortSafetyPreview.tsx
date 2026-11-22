@@ -45,11 +45,11 @@ export const MOBS = [
   {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.05, z: 1.35},
   {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.15, z: -1.4},
 ];
-/** Menacing stance: shoulders forward, a tommy gun held at the hip pointing down at the ground, a slow breath. */
+/** Menacing stance: shoulders forward, a tommy gun held at the hip pointing down at the ground, free hand at the side, a slow breath. */
 export const MENACE = (t: number, i: number): BodySpec => {
   const s = idleSpec(Math.round(t * 30) + i * 17, 0.04);
   const legs = {near: {thigh: 12, knee: 8, foot: 0}, far: {thigh: -12, knee: 8, foot: 0}};
-  return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [26 + 3 * Math.sin(t * 2 + i), 58], farArm: [48, 34]};
+  return {...s, ...legs, lean: 8 + (i % 2) * 3, headTilt: -9, nearArm: [26 + 3 * Math.sin(t * 2 + i), 58], farArm: [6 + 2 * Math.sin(t * 2 + i + 1), 14]}; // free hand hangs at the side
 };
 export const GLARE: Look = {tired: 0.2, droop: -5, eyesClosed: false, brows: -1, browLift: -0.45, mouth: 'flat', noBlink: true};
 
@@ -148,7 +148,7 @@ export const Alley: React.FC<{flicker: number}> = ({flicker}) => (
 export const Gang: React.FC<{t: number; frame: number; look: (i: number) => Look; raise?: number}> = ({t, frame, look, raise = 0}) => (
   <>
     {MOBS.map((m, i) => (
-      <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={i === 0 && raise > 0 ? {...MENACE(t, i), nearArm: [lerp(26, 62, raise), lerp(58, 40, raise)], farArm: [lerp(48, 80, raise), lerp(34, 20, raise)]} : MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
+      <Actor key={i} style={m.st} x={m.x} z={m.z} yaw={yawFor(0 - m.x, 0.3 - m.z)} spec={i === 0 && raise > 0 ? {...MENACE(t, i), nearArm: [lerp(26, 62, raise), lerp(58, 40, raise)], farArm: [6, 14]} : MENACE(t, i)} frame={frame + i * 9} look={look(i)}>
         {(pose) => (
           // held at the hip, muzzle angled down at the ground in front of them
           <group position={handLocal(pose, false).add(v3(0, 0, -0.15))} rotation={[0, 0, i === 0 ? lerp(-0.5, -0.02, raise) : -0.5]}>

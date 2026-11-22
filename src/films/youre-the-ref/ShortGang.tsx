@@ -9,7 +9,7 @@
  *   9.0  the boss raises his gun at Jimmy (click-clack); Jimmy freezes mid-dance
  *   9.6  outside the alley: flash, BANG, pigeons (nothing else shown)
  *  10.2  Jimmy flat on his back in a small pool of blood, halo, whistle rolling away
- *  10.9  RATE THE DANCE 1-10 + comment; loops to the hook
+ *  12.5  end; loops to the hook
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
@@ -18,7 +18,7 @@ import {BodySpec, idleSpec} from '../../core/sportPoses';
 import {Cam} from '../../character3d/stage';
 import {Actor, runAlong} from './Episode2';
 import {DEADPAN, handLocal, JIMMY} from './Episode4';
-import {CommentButton, FONT} from './Overlays';
+import {FONT} from './Overlays';
 import {Alley, danceSpec, Gang, GLARE, Night, ShotBang, ShotDance, ShotDown, ShotGang, ShotLook, whistleGeo, whistleMat} from './ShortSafetyPreview';
 
 export const GANG_FPS = 30;
@@ -37,8 +37,7 @@ const T_LOOK = 8.0;
 const T_COCK = 9.0;
 const T_BANG = 9.6;
 const T_DOWN = 10.2;
-const T_RATE = 10.9;
-export const GANG_FRAMES = F(13.5);
+export const GANG_FRAMES = F(12.5);
 
 /** Jimmy strolls into the alley (seen from behind him), stops in front of the gang and blows his whistle. */
 const WALK0 = 0.4;
@@ -110,19 +109,6 @@ const Rewind: React.FC<{frame: number}> = ({frame}) => {
   );
 };
 
-const RateCard: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
-  const local = frame - F(T_RATE);
-  if (local < 0) return null;
-  const s = spring({frame: local, fps, config: {damping: 9, stiffness: 240}});
-  const n = spring({frame: local - 6, fps, config: {damping: 8, stiffness: 260}});
-  return (
-    <div style={{position: 'absolute', top: 250, left: 0, right: 0, textAlign: 'center', fontFamily: FONT}}>
-      <div style={{fontWeight: 900, fontSize: 92, color: '#fff', WebkitTextStroke: '5px #111', textShadow: '0 9px 0 #111', transform: `scale(${s})`}}>RATE THE DANCE</div>
-      <div style={{display: 'inline-block', marginTop: 18, fontWeight: 900, fontSize: 96, color: '#111', background: '#ffd23a', borderRadius: 20, padding: '4px 40px', boxShadow: '0 10px 0 #111', transform: `scale(${local < 6 ? 0 : n}) rotate(-3deg)`}}>1-10</div>
-    </div>
-  );
-};
-
 // ---------------------------------------------------------------- sound
 type S = {at: number; src: string; vol?: number; dur?: number};
 const SOUNDS: S[] = [
@@ -138,7 +124,6 @@ const SOUNDS: S[] = [
   {at: T_BANG + 0.1, src: 'short-safety/bang.wav', vol: 0.95},
   {at: T_BANG + 0.15, src: 'short-safety/pigeons.wav', vol: 0.55},
   {at: T_DOWN + 0.1, src: 'ep4/twinkle.wav', vol: 0.5},
-  {at: T_RATE, src: 'ep6/ding.wav', vol: 0.45},
 ];
 
 export const ShortGang: React.FC = () => {
@@ -162,8 +147,6 @@ export const ShortGang: React.FC = () => {
       {seq(T_DOWN, GANG_FRAMES / GANG_FPS, <ShotDown />)}
       <HookCaption frame={frame} fps={fps} />
       <Rewind frame={frame} />
-      <RateCard frame={frame} fps={fps} />
-      <CommentButton frame={frame} fps={fps} from={F(T_RATE + 0.4)} to={GANG_FRAMES} />
       {SOUNDS.map((s, i) => (
         <Sequence key={i} from={F(s.at)} durationInFrames={s.dur ? F(s.dur) : undefined}>
           <Audio src={staticFile(s.src)} volume={s.vol ?? 1} />

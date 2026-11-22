@@ -1,10 +1,10 @@
-# You're the Ref, Short: "Jimmy vs the Gang" (script, draft 1: as built)
+# You're the Ref, Short: "Jimmy vs the Gang" (script, draft 2: as built)
 
-About 13.5 s, vertical, and it stands on its own. It takes the Night Shift lesson from "Workplace Safety with Jimmy" and makes it a whole Short. Jimmy, in his full referee kit, does the scuba dance in front of an armed gang, and it does not end well.
+About 12.5 s, vertical, and it stands on its own. It takes the Night Shift lesson from "Workplace Safety with Jimmy" and makes it a whole Short. Jimmy, in his full referee kit, does the scuba dance in front of an armed gang, and it does not end well.
 
 **Characters:**
 - **Jimmy:** completely deadpan, with no lines; the dance does the talking.
-- **The gang:** four cartoon 1920s-style mobsters in dark suits and fedoras, each holding a drum-fed tommy gun at the hip. They are deliberately old-timey and over the top, so they don't look like any real-world group, and they have no lines.
+- **The gang:** four cartoon 1920s-style mobsters in dark suits and fedoras, each standing still, holding a drum-fed tommy gun at the hip with the free hand hanging at his side. They are deliberately old-timey and over the top, so they don't look like any real-world group, and they have no lines.
 - No LeBron and no Epstein. "Mogs" is not used. There is no narrator.
 
 **Violence:** cartoon only. The shot happens off-screen (a flash, a bang and pigeons), no gun is ever aimed at the camera, and the only blood is a small pool under Jimmy. No wound is shown.
@@ -20,7 +20,7 @@ About 13.5 s, vertical, and it stands on its own. It takes the Night Shift lesso
 | 8.0-9.0 | The music dies. The mobsters slowly look at each other. | | Record scratch, then silence. |
 | 9.0-9.6 | The boss brings his gun up level at Jimmy (pointed away from the camera). Jimmy freezes mid-crouch, nose still pinched, eyes wide. | | Click-clack. |
 | 9.6-10.2 | Outside the alley: a flash lights the brick wall and pigeons scatter off the roof. | | BANG, wing flaps. |
-| 10.2-13.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. The rating card lands at 10.9. Loops back to the hook. | RATE THE DANCE 1-10 / COMMENT | A twinkle, then a ding on the card. |
+| 10.2-12.5 | Jimmy flat on his back in a small pool of blood, a halo spinning above him, his whistle rolling away. No end card. Loops back to the hook. | | A twinkle. |
 
 ## Fake comments
 
