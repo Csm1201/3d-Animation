@@ -425,12 +425,12 @@ def set_camera(t, s):
         return track_cam(s, t)
     if t < T['track']:                                         # at the kerb: beauty shot, then wider for the theft
         k = ease(prog(t, T['rewindEnd'], T['steal'])); wdn = ease(prog(t, T['steal'] - .2, T['steal'] + .5))
-        pos = (lerp(-7.5, -7.3, k) - .3 * wdn, lerp(1.25, 1.35, k) + .25 * wdn, Z0 + lerp(9.2, 8.4, k) + 1.4 * wdn)
-        return aim(pos, (-4.3, .85, Z0 + .2), 45)
+        pos = (lerp(-6.0, -5.8, k) - .3 * wdn, lerp(1.25, 1.35, k) + .25 * wdn, Z0 + lerp(9.2, 8.4, k) + 1.4 * wdn)
+        return aim(pos, (-3.95, 1.25, Z0 + .2), 41 + 5 * wdn)
     if t < T['fling'] + .05:
         return track_cam(s, t)
     if t < T['close']:                                         # by the bench: the swerve, the flight, the landing
         dl = s - T['land']; jolt = 0 if dl < 0 else .08 * math.exp(-dl * 9) * math.sin(dl * 55)
-        return aim((-2.8, 1.3, bz + 6.2), (-6.4, 1.45 + jolt, bz - 1.0), 58)
+        return aim((-2.8, 1.3, bz + 6.2), (-6.0, 1.75 + jolt, bz - .6), 55)
     k = ease(prog(t, T['close'], T['title']))
     return aim((bx + 1.75 - .1 * k, 1.2, bz + 2.7), (bx + .05, SEAT_H + .6, bz), 40)

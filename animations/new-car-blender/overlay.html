@@ -134,7 +134,7 @@ function overlays(t) {
       octx.save(); octx.translate(W / 2 + (i - 2) * 120, 1150); octx.scale(ks, ks); octx.rotate(-.06);
       bold('★', 0, 0, 120, '#ffe03a', HEAD); octx.restore();
     }
-    const ke = pop(t, T.title + .75, .22);
+    const ke = pop(t, T.title + .5, .2);
     if (ke > 0) { octx.save(); octx.translate(W / 2, 1310); octx.scale(ke, ke); sticker('EP. 3: THE NEW CAR', 0, 0, 64, '#ff2f90', '#fff', .03); octx.restore(); }
   }
 }
