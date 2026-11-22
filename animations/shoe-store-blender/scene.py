@@ -452,20 +452,40 @@ def update(frame):
     else:                                                      # thrown out of the door, lands on the kerb, sits
         u = prog(s, T['outside'], T['land'])
         door = Vector((SHOP_X + 1.15, DOOR_Z)); seat = Vector(SIT)   # leaves from the bouncer's hands
-        if u < 1:
+        pose_sit = dict(SIT_POSE); pose_sit.update(arms()['sitrest'])
+        P0 = fk(pose_sit)
+        hip = Vector((0, P0['hipR'].y, P0['hipR'].z))
+
+        def sit_root(yb, tilt=0):                              # tilt < 0 leans him back, pivoting on his backside
+            r = person_root(seat.x, .2 + yb - P0['hipR'].y + .1, seat.y, math.pi / 2 + .25)
+            return r @ Matrix.Translation(hip) @ Matrix.Rotation(tilt, 4, 'X') @ Matrix.Translation(-hip)
+        arms_up = dict(shL=2.6, elL=.4, shzL=.5, shR=2.4, elR=.5, shzR=.5)   # arms thrown up by the impact
+        if u < 1:                                              # one full cartwheel that comes round upright, butt-first
             pp = door.lerp(seat, u); y = .9 + 1.3 * 4 * u * (1 - u) - .55 * u
-            root = Matrix.Translation(Vector((pp.x, y, pp.y))) @ Euler((0, 0, -u * math.pi * 1.6), 'XYZ').to_matrix().to_4x4() @ Matrix.Rotation(math.pi / 2, 4, 'Y') @ Matrix.Translation(Vector((0, -.9, 0)))
-            pose = pose_of('flail', s * 18)
-            pose.update(shR=1.9, elR=.3)
+            spin = -2 * math.pi * ease(min(u / .85, 1)) ** .8
+            fly = Matrix.Translation(Vector((pp.x, y, pp.y))) @ Euler((0, 0, spin), 'XYZ').to_matrix().to_4x4() @ Matrix.Rotation(math.pi / 2, 4, 'Y') @ Matrix.Translation(Vector((0, -.9, 0)))
+            w = ease(prog(u, .62, 1))                          # settle into the landing pose on the way down
+            tgt = sit_root(0, -.75)                             # comes in leaning back, legs up
+            loc = fly.to_translation().lerp(tgt.to_translation(), w)
+            rot = fly.to_quaternion().slerp(tgt.to_quaternion(), w)
+            root = Matrix.Translation(loc) @ rot.to_matrix().to_4x4()
+            pose = pose_of('flail', s * 18); pose.update(shR=1.9, elR=.3)
+            landing = dict(pose_sit); landing.update(arms_up)
+            pose = blend(pose, landing, w)
             P, M = apply_person(npc, root, pose, (0, 0, 0), m_npc)
-        else:
-            bounce = math.sin(math.pi * prog(s, T['land'], T['land'] + .18)) * .08
+        else:                                                  # SLAM: squash down, two bounces, arms flop, then sits there
+            d = s - T['land']
+            bounce = (.16 * abs(math.sin(math.pi * prog(d, 0, .26))) + .05 * abs(math.sin(math.pi * prog(d, .26, .42)))
+                      - .05 * math.exp(-d * 30))
+            flop = ease(prog(d, .05, .5))
+            pose = blend({**pose_sit, **arms_up}, pose_sit, flop)
+            pose.update(kneeL=lerp(1.3, SIT_POSE['kneeL'], ease(prog(d, 0, .35))), kneeR=lerp(1.2, SIT_POSE['kneeR'], ease(prog(d, .03, .4))))   # legs kick out on impact
             back = ease(prog(s, T['land'] + .2, T['land'] + .45)) * (1 - ease(prog(s, T['land'] + .7, T['land'] + .9)))
             cam = ease(prog(s, T['land'] + .7, T['land'] + .9))
-            pose = dict(SIT_POSE); pose.update(arms()['sitrest'])
-            P0 = fk(pose); seat_y = .2 + bounce
-            root = person_root(seat.x, seat_y - P0['hipR'].y + .1, seat.y, math.pi / 2 + .25)
-            P, M = apply_person(npc, root, pose, (-.05 + .1 * cam, 1.1 * back + .45 * cam, 0), m_npc)   # glances back at the club, then to camera
+            daze = math.sin(d * 22) * .12 * math.exp(-d * 6)  # head wobbles from the hit
+            tilt = lerp(-.75, .18, ease(prog(d, 0, .3))) if d < .3 else lerp(.18, 0, ease(prog(d, .3, .55)))   # rocks forward off the slam
+            root = sit_root(bounce, tilt)
+            P, M = apply_person(npc, root, pose, (-.05 + .1 * cam + daze, 1.1 * back + .45 * cam, daze * .6), m_npc)   # glances back at the club, then to camera
     cup_loc = (CONV @ root @ (P['handR'] + Vector((0, .02, .04))).to_4d()).to_3d()   # he never lets go of his coffee
     grab = S['heels'][GRAB]                                    # every heel stays on the stage
     grab.location = I(HEEL_XS[GRAB], STAGE['h'], HEELS_Z); grab.rotation_euler = (0, 0, math.pi / 2 + (hsh(GRAB, 3) - .5) * .5); grab.scale = (1.6,) * 3
@@ -490,10 +510,15 @@ def aim(pos, look, fov, interior=False):
     cam.data.angle = math.radians(fov)
 
 
+def jolt(s):                                                   # camera knock when he hits the kerb
+    d = s - T['land']
+    return 0 if d < 0 else .1 * math.exp(-d * 9) * math.sin(d * 55)
+
+
 def set_camera(t, s):
     t = min(t, T['title'] - 1e-6)
     if t < T['rewindEnd']:                                     # hook + rewind: the throw, framed tight
-        return aim(SHOTS['throw'][0], (-6.8, 1.5, -4.0), 36)
+        return aim(SHOTS['throw'][0], (-6.8, 1.5 + .6 * jolt(s), -4.0), 36)
     if t < T['enter']:
         m = SHOTS['street']; k = ease(prog(t, 2.9, 6.6))
         return aim((m[0][0] - .4 * k, m[0][1] + .2 * k, m[0][2] - 1.5 * k), m[1], m[2])
@@ -504,6 +529,7 @@ def set_camera(t, s):
         pos = (lerp(m[0][0] - .6 * k, .1, push), lerp(m[0][1] - .3 * k, 1.55, push), lerp(m[0][2] - 1.2 * k, 3.3, push))
         return aim(pos, look, m[2], True)
     if t < T['close']:
-        return aim(*SHOTS['throw'])
+        m = SHOTS['throw']
+        return aim(m[0], (m[1][0], m[1][1] + jolt(s), m[1][2]), m[2])
     m = SHOTS['close']; k = ease(prog(t, T['close'], T['title']))
     return aim((m[0][0] + .1 * k, m[0][1], m[0][2] + .15 * k), m[1], m[2])
