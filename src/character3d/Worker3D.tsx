@@ -49,7 +49,11 @@ export type Style = {
   /** Full short beard and moustache, in the hair colour. */
   beard?: boolean;
   /** A hat on top of the head. */
-  hat?: {kind: 'fedora' | 'hardhat'; color: string; band: string};
+  hat?: {kind: 'fedora' | 'hardhat' | 'cap'; color: string; band: string};
+  /** Dark sunglasses. */
+  shades?: boolean;
+  /** A chunky chain necklace in this colour. */
+  chain?: string;
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -379,6 +383,32 @@ const HardHat: React.FC<{color: string}> = ({color}) => (
     <mesh geometry={ridgeGeo} material={hatMat(color)} position={[0, 0.155, 0]} />
   </group>
 );
+// baseball cap worn backwards: a snug crown and the brim sticking out the back
+const capGeo = new SphereGeometry(0.158, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+const capBrimGeo = new CylinderGeometry(0.11, 0.11, 0.012, 24, 1, false, 0, Math.PI);
+const Cap: React.FC<{color: string; brim: string}> = ({color, brim}) => (
+  <group position={[0.0, 0.05, 0]} rotation={[0, 0, 0.12]}>
+    <mesh geometry={capGeo} material={hatMat(color)} scale={[1.02, 0.78, 1.01]} castShadow />
+    <mesh geometry={capBrimGeo} material={hatMat(brim)} position={[-0.13, 0.005, 0]} rotation={[0, Math.PI / 2, 0]} scale={[1, 1, 1.2]} />
+  </group>
+);
+// sunglasses: two dark rounded lenses and a bridge across the eyes
+const lensDarkGeo = new SphereGeometry(0.036, 20, 12);
+const shadeMat = new MeshStandardMaterial({color: '#0c0c10', roughness: 0.08, metalness: 0.6});
+const bridgeGeo = new BoxGeometry(0.012, 0.01, 0.05);
+const armShadeGeo = new BoxGeometry(0.16, 0.01, 0.01);
+const Shades: React.FC = () => (
+  <group position={[0, 0.02, 0]}>
+    {[-1, 1].map((sd) => (
+      <mesh key={sd} geometry={lensDarkGeo} material={shadeMat} position={[0.142, 0, 0.056 * sd]} scale={[0.35, 0.8, 1.05]} />
+    ))}
+    <mesh geometry={bridgeGeo} material={shadeMat} position={[0.152, 0.008, 0]} />
+    {[-1, 1].map((sd) => (
+      <mesh key={'a' + sd} geometry={armShadeGeo} material={shadeMat} position={[0.07, 0.01, 0.142 * sd]} />
+    ))}
+  </group>
+);
+const chainGeo = new TorusGeometry(0.105, 0.014, 8, 28);
 const Fedora: React.FC<{color: string; band: string}> = ({color, band}) => (
   <group position={[0.005, 0.1, 0]} rotation={[0, 0, -0.08]}>
     <mesh geometry={brimGeo} material={hatMat(color)} scale={[1.05, 1, 0.92]} castShadow />
@@ -444,7 +474,8 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         <group position={[0.02, 0.2, 0]}>
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
-          {st.hat ? st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
+          {st.hat ? st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : st.hat.kind === 'cap' ? <Cap color={st.hat.color} brim={st.hat.band} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
+          {st.shades ? <Shades /> : null}
           {st.beard ? (
             // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache
             <group>
@@ -562,6 +593,7 @@ const Torso: React.FC<{pose: Pose; st: Style; M: Mats}> = ({pose, st, M}) => {
           ) : (
             <mesh geometry={collarGeo} material={M.trim} position={[0.01, 0.6, 0]} scale={[1.02, 0.6, 1.02]} />
           )}
+          {st.chain ? <mesh geometry={chainGeo} material={hatMat(st.chain)} position={[0.035, 0.575, 0]} rotation={[Math.PI / 2, -0.45, 0]} castShadow /> : null}
           {st.kit?.bare ? null : M.mono ? (
             <mesh geometry={numPlane} material={M.mono} position={[0.131, 0.44, -0.07]} rotation={[0, Math.PI / 2, 0]} scale={0.3} />
           ) : M.chest ? (

@@ -1,10 +1,10 @@
-# You're the Ref, Short: "Jimmy vs the Gang" (script, draft 2: as built)
+# You're the Ref, Short: "Jimmy vs the Gang" (script, draft 3: as built)
 
 About 12.5 s, vertical, and it stands on its own. It takes the Night Shift lesson from "Workplace Safety with Jimmy" and makes it a whole Short. Jimmy, in his full referee kit, does the scuba dance in front of an armed gang, and it does not end well.
 
 **Characters:**
 - **Jimmy:** completely deadpan, with no lines; the dance does the talking.
-- **The gang:** four cartoon 1920s-style mobsters in dark suits and fedoras, each standing still, holding a drum-fed tommy gun at the hip with the free hand hanging at his side. They are deliberately old-timey and over the top, so they don't look like any real-world group, and they have no lines.
+- **The gang:** a fictional modern street crew of four, mixed skin tones, in tank tops, baggy jeans, gold chains, shades and backwards caps. Each stands still holding a drum-fed tommy gun at the hip, free hand at his side. No real gang names, colours or signs. They have no lines.
 - No LeBron and no Epstein. "Mogs" is not used. There is no narrator.
 
 **Violence:** cartoon only. The shot happens off-screen (a flash, a bang and pigeons), no gun is ever aimed at the camera, and the only blood is a small pool under Jimmy. No wound is shown.
@@ -14,7 +14,7 @@ About 12.5 s, vertical, and it stands on its own. It takes the Night Shift lesso
 | 0.0-1.3 | **HOOK.** Mid-motion on frame 0: a low, close shot of Jimmy mid-scuba-dance (nose pinched, arm rippling, knees bouncing), with a mobster's tommy gun in the foreground. | BAD IDEA? | The scuba beat from frame 0. |
 | 1.3-1.7 | VHS rewind wash over the alley. | ◀◀ 10 SECONDS EARLIER | Rewind whir. |
 | 1.7-3.4 | From behind Jimmy: he strolls down the dark alley toward the gang, stops in front of them, and blows his whistle. Every head turns. | | Footsteps, then a sharp whistle "peep". |
-| 3.4-4.4 | A low angle on the gang, glaring down, guns at their hips. | | A low, tense drone. |
+| 3.4-4.4 | A low angle on the crew, glaring down, guns at their hips. | | A low, tense drone. |
 | 4.4-6.2 | From behind the gang: Jimmy does the scuba dance straight at them, sinking lower and lower. | | The beat. |
 | 6.2-8.0 | Close and low, between the mobsters, guns framing the shot: the dance continues, fully committed. | | The beat. |
 | 8.0-9.0 | The music dies. The mobsters slowly look at each other. | | Record scratch, then silence. |

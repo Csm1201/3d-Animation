@@ -31,19 +31,23 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const v3 = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
 // ---------------------------------------------------------------- cast
-const mobster = (skin: string, hair: string, band: string): Style => ({
+/** A modern street crew member: tank top, baggy jeans, optional backwards cap, shades and a gold chain. */
+const crew = (skin: string, hair: string, o: {tank: string; jeans: string; cap?: string; shades?: boolean; chain?: boolean; hs?: Style['hairStyle']}): Style => ({
   outfit: 'kit',
   skin,
   hair,
-  hairStyle: 'short',
-  kit: {shirt: '#2a2c33', shorts: '#2a2c33', socks: '#15151a', trim: '#4a4c55', longSleeves: true, trousers: true},
-  hat: {kind: 'fedora', color: '#18181d', band},
+  hairStyle: o.hs ?? 'buzz',
+  kit: {shirt: o.tank, shorts: o.jeans, socks: '#15151a', trim: o.tank, sleeveless: true, trousers: true},
+  hat: o.cap ? {kind: 'cap', color: o.cap, band: o.cap} : undefined,
+  shades: o.shades,
+  chain: o.chain ? '#d9a930' : undefined,
 });
+// a mixed crew: varied skin tones, nobody's look is the joke
 export const MOBS = [
-  {st: mobster('#e9b991', '#2b211c', '#7a1c1c'), x: 1.3, z: 0.95},
-  {st: mobster('#c98f6b', '#1f1714', '#1c3a7a'), x: 1.4, z: -0.85},
-  {st: mobster('#f1c3a0', '#6b4a32', '#7a1c1c'), x: 2.05, z: 1.35},
-  {st: mobster('#a8714f', '#141010', '#3a3a3a'), x: 2.15, z: -1.4},
+  {st: crew('#8a5a3c', '#1b1412', {tank: '#f2f2ee', jeans: '#33476b', shades: true, chain: true}), x: 1.3, z: 0.95},
+  {st: crew('#e9b991', '#3a2a22', {tank: '#9a9da3', jeans: '#1f2633', cap: '#1e1f23', chain: true}), x: 1.4, z: -0.85},
+  {st: crew('#4e3427', '#141010', {tank: '#1e1f23', jeans: '#a08a62', cap: '#f2f2ee', shades: true}), x: 2.05, z: 1.35},
+  {st: crew('#d7a37c', '#5a3a28', {tank: '#5b6346', jeans: '#33476b', shades: true, hs: 'short'}), x: 2.15, z: -1.4},
 ];
 /** Menacing stance: shoulders forward, a tommy gun held at the hip pointing down at the ground, free hand at the side, a slow breath. */
 export const MENACE = (t: number, i: number): BodySpec => {
