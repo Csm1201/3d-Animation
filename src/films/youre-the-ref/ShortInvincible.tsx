@@ -528,7 +528,7 @@ const ShotPolice: React.FC = () => {
       <mesh geometry={cylG(2.6, 2.2, 0.05, 28)} material={mat('#1d1e21', 0.95)} position={[0, 0.03, 0]} />
       {COPS.map((c, i) => {
         const tumble = i === 2 ? flick : 0;
-        const pos = i === 2 && tumble > 0 ? v3(c.car.x + tumble * 16, Math.sin(tumble * Math.PI) * 3, c.car.z + tumble * 3) : c.car;
+        const pos = i === 2 && tumble > 0 ? v3(c.car.x - tumble * 15, Math.sin(tumble * Math.PI) * 3, c.car.z - tumble * 9) : c.car; // away from camera, down the street
         return (
           <group key={i}>
             <group position={pos} rotation={[tumble * 5, c.yaw + tumble * 2, tumble * 3]}>
