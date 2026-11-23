@@ -10,12 +10,12 @@
  *  10.5  attack helicopters: through the rockets, rips one rotor off, slices the other's tail; both into the river, crews swim
  *  13.5  the jet again, from the side: the pilot's chute drifting past the burning skyline
  *  15.5  war room: every feed to static, the vault door pounded, torn off; "Who's in charge here?"
- *  19.0  he sits in the general's chair; WHO COULD STOP HIM? A or B
+ *  19.0  he sits in the general's chair; "Who could stop him?" + comment
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {ThreeCanvas} from '@remotion/three';
-import {BoxGeometry, CanvasTexture, ConeGeometry, CylinderGeometry, Material, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, SphereGeometry, TorusGeometry, Vector3} from 'three';
+import {AdditiveBlending, BoxGeometry, CanvasTexture, NormalBlending, SpriteMaterial, ConeGeometry, CylinderGeometry, Material, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, SphereGeometry, TorusGeometry, Vector3} from 'three';
 import {BodySpec, idleSpec} from '../../core/sportPoses';
 import {Cam, CameraRig, Daylight, Environment} from '../../character3d/stage';
 import {canvasTex} from '../../character3d/common';
@@ -173,7 +173,19 @@ const roadTex = () =>
   });
 
 // ---------------------------------------------------------------- world canvas
-const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number; indoor?: boolean}> = ({cam, centre, sky = '#d9c2a6', fog = [25, 190], sun = 3.0, children, extent = 14, indoor = false}) => (
+/** Handheld/drone camera: slow drift plus a small wobble, so no shot sits perfectly still. */
+const handheld = (cam: Cam, frame: number, amt: number): Cam => {
+  const t = frame / INV_FPS;
+  const n = (f: number, p: number) => Math.sin(t * f + p) * 0.6 + Math.sin(t * f * 2.3 + p * 1.7) * 0.3 + Math.sin(t * f * 5.1 + p * 0.3) * 0.1;
+  return {
+    ...cam,
+    position: cam.position.clone().add(v3(n(0.9, 1) * amt, n(1.1, 2) * amt * 0.7, n(0.7, 3) * amt)),
+    target: cam.target.clone().add(v3(n(1.3, 4) * amt * 0.5, n(1.7, 5) * amt * 0.4, 0)),
+  };
+};
+const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number; indoor?: boolean; shake?: number}> = ({cam: cam0, centre, sky = '#d9c2a6', fog = [25, 190], sun = 3.0, children, extent = 14, indoor = false, shake = 0.12}) => {
+  const cam = handheld(cam0, useCurrentFrame(), indoor ? shake * 0.4 : shake);
+  return (
   <ThreeCanvas width={WIDTH} height={HEIGHT} frameloop="demand" dpr={1} shadows="variance" gl={{antialias: true}} camera={{fov: cam.fov, position: [0, 2, 5]}}>
     <color attach="background" args={[sky]} />
     <fog attach="fog" args={[sky, fog[0], fog[1]]} />
@@ -184,7 +196,8 @@ const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, n
     <Daylight center={centre} extent={extent} offset={indoor ? [-18, 30, 14] : [-34, 13, 20]} color={indoor ? '#fff1dd' : '#ffc98f'} intensity={sun} sky={indoor ? '#dfe8f2' : '#9fb6d6'} ground={indoor ? '#8a8378' : '#6f6052'} fill={indoor ? 0.9 : 0.75} />
     {children}
   </ThreeCanvas>
-);
+  );
+};
 
 /** A block of buildings along a street: rows on both sides of z = 0, running along x. */
 const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolean; river?: boolean; details?: boolean}> = ({x0, x1, halfWidth = 6, lit = false, river = false, details = true}) => {
@@ -280,13 +293,36 @@ const SmokeColumns: React.FC<{t: number; spots: [number, number][]; base?: numbe
       <group key={i} position={[x, base, z]}>
         {[0, 1, 2, 3, 4, 5].map((k) => {
           const p = (t * 0.12 + k / 6 + rnd(i) * 0.3) % 1;
-          return <mesh key={k} geometry={ball} material={fade('#2a2a2e', 0.75 * (1 - p))} position={[Math.sin(p * 3 + i) * 1.5 * p, p * 30, Math.cos(p * 2 + i) * p]} scale={2 + p * 7} />;
+          return <Puff key={k} p={[Math.sin(p * 3 + i) * 1.5 * p, p * 30, Math.cos(p * 2 + i) * p]} size={(2 + p * 7) * 2.6} color={p < 0.15 ? '#5a4a40' : '#2a2a2e'} o={0.9 * (1 - p)} rot={k + i} />;
         })}
-        <mesh geometry={ball} material={glow('#ff7a2a', 3)} scale={[1.6 + 0.3 * Math.sin(t * 17 + i), 1.1 + 0.3 * Math.sin(t * 13 + i), 1.6]} />
+        <Puff p={[0, 0.8, 0]} size={4.2 + 0.6 * Math.sin(t * 17 + i)} color="#ff7a2a" o={0.9} add rot={t * 2 + i} />
+        <Puff p={[0, 1.4, 0]} size={2.6 + 0.5 * Math.sin(t * 13 + i)} color="#ffc46a" o={0.7} add rot={-t * 3 + i} />
       </group>
     ))}
   </group>
 );
+
+const puffTex = () =>
+  keep('puffTex', () =>
+    canvasTex(128, 128, (g) => {
+      // soft lumpy puff: several overlapping radial blobs fading to transparent
+      for (let k = 0; k < 7; k++) {
+        const cx = 64 + (rnd(k) - 0.5) * 34;
+        const cy = 64 + (rnd(k + 9) - 0.5) * 34;
+        const r = 30 + rnd(k + 3) * 22;
+        const grd = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grd.addColorStop(0, 'rgba(255,255,255,0.55)');
+        grd.addColorStop(0.6, 'rgba(255,255,255,0.22)');
+        grd.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = grd;
+        g.fillRect(0, 0, 128, 128);
+      }
+    }),
+  );
+const puffMat = (color: string, o: number, add: boolean) =>
+  keep(`puff${color}${Math.round(o * 20)}${add}`, () => new SpriteMaterial({map: puffTex() as CanvasTexture, color, transparent: true, opacity: Math.round(o * 20) / 20, depthWrite: false, blending: add ? AdditiveBlending : NormalBlending, fog: !add}));
+const Puff: React.FC<{p: [number, number, number] | Vector3; size: number; color: string; o: number; add?: boolean; rot?: number}> = ({p, size, color, o, add = false, rot = 0}) =>
+  o <= 0.02 ? null : <sprite position={p} scale={[size, size, 1]} material={(() => { const m = puffMat(color, Math.min(1, o), add); m.rotation = rot; return m; })()} />;
 
 const Explosion: React.FC<{at: Vector3; t: number; size?: number}> = ({at, t, size = 1}) => {
   if (t < 0 || t > 1.6) return null;
@@ -294,10 +330,10 @@ const Explosion: React.FC<{at: Vector3; t: number; size?: number}> = ({at, t, si
   const s = size * (0.4 + 1.6 * Math.sqrt(k));
   return (
     <group position={at}>
-      {t < 0.45 ? <mesh geometry={ball} material={glow('#ffd26a', 4)} scale={s * (1 - t)} /> : null}
-      {t < 0.7 ? <mesh geometry={ball} material={glow('#ff6a1a', 2.5)} scale={s * 1.2 * (1 - t * 0.6)} /> : null}
+      <Puff p={[0, 0, 0]} size={s * 3.2 * (1 - t * 0.5)} color="#ffd26a" o={1.2 * (1 - t / 0.5)} add rot={t} />
+      <Puff p={[0, s * 0.2, 0]} size={s * 3.8 * (1 - t * 0.3)} color="#ff6a1a" o={1.0 * (1 - t / 0.8)} add rot={-t * 2} />
       {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-        <mesh key={i} geometry={ball} material={fade('#3a3a3e', 0.85 * (1 - clamp01((t - 0.2) / 1.4)))} position={[Math.cos(i * 0.9) * s * 0.9, s * 0.5 + i * 0.25 * s + t * size * 1.2, Math.sin(i * 1.3) * s * 0.6]} scale={s * (0.7 + 0.25 * (i % 3)) * (0.6 + t)} />
+        <Puff key={i} p={[Math.cos(i * 0.9) * s * 0.9, s * 0.5 + i * 0.25 * s + t * size * 1.2, Math.sin(i * 1.3) * s * 0.6]} size={s * (0.7 + 0.25 * (i % 3)) * (0.6 + t) * 2.8} color={t < 0.3 ? '#6a5040' : '#3a3a3e'} o={0.95 * clamp01(t / 0.15) * (1 - clamp01((t - 0.2) / 1.4))} rot={i * 1.7 + t} />
       ))}
     </group>
   );
@@ -661,7 +697,7 @@ const ShotTanks: React.FC = () => {
       {/* the wall of fire and smoke where he was standing */}
       {smoke > 0.02
         ? Array.from({length: 14}, (_, i) => (
-            <mesh key={i} geometry={ball} material={i < 4 && t < VOLLEY + 0.3 ? glow('#ff6a1a', 2.2) : fade('#4a4a4e', 0.85 * smoke)} position={[0.5 + (rnd(i) - 0.5) * 3, 0.5 + rnd(i + 3) * 3, (rnd(i + 6) - 0.5) * 3.5]} scale={(i < 4 ? 0.45 : 0.7) + rnd(i + 9) * 0.8 + (t - VOLLEY) * 0.5} />
+            <Puff key={i} p={[0.5 + (rnd(i) - 0.5) * 3, 0.5 + rnd(i + 3) * 3, (rnd(i + 6) - 0.5) * 3.5]} size={((i < 4 ? 0.6 : 0.8) + rnd(i + 9) * 0.8 + (t - VOLLEY) * 0.6) * 2.8} color={i < 4 && t < VOLLEY + 0.3 ? '#ff7a2a' : '#5a5a5e'} add={i < 4 && t < VOLLEY + 0.3} o={i < 4 && t < VOLLEY + 0.3 ? 1 : 0.95 * smoke} rot={i + t} />
           ))
         : null}
       <Explosion at={v3(TANKS[1].x, 2.0, TANKS[1].z)} t={t - HIT_AT} size={1.6} />
@@ -735,7 +771,7 @@ const ShotHeli: React.FC = () => {
         return (
           <group key={i} position={[x, -0.3, i ? 2.4 : -2.2]}>
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
-              <mesh key={k} geometry={ball} material={fade('#e9f3f7', 0.9 * (1 - p / 1.2))} position={[Math.cos(k) * p * 2, Math.sin((p / 1.2) * Math.PI) * (2 + (k % 3)), Math.sin(k) * p * 2]} scale={0.5 + p * 0.6} />
+              <Puff key={k} p={[Math.cos(k) * p * 2, Math.sin((p / 1.2) * Math.PI) * (2 + (k % 3)), Math.sin(k) * p * 2]} size={(0.5 + p * 0.6) * 3} color="#eef6f9" o={0.95 * (1 - p / 1.2)} rot={k} />
             ))}
           </group>
         );
@@ -847,7 +883,7 @@ const ShotWar: React.FC = () => {
     <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, 0, 0)} sky="#0b0d12" fog={[12, 40]} sun={0.4} extent={8} indoor>
       <WarRoom t={t} frame={frame} cutoff={cutoff} doorOff={doorOff}>
         <group position={[0, 1.6, DOOR_Z + 0.2 - bulge * 0.15]}>
-          {bulge > 0.1 ? <mesh geometry={ball} material={fade('#a39a8c', 0.5 * bulge)} scale={1.4 + bulge} position={[0, -0.8, 0.6]} /> : null}
+          {bulge > 0.1 ? <Puff p={[0, -0.8, 0.6]} size={(1.4 + bulge) * 2.6} color="#a39a8c" o={0.7 * bulge} /> : null}
         </group>
         {GENERALS.map((g, i) => (
           <Actor
@@ -933,20 +969,9 @@ const EndPanels: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   const local = frame - F(T_END);
   if (local < 0) return null;
   const head = spring({frame: local - 4, fps, config: {damping: 12, stiffness: 200}});
-  const panel = (i: number) => spring({frame: local - 12 - i * 6, fps, config: {damping: 11, stiffness: 220}});
-  const P: React.FC<{i: number; letter: string; text: string; bg: string}> = ({i, letter, text, bg}) => (
-    <div style={{width: 440, height: 300, borderRadius: 24, background: bg, border: '6px solid #fff', boxShadow: '0 14px 34px rgba(0,0,0,.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transform: `scale(${local < 12 + i * 6 ? 0 : panel(i)}) rotate(${i ? 3 : -3}deg)`}}>
-      <div style={{fontFamily: FONT, fontWeight: 900, fontSize: 120, color: '#fff', lineHeight: 1}}>{letter}</div>
-      <div style={{fontFamily: FONT, fontWeight: 900, fontSize: 40, color: '#fff', textAlign: 'center', padding: '0 20px'}}>{text}</div>
-    </div>
-  );
   return (
     <AbsoluteFill style={{alignItems: 'center'}}>
       <div style={{marginTop: 160, fontFamily: FONT, fontWeight: 800, fontSize: 72, color: '#fff', textShadow: SHADOW, opacity: local < 4 ? 0 : Math.min(1, head)}}>Who could stop him?</div>
-      <div style={{marginTop: 40, display: 'flex', gap: 40}}>
-        <P i={0} letter="A" text="EVERY ARMY ON EARTH" bg="linear-gradient(160deg,#4d5a3c,#2b3322)" />
-        <P i={1} letter="B" text="NOTHING CAN STOP HIM" bg="linear-gradient(160deg,#b3261e,#5c0f0b)" />
-      </div>
     </AbsoluteFill>
   );
 };
