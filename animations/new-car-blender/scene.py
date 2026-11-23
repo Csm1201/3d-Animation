@@ -23,8 +23,8 @@ FPS, DUR = 30, 15.0
 base.FPS = FPS
 # timeline (seconds). Hook first: frames 0..hookEnd show him streaming off the door handle like a flag, slowed down.
 T = dict(hookEnd=2.0, rewindEnd=2.6, steal=5.4, launch=6.8, track=7.2, fling=10.6, land=11.4, close=11.75, bow=12.3, title=14.1)
-LINES = dict(saving=(2.8, 'saving'), excuse=(6.95, 'excuse'), more=(12.05, 'more'))
-TALK = [(2.8, 4.78), (4.92, 5.41), (5.55, 6.34), (6.95, 7.92), (8.12, 9.16), (9.36, 10.58), (12.05, 12.49), (12.63, 13.29), (13.42, 14.1)]   # spoken spans
+LINES = dict(prick=(5.55, 'prick'))
+TALK = [(5.61, 6.74)]   # spoken spans
 HOOK_S = (8.35, 9.15)             # story span the hook plays in slow motion (already at full speed on frame 0)
 
 Z0 = -42.0                        # where the car is parked (left kerb, nose towards the camera's end of the street)

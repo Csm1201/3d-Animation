@@ -2,7 +2,7 @@
 sound effects and the voice lines. Reuses the synth helpers from Ep. 1 (animations/fantastic-3d/build_audio.py).
 
 Usage: python3 build_audio.py <voice_dir> <out.wav>
-voice_dir holds saving.mp3, excuse.mp3 and more.mp3. Timings match T and LINES in scene.py.
+voice_dir holds prick.mp3. Timings match T and LINES in scene.py.
 """
 import importlib.util
 import os
@@ -25,7 +25,7 @@ at, add, tt, lowpass, highpass = ep1.at, ep1.add, ep1.tt, ep1.lowpass, ep1.highp
 rng = np.random.default_rng(23)
 
 T = dict(hookEnd=2.0, rewindEnd=2.6, steal=5.4, launch=6.8, fling=10.6, land=11.4, close=11.75, bow=12.3, title=14.1)
-LINES = [('saving', 2.8), ('excuse', 6.95), ('more', 12.05)]
+LINES = [('prick', 5.55)]
 
 
 def supercar(d, f0, f1, growl=1.0):
