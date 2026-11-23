@@ -2,6 +2,7 @@ import {Episode6, EP6_FRAMES} from './films/youre-the-ref/Episode6';
 import {SAFETY_PREVIEW_FRAMES, ShortSafetyPreview} from './films/youre-the-ref/ShortSafetyPreview';
 import {SAFETY_FRAMES, ShortWorkplaceSafety} from './films/youre-the-ref/ShortWorkplaceSafety';
 import {GANG_FRAMES, ShortGang} from './films/youre-the-ref/ShortGang';
+import {INV_FRAMES, ShortInvincible} from './films/youre-the-ref/ShortInvincible';
 import {Episode5, EP5_FRAMES} from './films/youre-the-ref/Episode5';
 import {Ep5CastTest, EP5_CAST_FRAMES} from './films/youre-the-ref/Ep5Cast';
 import {Episode4, EP4_FRAMES} from './films/youre-the-ref/Episode4';
@@ -22,6 +23,7 @@ import {SCENE1_FRAMES, Scene1Trapped} from './films/sleep-experiment/scenes/Scen
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="WhatIfInvincible" component={ShortInvincible} durationInFrames={INV_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefGang" component={ShortGang} durationInFrames={GANG_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefWorkplaceSafety" component={ShortWorkplaceSafety} durationInFrames={SAFETY_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefSafetyPreview" component={ShortSafetyPreview} durationInFrames={SAFETY_PREVIEW_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />

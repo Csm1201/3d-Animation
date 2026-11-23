@@ -30,7 +30,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string};
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string; /** long sleeves in a different colour from the shirt */ sleeve?: string};
 export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept' | 'crop';
 export type Style = {
   outfit: Outfit;
@@ -42,6 +42,9 @@ export type Style = {
   kit?: Kit;
   /** Goggles (scientist by default; any outfit when set): worn over the eyes, or pushed up on the forehead. */
   goggles?: 'eyes' | 'forehead';
+  /** Goggle frame/strap colour, and a glowing lens colour (lit up, e.g. red eyes). */
+  goggleFrame?: string;
+  goggleGlow?: string;
   /** Pull the near hand in toward the body's centre line (world z of the wrist), e.g. a hand on the backside. */
   nearHandZ?: number;
   /** Eyebrow colour when it differs from the hair (e.g. dark brows under grey hair). */
@@ -113,6 +116,8 @@ const buildMats = (st: Style) => {
     shirt: clay(top, 0.72),
     shirtFar: clay(shade(top, 0.92), 0.75),
     cuff: clay('#ffffff', 0.6),
+    sleeve: clay(kit?.sleeve ?? top, 0.72),
+    sleeveFar: clay(shade(kit?.sleeve ?? top, 0.92), 0.75),
     coat,
     coatFar: clay('#e2e1db', 0.75),
     trousers: clay(bottom, 0.74),
@@ -127,9 +132,11 @@ const buildMats = (st: Style) => {
     white: plastic('#ffffff', 0.1),
     mouth: plastic('#b8524a', 0.3),
     bag: clay('#9c7b92', 0.8),
-    goggleBand: plastic('#3b3532', 0.4),
-    goggleRim: plastic('#c9a34a', 0.25),
-    lens: new MeshPhysicalMaterial({color: '#ffcf7a', roughness: 0.05, metalness: 0, transmission: 0, transparent: true, opacity: 0.32, clearcoat: 1}),
+    goggleBand: plastic(st.goggleFrame ?? '#3b3532', 0.4),
+    goggleRim: plastic(st.goggleFrame ?? '#c9a34a', 0.25),
+    lens: st.goggleGlow
+      ? new MeshStandardMaterial({color: st.goggleGlow, emissive: st.goggleGlow, emissiveIntensity: 2.2, roughness: 0.2})
+      : new MeshPhysicalMaterial({color: '#ffcf7a', roughness: 0.05, metalness: 0, transmission: 0, transparent: true, opacity: 0.32, clearcoat: 1}),
     sclera: plastic('#fbfaf6', 0.25),
     mouthIn: plastic('#5b1f22', 0.5),
     tongue: plastic('#e77b7b', 0.4),
@@ -687,11 +694,12 @@ const Arm: React.FC<{pose: Pose; far?: boolean; carry: Carry; st: Style; M: Mats
     const long = st.kit?.longSleeves;
     const skin = far ? M.skinShade : M.skin;
     const sleeveEnd = s.clone().lerp(e, 0.6);
+    const sl = st.kit?.sleeve ? (far ? M.sleeveFar : M.sleeve) : mat;
     return (
       <group>
-        <Seg a={s} b={e} ra={0.054} rb={0.048} mat={long ? mat : skin} />
-        {st.kit?.bare || st.kit?.sleeveless ? null : <Seg a={s} b={sleeveEnd} ra={0.066} rb={0.06} mat={mat} />}
-        <Seg a={e} b={w} ra={0.047} rb={0.042} mat={long ? mat : skin} />
+        <Seg a={s} b={e} ra={0.054} rb={0.048} mat={long ? sl : skin} />
+        {st.kit?.bare || st.kit?.sleeveless ? null : <Seg a={s} b={sleeveEnd} ra={0.066} rb={0.06} mat={sl} />}
+        <Seg a={e} b={w} ra={0.047} rb={0.042} mat={long ? sl : skin} />
         <mesh
           geometry={sphere(st.kit?.gloves ? 0.062 : 0.05)}
           material={st.kit?.gloves ? M.glove : skin}
