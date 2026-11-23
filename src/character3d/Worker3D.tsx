@@ -57,6 +57,8 @@ export type Style = {
   shades?: boolean;
   /** A chunky chain necklace in this colour. */
   chain?: string;
+  /** Realistic proportions: a smaller head (about adult size relative to the body), no cartoon blush, less waxy skin. */
+  realistic?: boolean;
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -108,7 +110,7 @@ const buildMats = (st: Style) => {
   const num = kit?.number !== undefined ? numberTex(kit.number, kit.numColor ?? '#ffffff') : null;
   const coat = new MeshPhysicalMaterial({color: '#f5f4ef', roughness: 0.7, sheen: 0.35, sheenRoughness: 0.8, side: DoubleSide});
   return {
-    skin: clay(st.skin, 0.62),
+    skin: st.realistic ? new MeshStandardMaterial({color: st.skin, roughness: 0.7}) : clay(st.skin, 0.62),
     skinShade: clay(shade(st.skin, 0.9), 0.65),
     cheek: clay('#ff9c8f', 0.7),
     hair: clay(st.hair, 0.72),
@@ -465,7 +467,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
           rotation={[brows * 0.55 * side, 0, 0]}
           scale={st.hairStyle === 'wild' ? [0.9, 0.9, 3] : st.hairStyle === 'swept' ? [0.85, 0.8, 2.9] : [0.6, 0.6, 2.4]}
         />
-        <mesh geometry={sphere(0.03)} material={M.cheek} position={surf(0.8, -0.16, 0.55 * side, R - 0.012)} scale={[0.5, 0.8, 1]} />
+        {st.realistic ? null : <mesh geometry={sphere(0.03)} material={M.cheek} position={surf(0.8, -0.16, 0.55 * side, R - 0.012)} scale={[0.5, 0.8, 1]} />}
         <mesh geometry={sphere(0.038)} material={M.skin} position={surf(0, 0.02, side, R - 0.01)} scale={[0.75, 1.1, 0.5]} />
         {look.tired > 0.05 ? (
           <mesh geometry={sphere(0.024)} material={M.bag} position={surf(0.9, -0.03, 0.4 * side, R - 0.012)} scale={[0.4, 0.45 * look.tired + 0.15, 1.1]} />
@@ -475,7 +477,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
   };
   const mouthPos = surf(1, -0.4, 0, R - 0.004);
   return (
-    <group position={neck} rotation={[0, (look.yaw ?? 0) * DEG, 0]}>
+    <group position={neck} rotation={[0, (look.yaw ?? 0) * DEG, 0]} scale={st.realistic ? 0.74 : 1}>
       <group rotation={[(look.roll ?? 0) * DEG, 0, -(pose.lean + pose.headTilt + look.droop) * DEG]}>
         <mesh geometry={cyl(0.056, 0.062)} material={M.skin} position={[0, 0.05, 0]} scale={[1, 0.14, 1]} />
         <group position={[0.02, 0.2, 0]}>

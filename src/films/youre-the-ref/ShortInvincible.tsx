@@ -53,6 +53,7 @@ export const INV_FRAMES = F(21.0);
 
 // ---------------------------------------------------------------- cast
 const MARK: Style = {
+  realistic: true,
   outfit: 'kit',
   skin: '#f0c09a',
   hair: '#1c1714',
@@ -63,9 +64,9 @@ const MARK: Style = {
   goggleGlow: '#ff2a1a',
 };
 const COLD: Look = {tired: 0, droop: -2, eyesClosed: false, brows: -0.8, browLift: -0.3, mouth: 'flat', noBlink: true};
-const uniform = (skin: string, hair: string, olive = '#4d5a3c'): Style => ({outfit: 'kit', skin, hair, hairStyle: 'short', kit: {shirt: olive, shorts: olive, socks: '#1b1b1d', trim: olive, longSleeves: true, trousers: true}});
-const police = (skin: string, hair: string): Style => ({outfit: 'kit', skin, hair, hairStyle: 'short', kit: {shirt: '#1c2a4a', shorts: '#1c2a4a', socks: '#111', trim: '#c9b25a', longSleeves: true, trousers: true}, hat: {kind: 'cap', color: '#1c2a4a', band: '#1c2a4a'}});
-const civvy = (i: number): Style => ({outfit: 'kit', skin: ['#f1c3a0', '#8d5a3c', '#e0ac85', '#4e3427'][i % 4], hair: ['#3a2a22', '#141010', '#c47a3a', '#1f1714'][i % 4], hairStyle: 'short', kit: {shirt: ['#d65b5b', '#5b8bd6', '#e6c35a', '#6bbf7a'][i % 4], shorts: '#3d4a66', socks: '#eee', trim: '#fff', trousers: true}});
+const uniform = (skin: string, hair: string, olive = '#4d5a3c'): Style => ({realistic: true, outfit: 'kit', skin, hair, hairStyle: 'short', kit: {shirt: olive, shorts: olive, socks: '#1b1b1d', trim: olive, longSleeves: true, trousers: true}});
+const police = (skin: string, hair: string): Style => ({realistic: true, outfit: 'kit', skin, hair, hairStyle: 'short', kit: {shirt: '#1c2a4a', shorts: '#1c2a4a', socks: '#111', trim: '#c9b25a', longSleeves: true, trousers: true}, hat: {kind: 'cap', color: '#1c2a4a', band: '#1c2a4a'}});
+const civvy = (i: number): Style => ({realistic: true, outfit: 'kit', skin: ['#f1c3a0', '#8d5a3c', '#e0ac85', '#4e3427', '#c98f6b'][i % 5], hair: ['#3a2a22', '#141010', '#c47a3a', '#1f1714', '#6b4a32'][i % 5], hairStyle: i % 3 ? 'short' : 'swept', kit: {shirt: ['#b84a4a', '#4a6fb0', '#d8d2c4', '#5a7a5a', '#2b2b2f', '#c9a36a'][i % 6], shorts: ['#3d4a66', '#2a2a2e', '#7a6a55'][i % 3], socks: '#eee', trim: '#ddd', trousers: true, longSleeves: i % 2 === 0}});
 const SCARED: Look = {tired: 0, droop: -6, eyesClosed: false, brows: 0.9, browLift: 0.8, mouth: 'open', mouthOpen: 0.5, noBlink: true, pupils: 0.7};
 
 // poses
@@ -172,7 +173,7 @@ const roadTex = () =>
   });
 
 // ---------------------------------------------------------------- world canvas
-const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number; indoor?: boolean}> = ({cam, centre, sky = '#d9c2a6', fog = [35, 220], sun = 3.0, children, extent = 14, indoor = false}) => (
+const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number; indoor?: boolean}> = ({cam, centre, sky = '#d9c2a6', fog = [25, 190], sun = 3.0, children, extent = 14, indoor = false}) => (
   <ThreeCanvas width={WIDTH} height={HEIGHT} frameloop="demand" dpr={1} shadows="variance" gl={{antialias: true}} camera={{fov: cam.fov, position: [0, 2, 5]}}>
     <color attach="background" args={[sky]} />
     <fog attach="fog" args={[sky, fog[0], fog[1]]} />
@@ -186,7 +187,7 @@ const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, n
 );
 
 /** A block of buildings along a street: rows on both sides of z = 0, running along x. */
-const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolean; river?: boolean}> = ({x0, x1, halfWidth = 6, lit = false, river = false}) => {
+const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolean; river?: boolean; details?: boolean}> = ({x0, x1, halfWidth = 6, lit = false, river = false, details = true}) => {
   const items: React.ReactNode[] = [];
   let i = 0;
   for (let x = x0; x < x1; x += 7) {
@@ -230,6 +231,40 @@ const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolea
           <meshStandardMaterial map={roadTex()} roughness={0.95} />
         </mesh>
       )}
+      {details
+        ? Array.from({length: Math.floor((x1 - x0) / 7)}, (_, k) => {
+            const x = x0 + 3.5 + k * 7;
+            return [-1, 1].map((sd) => {
+              const z = sd * (halfWidth + 1.1);
+              const tree = (k + (sd > 0 ? 1 : 0)) % 2 === 0;
+              return tree ? (
+                <group key={`t${k}${sd}`} position={[x, 0, z + sd * 0.6]}>
+                  <mesh geometry={cylG(0.12, 0.16, 2.4, 8)} material={mat('#4a3a2c', 0.9)} position={[0, 1.2, 0]} castShadow />
+                  {[0, 1, 2].map((q) => (
+                    <mesh key={q} geometry={ball} material={mat(['#4f6b3a', '#5d7a42', '#476236'][q], 0.9)} position={[(q - 1) * 0.5, 2.9 + (q % 2) * 0.5, (q % 2 ? 0.3 : -0.3)]} scale={1.0 + 0.2 * q} castShadow />
+                  ))}
+                </group>
+              ) : (
+                <group key={`l${k}${sd}`} position={[x, 0, z]}>
+                  <mesh geometry={cylG(0.07, 0.09, 6, 8)} material={mat('#3b3d42', 0.5, 0.6)} position={[0, 3, 0]} castShadow />
+                  <mesh geometry={box(0.08, 0.08, 1.6)} material={mat('#3b3d42', 0.5, 0.6)} position={[0, 6, -sd * 0.8]} />
+                  <mesh geometry={box(0.4, 0.12, 0.25)} material={glow('#fff2d0', 0.6)} position={[0, 5.92, -sd * 1.5]} />
+                </group>
+              );
+            });
+          })
+        : null}
+      {details && !river
+        ? Array.from({length: Math.floor((x1 - x0) / 9)}, (_, k) => {
+            const sd = k % 2 ? 1 : -1;
+            const x = x0 + 4 + k * 9;
+            return Math.abs(x) < 9 ? null : (
+              <group key={'pc' + k} position={[x, 0, sd * (halfWidth - 1.1)]}>
+                <ParkedCar color={['#7a1f24', '#d9d9d9', '#22324d', '#3d3d40', '#6a6a5a'][k % 5]} flash={false} />
+              </group>
+            );
+          })
+        : null}
       {[-1, 1].map((s) => (
         <mesh key={'sw' + s} geometry={plane} material={mat('#9c968c', 0.95)} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.02, s * (halfWidth + 1.5)]} scale={[x1 - x0 + 40, 3, 1]} receiveShadow />
       ))}
@@ -425,7 +460,7 @@ const ShotJet: React.FC<{view: 'hook' | 'side'}> = ({view}) => {
   return (
     <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, SKY_Y, 0)} sky={view === 'hook' ? '#dcc4a6' : '#d2a98a'} fog={[50, 300]}>
       <group position={[-30, -6, -26]}>
-        <Street x0={0} x1={70} halfWidth={8} />
+        <Street x0={0} x1={70} halfWidth={8} details={false} />
       </group>
       {view === 'side' ? <SmokeColumns t={t + 5} spots={[[-10, -30], [14, -40], [30, -25], [-26, -45]]} base={-6} /> : null}
       <Actor style={MARK} x={-push} z={0} y={SKY_Y} yaw={0} spec={{...PUNCH, nearArm: [88, 0]}} frame={frame} look={COLD} />
@@ -460,7 +495,7 @@ const ShotLanding: React.FC = () => {
       : v3(lerp(GANTRY_X, GANTRY_X - 1, thrown), 2.0 + Math.sin(thrown * Math.PI) * 4, lerp(0, -12.5, thrown));
   const gRot = t < 2.1 ? [0, 0, lift * 0.1] : [thrown * 2.5, thrown * 0.6, 0.1];
   const shake = t > LAND && t < LAND + 0.4 ? 0.12 * Math.sin(t * 95) * (1 - (t - LAND) / 0.4) : 0;
-  const cam: Cam = {position: v3(-4.2, 1.7, 5.6), target: v3(1.4, 2.0, -1.0), fov: 54};
+  const cam: Cam = {position: v3(-10 + 0.7 * t, 8.5 - 0.4 * t, 5.2), target: v3(1.8, 2.4, -1.6), fov: 52};
   const flash = Math.floor(t * 4) % 2 === 0 && t > LAND;
   return (
     <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, 0, 0)}>
@@ -497,13 +532,18 @@ const ShotLanding: React.FC = () => {
             return <mesh key={i} geometry={plane} material={keep('shard', () => new MeshStandardMaterial({color: '#cfe6f2', roughness: 0.05, metalness: 0.4, side: 2}))} position={[2 + (rnd(i) - 0.5) * 9, 3.5 + (rnd(i + 9) - 0.5) * 5 - p * p * 3, -12.8 + p * 2.5 * rnd(i + 3)]} rotation={[i, i * 2, p * 6]} scale={0.5 + rnd(i) * 0.6} />;
           })
         : null}
-      {t > LAND + 0.1
-        ? [0, 1, 2, 3].map((i) => {
-            const dir = [v3(-1, 0, 0.6), v3(1, 0, 0.8), v3(-0.6, 0, -1), v3(1, 0, -0.5)][i].normalize();
-            const r = runAlong((tt) => ({x: -7 + i * 5 + dir.x * Math.max(0, tt - LAND - 0.1) * 5, z: (i % 2 ? 4.5 : -4.5) + dir.z * Math.max(0, tt - LAND - 0.1) * 5}), t, 0.9);
-            return <Actor key={i} style={civvy(i)} x={r.pos.x} z={r.pos.z} yaw={r.yaw} spec={r.spec} frame={frame} look={SCARED} />;
-          })
-        : null}
+      {Array.from({length: 12}, (_, i) => {
+        // pedestrians on both sidewalks: walking, then running from the impact
+        const sx = -14 + i * 2.6 + rnd(i) * 1.2;
+        const sz = (i % 2 ? 1 : -1) * (7.2 + rnd(i + 4) * 0.8);
+        const flee = Math.max(0, t - LAND - 0.1 - rnd(i + 9) * 0.25);
+        const away = sx < 0 ? -1 : 1;
+        const r = runAlong((tt) => {
+          const f = Math.max(0, tt - LAND - 0.1 - rnd(i + 9) * 0.25);
+          return {x: sx + (tt < LAND ? tt * 0.8 * (i % 3 ? 1 : -1) : LAND * 0.8 * (i % 3 ? 1 : -1)) + away * f * 5.5, z: sz + Math.sign(sz) * f * 0.6};
+        }, t, flee > 0 ? 0.95 : 0.3);
+        return <Actor key={i} style={civvy(i)} x={r.pos.x} z={r.pos.z} yaw={r.yaw} spec={r.spec} frame={frame + i * 7} look={flee > 0 ? SCARED : {tired: 0, droop: 0, eyesClosed: false, mouth: 'flat'}} />;
+      })}
       <Actor style={MARK} x={mx} z={t < 0.95 ? 0 : walk.pos.z} y={y} yaw={t < 0.95 ? 0.3 : t < 1.5 ? walk.yaw : t < 2.1 ? 0 : -1.1} spec={t < LAND ? {...LANDING, nearArm: [160, 10], farArm: [150, 20]} : spec} frame={frame} look={COLD} />
     </World>
   );
@@ -521,7 +561,7 @@ const ShotPolice: React.FC = () => {
   const FLICK = 1.3;
   const fire = t > 0.08 && t < 1.25;
   const flick = clamp01((t - FLICK - 0.1) / 0.8);
-  const cam: Cam = {position: v3(7.5, 2.8, 8.0), target: v3(-0.3, 1.0, 0.8), fov: 48};
+  const cam: Cam = {position: v3(9.5 - 0.4 * t, 8.0, 5.0), target: v3(-0.3, 0.6, 1.2), fov: 50};
   return (
     <World cam={cam} centre={v3(0, 0, 2)}>
       <Street x0={-40} x1={40} />
@@ -596,7 +636,7 @@ const ShotTanks: React.FC = () => {
         ? {p: v3(lerp(TANKS[0].x, mx + 1.2, lift), lift * 3.4, lerp(TANKS[0].z, walk.pos.z, lift)), r: [0, 0, lift * 0.15]}
         : {p: v3(lerp(mx + 1.2, TANKS[1].x - 0.5, thr), 3.4 + Math.sin(thr * Math.PI) * 2 - thr * 2.2, lerp(walk.pos.z, TANKS[1].z, thr)), r: [thr * 1.2, 0, 0.15 + thr * 1.4]};
   const camX = lerp(-9, mx - 9, smooth(clamp01((t - WALK0) / 1.0)));
-  const cam: Cam = {position: v3(camX, 2.6, 3.6), target: v3(camX + 14, 2.4, -0.3), fov: 50};
+  const cam: Cam = {position: v3(camX, 6.5, 6.0), target: v3(camX + 14, 1.2, -0.3), fov: 50};
   const shake = t > VOLLEY && t < VOLLEY + 0.4 ? 0.12 * Math.sin(t * 90) : t > HIT_AT && t < HIT_AT + 0.3 ? 0.1 * Math.sin(t * 90) : 0;
   return (
     <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(8, 0, 0)} extent={18}>
@@ -621,7 +661,7 @@ const ShotTanks: React.FC = () => {
       {/* the wall of fire and smoke where he was standing */}
       {smoke > 0.02
         ? Array.from({length: 14}, (_, i) => (
-            <mesh key={i} geometry={ball} material={i < 4 && t < VOLLEY + 0.35 ? glow('#ff8a2a', 3) : fade('#5a5a5e', 0.9 * smoke)} position={[0.5 + (rnd(i) - 0.5) * 3, 0.5 + rnd(i + 3) * 3, (rnd(i + 6) - 0.5) * 3.5]} scale={0.7 + rnd(i + 9) * 0.9 + (t - VOLLEY) * 0.5} />
+            <mesh key={i} geometry={ball} material={i < 4 && t < VOLLEY + 0.3 ? glow('#ff6a1a', 2.2) : fade('#4a4a4e', 0.85 * smoke)} position={[0.5 + (rnd(i) - 0.5) * 3, 0.5 + rnd(i + 3) * 3, (rnd(i + 6) - 0.5) * 3.5]} scale={(i < 4 ? 0.45 : 0.7) + rnd(i + 9) * 0.8 + (t - VOLLEY) * 0.5} />
           ))
         : null}
       <Explosion at={v3(TANKS[1].x, 2.0, TANKS[1].z)} t={t - HIT_AT} size={1.6} />
