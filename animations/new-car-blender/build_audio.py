@@ -25,7 +25,7 @@ at, add, tt, lowpass, highpass = ep1.at, ep1.add, ep1.tt, ep1.lowpass, ep1.highp
 rng = np.random.default_rng(23)
 
 T = dict(hookEnd=2.0, rewindEnd=2.6, steal=5.4, launch=6.8, fling=10.6, land=11.4, close=11.75, bow=12.3, title=14.1)
-LINES = [('saving', 3.0), ('excuse', 7.0), ('more', 12.5)]
+LINES = [('saving', 2.8), ('excuse', 6.95), ('more', 12.05)]
 
 
 def supercar(d, f0, f1, growl=1.0):
