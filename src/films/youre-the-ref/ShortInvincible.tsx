@@ -21,7 +21,7 @@ import {Cam, CameraRig, Daylight, Environment} from '../../character3d/stage';
 import {canvasTex} from '../../character3d/common';
 import {Look, Style} from '../../character3d/Worker3D';
 import {Actor, runAlong} from './Episode2';
-import {Captions, CommentButton, Cue, FONT} from './Overlays';
+import {CommentButton, FONT} from './Overlays';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const INV_FPS = 30;
@@ -89,28 +89,82 @@ const plane = new PlaneGeometry(1, 1);
 const ring = new TorusGeometry(1, 0.04, 8, 48);
 const cone = new ConeGeometry(1, 1, 16);
 
-const windowsTex = (seed: number, lit: boolean) =>
-  keep('win' + seed + lit, () => {
-    const t = canvasTex(128, 256, (g) => {
-      g.fillStyle = ['#7d8794', '#8f8a80', '#6d7a86', '#a39a8c'][seed % 4];
-      g.fillRect(0, 0, 128, 256);
-      for (let r = 0; r < 16; r++)
-        for (let c = 0; c < 6; c++) {
-          const on = rnd(seed * 97 + r * 13 + c) > (lit ? 0.6 : 0.85);
-          g.fillStyle = on ? (lit ? '#ffd58a' : '#cfe3f2') : '#2c3644';
-          g.fillRect(6 + c * 20, 6 + r * 16, 14, 10);
+/** Facade textures, after the golden-hour downtown look: 0 glass curtain wall, 1 banded glass (round towers), 2 brick office. */
+const facadeTex = (kind: number, seed: number) =>
+  keep('fac' + kind + '-' + seed, () => {
+    const t = canvasTex(256, 512, (g) => {
+      if (kind === 0) {
+        // blue-grey glass panels in a mullion grid, some catching the warm sun
+        g.fillStyle = '#3e4c5e';
+        g.fillRect(0, 0, 256, 512);
+        for (let r = 0; r < 32; r++)
+          for (let c = 0; c < 8; c++) {
+            const v = rnd(seed * 131 + r * 17 + c * 7);
+            g.fillStyle = v > 0.93 ? '#e8c89a' : v > 0.8 ? '#7f93a8' : v > 0.5 ? '#56677b' : '#46566a';
+            g.fillRect(c * 32 + 2, r * 16 + 2, 28, 12);
+          }
+        const grd = g.createLinearGradient(0, 0, 256, 0);
+        grd.addColorStop(0, 'rgba(255,214,160,0.18)');
+        grd.addColorStop(0.5, 'rgba(255,255,255,0)');
+        g.fillStyle = grd;
+        g.fillRect(0, 0, 256, 512);
+      } else if (kind === 1) {
+        // horizontal bands: pale stone floor plates and dark ribbon glass
+        for (let r = 0; r < 32; r++) {
+          g.fillStyle = '#d9d4cb';
+          g.fillRect(0, r * 16, 256, 6);
+          g.fillStyle = rnd(seed + r) > 0.85 ? '#8a9bb0' : '#2f3a48';
+          g.fillRect(0, r * 16 + 6, 256, 10);
         }
+      } else {
+        // brown brick office with a regular grid of dark windows
+        g.fillStyle = '#6a4a38';
+        g.fillRect(0, 0, 256, 512);
+        for (let r = 0; r < 32; r++)
+          for (let c = 0; c < 10; c++) {
+            g.fillStyle = rnd(seed * 71 + r * 9 + c) > 0.92 ? '#b08a62' : '#1b1e24';
+            g.fillRect(c * 25.6 + 6, r * 16 + 4, 13, 9);
+          }
+      }
     });
     t.wrapS = t.wrapT = RepeatWrapping;
+    t.anisotropy = 8;
     return t;
   });
+const facadeMat = (kind: number, seed: number) =>
+  keep('facm' + kind + '-' + seed, () =>
+    kind === 2
+      ? new MeshStandardMaterial({map: facadeTex(kind, seed), roughness: 0.85, metalness: 0})
+      : new MeshStandardMaterial({map: facadeTex(kind, seed), roughness: kind === 0 ? 0.18 : 0.3, metalness: kind === 0 ? 0.55 : 0.35, envMapIntensity: 1.4}),
+  );
+/** Sky dome with a golden-hour gradient: warm haze at the horizon, soft blue overhead. */
+const skyMat = (top: string, horizon: string) =>
+  keep('sky' + top + horizon, () => {
+    const tex = canvasTex(8, 256, (g) => {
+      const grd = g.createLinearGradient(0, 0, 0, 256);
+      grd.addColorStop(0, top);
+      grd.addColorStop(0.3, '#8fa8c8');
+      grd.addColorStop(0.45, '#b9c6d2');
+      grd.addColorStop(0.5, horizon);
+      grd.addColorStop(1, horizon);
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 8, 256);
+    });
+    return new MeshBasicMaterial({map: tex, side: 1, fog: false, depthWrite: false});
+  });
+const skyGeo = new SphereGeometry(350, 24, 16);
 const roadTex = () =>
   keep('road', () => {
     const t = canvasTex(256, 256, (g) => {
-      g.fillStyle = '#3a3c41';
+      g.fillStyle = '#34363a';
       g.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 1400; i++) {
+        const v = 40 + Math.floor(rnd(i) * 30);
+        g.fillStyle = `rgb(${v},${v + 2},${v + 5})`;
+        g.fillRect(rnd(i + 1) * 256, rnd(i + 2) * 256, 2, 2);
+      }
       g.fillStyle = '#d9d3b8';
-      for (let i = 0; i < 4; i++) g.fillRect(i * 64 + 4, 124, 36, 8);
+      for (let i = 0; i < 4; i++) g.fillRect(i * 64 + 4, 124, 36, 6);
     });
     t.wrapS = t.wrapT = RepeatWrapping;
     t.repeat.set(10, 1);
@@ -118,13 +172,15 @@ const roadTex = () =>
   });
 
 // ---------------------------------------------------------------- world canvas
-const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number}> = ({cam, centre, sky = '#b9c9d6', fog = [40, 180], sun = 2.2, children, extent = 14}) => (
+const World: React.FC<{cam: Cam; centre: Vector3; sky?: string; fog?: [number, number]; sun?: number; children: React.ReactNode; extent?: number; indoor?: boolean}> = ({cam, centre, sky = '#d9c2a6', fog = [35, 220], sun = 3.0, children, extent = 14, indoor = false}) => (
   <ThreeCanvas width={WIDTH} height={HEIGHT} frameloop="demand" dpr={1} shadows="variance" gl={{antialias: true}} camera={{fov: cam.fov, position: [0, 2, 5]}}>
     <color attach="background" args={[sky]} />
     <fog attach="fog" args={[sky, fog[0], fog[1]]} />
-    <CameraRig cam={{...cam, far: 400}} />
-    <Environment intensity={0.35} />
-    <Daylight center={centre} extent={extent} offset={[-18, 30, 14]} color="#fff1dd" intensity={sun} sky="#dfe8f2" ground="#8a8378" fill={0.9} />
+    <CameraRig cam={{...cam, far: 800}} />
+    {indoor ? null : <mesh geometry={skyGeo} material={skyMat('#7f9cc2', sky)} position={cam.position} />}
+    <Environment intensity={indoor ? 0.35 : 0.7} />
+    {/* low golden-hour sun: warm key from the side, long shadows, cool sky fill */}
+    <Daylight center={centre} extent={extent} offset={indoor ? [-18, 30, 14] : [-34, 13, 20]} color={indoor ? '#fff1dd' : '#ffc98f'} intensity={sun} sky={indoor ? '#dfe8f2' : '#9fb6d6'} ground={indoor ? '#8a8378' : '#6f6052'} fill={indoor ? 0.9 : 0.75} />
     {children}
   </ThreeCanvas>
 );
@@ -135,13 +191,27 @@ const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolea
   let i = 0;
   for (let x = x0; x < x1; x += 7) {
     for (const side of [-1, 1]) {
-      const h = 12 + rnd(i * 7.3) * 26;
-      const w = 6.2;
-      const tex = windowsTex(i % 4, lit);
+      const h = 14 + rnd(i * 7.3) * 40;
+      const kind = rnd(i * 3.1) > 0.66 ? 2 : rnd(i * 5.7) > 0.7 ? 1 : 0;
+      const m = facadeMat(kind, i % 3);
+      const zc = side * (halfWidth + 3.5 + 1.5);
+      const round = kind === 1;
+      const geo = round ? cylG(3.4, 3.6, h, 40) : box(6.2, h, 7);
+      const reps = round ? [3, h / 16] : [1, h / 16];
+      const mm = keep(`facrep${kind}-${i % 3}-${Math.round(h)}`, () => {
+        const c = m.clone();
+        c.map = m.map!.clone();
+        c.map.repeat.set(reps[0], reps[1]);
+        c.map.needsUpdate = true;
+        return c;
+      });
       items.push(
-        <mesh key={`b${i}${side}`} geometry={box(w, h, 7)} position={[x + 3.5, h / 2, side * (halfWidth + 3.5 + 1.5)]} castShadow receiveShadow>
-          <meshStandardMaterial map={tex} roughness={0.8} />
-        </mesh>,
+        <group key={`b${i}${side}`}>
+          <mesh geometry={geo} material={mm} position={[x + 3.5, h / 2, zc]} castShadow receiveShadow />
+          {!round
+            ? [0, 1].map((k) => <mesh key={k} geometry={box(1.4, 0.9, 1.2)} material={mat('#9a9892', 0.8, 0.2)} position={[x + 2.2 + k * 2.4, h + 0.45, zc + (k ? 1.4 : -1.2)]} castShadow />)
+            : null}
+        </group>,
       );
       i++;
     }
@@ -161,7 +231,7 @@ const Street: React.FC<{x0: number; x1: number; halfWidth?: number; lit?: boolea
         </mesh>
       )}
       {[-1, 1].map((s) => (
-        <mesh key={'sw' + s} geometry={plane} material={mat('#a7a39a', 0.95)} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.02, s * (halfWidth + 1.5)]} scale={[x1 - x0 + 40, 3, 1]} receiveShadow />
+        <mesh key={'sw' + s} geometry={plane} material={mat('#9c968c', 0.95)} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.02, s * (halfWidth + 1.5)]} scale={[x1 - x0 + 40, 3, 1]} receiveShadow />
       ))}
       {items}
     </group>
@@ -353,7 +423,7 @@ const ShotJet: React.FC<{view: 'hook' | 'side'}> = ({view}) => {
       : {position: v3(-2.5, SKY_Y + 2, 16), target: v3(2.0, SKY_Y + 0.5 + t * 1.5, 0), fov: 52};
   const shake = t > JET_HIT && t < JET_HIT + 0.3 ? 0.08 * Math.sin(t * 90) * (1 - (t - JET_HIT) / 0.3) : 0;
   return (
-    <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, SKY_Y, 0)} sky={view === 'hook' ? '#aebfcc' : '#b9a79a'} fog={[60, 260]}>
+    <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, SKY_Y, 0)} sky={view === 'hook' ? '#dcc4a6' : '#d2a98a'} fog={[50, 300]}>
       <group position={[-30, -6, -26]}>
         <Street x0={0} x1={70} halfWidth={8} />
       </group>
@@ -582,7 +652,7 @@ const ShotHeli: React.FC = () => {
   const spec: BodySpec = t < 0.9 ? HOVER(t) : t < RIP ? FLY : t < SWING ? {...HOVER(t), nearArm: [150, 10]} : {...PUNCH, nearArm: [lerp(150, 40, smooth(clamp01((t - SWING) / 0.2))), 4]};
   const cam: Cam = {position: v3(7.0, HELI_Y + 0.6, 12), target: v3(8.0, HELI_Y - 0.2, 0), fov: 54};
   return (
-    <World cam={cam} centre={v3(8, 0, 0)} extent={20} sky="#a9b8c4">
+    <World cam={cam} centre={v3(8, 0, 0)} extent={20}>
       <Street x0={-30} x1={60} halfWidth={7} river />
       {t < SPLASH + 0.1 ? (
         <group position={hA} rotation={[0, t > RIP ? fallA * 9 : 0, t > RIP ? fallA * 0.4 : 0.08]}>
@@ -734,7 +804,7 @@ const ShotWar: React.FC = () => {
   const shake = bulge * 0.05 * Math.sin(t * 90);
   const cam: Cam = {position: v3(0.6, 1.75, 5.6 - 0.4 * clamp01(t / 3.5)), target: v3(0, 1.45, DOOR_Z + 1), fov: 50};
   return (
-    <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, 0, 0)} sky="#0b0d12" fog={[12, 40]} sun={0.4} extent={8}>
+    <World cam={{...cam, position: cam.position.clone().add(v3(shake, shake, 0))}} centre={v3(0, 0, 0)} sky="#0b0d12" fog={[12, 40]} sun={0.4} extent={8} indoor>
       <WarRoom t={t} frame={frame} cutoff={cutoff} doorOff={doorOff}>
         <group position={[0, 1.6, DOOR_Z + 0.2 - bulge * 0.15]}>
           {bulge > 0.1 ? <mesh geometry={ball} material={fade('#a39a8c', 0.5 * bulge)} scale={1.4 + bulge} position={[0, -0.8, 0.6]} /> : null}
@@ -763,7 +833,7 @@ const ShotEnd: React.FC = () => {
   const t = frame / INV_FPS;
   const cam: Cam = {position: v3(0.15, 1.5, 4.6 - 0.5 * smooth(clamp01(t / 2))), target: v3(0, 2.15, -1.6), fov: 50};
   return (
-    <World cam={cam} centre={v3(0, 0, 0)} sky="#0b0d12" fog={[12, 40]} sun={0.4} extent={8}>
+    <World cam={cam} centre={v3(0, 0, 0)} sky="#0b0d12" fog={[12, 40]} sun={0.4} extent={8} indoor>
       <mesh geometry={plane} material={mat('#1d2024', 0.9)} rotation={[-Math.PI / 2, 0, 0]} scale={[30, 30, 1]} receiveShadow />
       <mesh geometry={plane} position={[0, 2.3, -3.2]} scale={[6.4, 3.6, 1]}>
         <meshBasicMaterial map={feedTex(9) as CanvasTexture} />
@@ -782,12 +852,19 @@ const ShotEnd: React.FC = () => {
 };
 
 // ---------------------------------------------------------------- overlays
+// text in the clean "AI documentary" reel style: thin spaced caps label over a big plain title, soft shadow, no outline
+const SHADOW = '0 2px 12px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.6)';
 const HookCaption: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   if (frame >= F(T_EARLIER)) return null;
-  const s = spring({frame: frame - 2, fps, config: {damping: 10, stiffness: 240}});
+  const o = clamp01((frame - 1) / 4);
   return (
-    <div style={{position: 'absolute', top: 130, left: 40, right: 40, textAlign: 'center', fontFamily: FONT, fontWeight: 900, fontSize: 80, lineHeight: 1.05, color: '#fff', WebkitTextStroke: '5px #111', textShadow: '0 9px 0 #111', transform: `scale(${frame < 2 ? 0 : s})`}}>
-      WHAT IF <span style={{color: '#f5c518'}}>INVINCIBLE</span> TURNED <span style={{color: '#ff3a2a'}}>EVIL?</span>
+    <div style={{position: 'absolute', top: 300, left: 70, right: 70, fontFamily: FONT, color: '#fff', textShadow: SHADOW, opacity: o}}>
+      <div style={{fontWeight: 600, fontSize: 40, letterSpacing: 6}}>WHAT IF</div>
+      <div style={{fontWeight: 800, fontSize: 92, lineHeight: 1.02, letterSpacing: 1}}>
+        INVINCIBLE
+        <br />
+        TURNED EVIL?
+      </div>
     </div>
   );
 };
@@ -795,10 +872,23 @@ const Earlier: React.FC<{frame: number}> = ({frame}) => {
   if (frame < F(T_EARLIER) || frame >= F(T_LAND)) return null;
   return (
     <AbsoluteFill style={{background: '#000', alignItems: 'center', justifyContent: 'center', fontFamily: FONT}}>
-      <div style={{color: '#fff', fontWeight: 800, fontSize: 64, letterSpacing: 8}}>1 HOUR EARLIER</div>
+      <div style={{color: '#fff', fontWeight: 600, fontSize: 46, letterSpacing: 10}}>1 HOUR EARLIER</div>
     </AbsoluteFill>
   );
 };
+/** Plain white subtitle, sentence case, soft shadow (the reference's caption style). */
+const Subtitle: React.FC<{frame: number; from: number; to: number; text: string}> = ({frame, from, to, text}) => {
+  if (frame < from || frame >= to) return null;
+  const o = Math.min(clamp01((frame - from) / 3), clamp01((to - frame) / 3));
+  return <div style={{position: 'absolute', top: 1290, left: 60, right: 60, textAlign: 'center', fontFamily: FONT, fontWeight: 600, fontSize: 56, color: '#fff', textShadow: SHADOW, opacity: o}}>{text}</div>;
+};
+/** Warm cinematic grade and vignette over the 3D. */
+const Grade: React.FC = () => (
+  <AbsoluteFill style={{pointerEvents: 'none'}}>
+    <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(255,186,120,0.10) 0%, rgba(255,186,120,0) 45%, rgba(30,40,60,0.12) 100%)'}} />
+    <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.38) 100%)'}} />
+  </AbsoluteFill>
+);
 const EndPanels: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   const local = frame - F(T_END);
   if (local < 0) return null;
@@ -812,7 +902,7 @@ const EndPanels: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
   );
   return (
     <AbsoluteFill style={{alignItems: 'center'}}>
-      <div style={{marginTop: 150, fontFamily: FONT, fontWeight: 900, fontSize: 76, color: '#fff', WebkitTextStroke: '5px #111', textShadow: '0 9px 0 #111', transform: `scale(${local < 4 ? 0 : head})`}}>WHO COULD STOP HIM?</div>
+      <div style={{marginTop: 160, fontFamily: FONT, fontWeight: 800, fontSize: 72, color: '#fff', textShadow: SHADOW, opacity: local < 4 ? 0 : Math.min(1, head)}}>Who could stop him?</div>
       <div style={{marginTop: 40, display: 'flex', gap: 40}}>
         <P i={0} letter="A" text="EVERY ARMY ON EARTH" bg="linear-gradient(160deg,#4d5a3c,#2b3322)" />
         <P i={1} letter="B" text="NOTHING CAN STOP HIM" bg="linear-gradient(160deg,#b3261e,#5c0f0b)" />
@@ -822,7 +912,6 @@ const EndPanels: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
 };
 
 const LINE_AT = T_WAR + 2.6;
-const CUES: Cue[] = [{from: F(LINE_AT), to: F(LINE_AT + 1.45), text: "WHO'S IN CHARGE HERE?", hl: {'CHARGE': '#ff3a2a'}, top: 1180}];
 
 // ---------------------------------------------------------------- sound
 type S = {at: number; src: string; vol?: number; dur?: number};
@@ -893,7 +982,8 @@ export const ShortInvincible: React.FC = () => {
       {seq(T_END, INV_FRAMES / INV_FPS, <ShotEnd />)}
       <Earlier frame={frame} />
       <HookCaption frame={frame} fps={fps} />
-      <Captions cues={CUES} frame={frame} fps={fps} />
+      <Grade />
+      <Subtitle frame={frame} from={F(LINE_AT)} to={F(LINE_AT + 1.45)} text="Who's in charge here?" />
       <EndPanels frame={frame} fps={fps} />
       <div style={{position: 'absolute', top: -330, left: 0, right: 0, bottom: 0}}>
         <CommentButton frame={frame} fps={fps} from={F(T_END + 0.8)} to={INV_FRAMES} />
