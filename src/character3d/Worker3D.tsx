@@ -53,7 +53,7 @@ export type Style = {
   /** Full short beard and moustache, in the hair colour. */
   beard?: boolean;
   /** A hat on top of the head. */
-  hat?: {kind: 'fedora' | 'hardhat' | 'cap'; color: string; band: string};
+  hat?: {kind: 'fedora' | 'hardhat' | 'cap' | 'turban' | 'bandana'; color: string; band: string};
   /** Dark sunglasses. */
   shades?: boolean;
   /** A chunky chain necklace in this colour. */
@@ -469,6 +469,28 @@ const Shades: React.FC = () => (
   </group>
 );
 const chainGeo = new TorusGeometry(0.105, 0.014, 8, 28);
+// turban: a full wrapped dome with a few wrap folds around it
+const turbanGeo = new SphereGeometry(0.175, 14, 9, 0, Math.PI * 2, 0, Math.PI / 1.75);
+const wrapGeo = new TorusGeometry(0.15, 0.028, 6, 18);
+const Turban: React.FC<{color: string}> = ({color}) => (
+  <group position={[-0.005, 0.03, 0]} rotation={[0, 0, -0.08]}>
+    <mesh geometry={turbanGeo} material={hatMat(color)} scale={[1.05, 1.0, 1.04]} castShadow />
+    {[0, 1, 2].map((k) => (
+      <mesh key={k} geometry={wrapGeo} material={hatMat(color)} position={[0, 0.02 + k * 0.045, 0]} rotation={[Math.PI / 2 + (k - 1) * 0.18, 0, 0.25 * (k - 1)]} scale={[1.02 - k * 0.1, 1.02 - k * 0.1, 1]} />
+    ))}
+  </group>
+);
+// rainbow bandana tied round the forehead, knot at the back
+const RAINBOW = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa'];
+const bandGeo2 = new TorusGeometry(0.152, 0.011, 6, 24);
+const Bandana: React.FC = () => (
+  <group position={[0.0, 0.135, 0]} rotation={[0, 0, -0.22]}>
+    {RAINBOW.map((c, k) => (
+      <mesh key={c} geometry={bandGeo2} material={hatMat(c)} position={[0, 0.03 - k * 0.012, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[1.02, 1.0, 1]} />
+    ))}
+    <mesh geometry={new SphereGeometry(0.03, 6, 5)} material={hatMat('#8e24aa')} position={[-0.16, 0.0, 0]} />
+  </group>
+);
 const Fedora: React.FC<{color: string; band: string}> = ({color, band}) => (
   <group position={[0.005, 0.1, 0]} rotation={[0, 0, -0.08]}>
     <mesh geometry={brimGeo} material={hatMat(color)} scale={[1.05, 1, 0.92]} castShadow />
@@ -534,7 +556,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
         <group position={[0.02, 0.2, 0]}>
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
-          {st.hat ? st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : st.hat.kind === 'cap' ? <Cap color={st.hat.color} brim={st.hat.band} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
+          {st.hat ? st.hat.kind === 'turban' ? <Turban color={st.hat.color} /> : st.hat.kind === 'bandana' ? <Bandana /> : st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : st.hat.kind === 'cap' ? <Cap color={st.hat.color} brim={st.hat.band} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
           {st.shades ? <Shades /> : null}
           {st.beard ? (
             // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache

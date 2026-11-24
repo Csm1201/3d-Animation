@@ -4,6 +4,7 @@ import {SAFETY_FRAMES, ShortWorkplaceSafety} from './films/youre-the-ref/ShortWo
 import {GANG_FRAMES, ShortGang} from './films/youre-the-ref/ShortGang';
 import {INV_FRAMES, ShortInvincible} from './films/youre-the-ref/ShortInvincible';
 import {LowPolyExample, LP_FRAMES} from './films/youre-the-ref/LowPolyExample';
+import {GayCampExample, GC_FRAMES} from './films/youre-the-ref/GayCampExample';
 import {Episode5, EP5_FRAMES} from './films/youre-the-ref/Episode5';
 import {Ep5CastTest, EP5_CAST_FRAMES} from './films/youre-the-ref/Ep5Cast';
 import {Episode4, EP4_FRAMES} from './films/youre-the-ref/Episode4';
@@ -24,6 +25,7 @@ import {SCENE1_FRAMES, Scene1Trapped} from './films/sleep-experiment/scenes/Scen
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="GayCampExample" component={GayCampExample} durationInFrames={GC_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="LowPolyExample" component={LowPolyExample} durationInFrames={LP_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="WhatIfInvincible" component={ShortInvincible} durationInFrames={INV_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
     <Composition id="RefGang" component={ShortGang} durationInFrames={GANG_FRAMES} fps={30} width={WIDTH} height={HEIGHT} />
