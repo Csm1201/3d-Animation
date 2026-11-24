@@ -16,6 +16,7 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  RepeatWrapping,
   Quaternion,
   SphereGeometry,
   TorusGeometry,
@@ -30,7 +31,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string; /** long sleeves in a different colour from the shirt */ sleeve?: string};
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string; /** long sleeves in a different colour from the shirt */ sleeve?: string; /** printed shirt pattern over the shirt colour */ pattern?: 'floral'};
 export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept' | 'crop';
 export type Style = {
   outfit: Outfit;
@@ -59,6 +60,8 @@ export type Style = {
   chain?: string;
   /** Realistic proportions: a smaller head (about adult size relative to the body), no cartoon blush, less waxy skin. */
   realistic?: boolean;
+  /** Low-poly look: faceted, flat-shaded body (few segments per limb). */
+  lowPoly?: boolean;
 };
 export const OFFICE_STYLE: Style = {outfit: 'office', skin: '#f2b996', hair: '#5a3a2c', hairStyle: 'short'};
 export const SCIENTIST_STYLE: Style = {outfit: 'scientist', skin: '#f0b892', hair: '#f4f1ea', hairStyle: 'wild', goggles: 'eyes'};
@@ -103,6 +106,35 @@ const chestTex = (text: string, color: string, outline: string) =>
     g.fillText(text, 256, 136, 480);
   });
 
+/** Printed fabric: small flowers scattered over the base colour. */
+const patternTex = (kind: 'floral', base: string) => {
+  const t = canvasTex(256, 256, (g) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, 256, 256);
+    const cols = ['#ffffff', '#ff8fb1', '#ffd23a', '#e5462b', '#9fd8ff'];
+    for (let i = 0; i < 46; i++) {
+      const x = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+      const y = (Math.sin(i * 78.233) * 12345.678) % 1;
+      const cx = Math.abs(x) * 256;
+      const cy = Math.abs(y) * 256;
+      const r = 7 + (i % 3) * 3;
+      g.fillStyle = cols[i % cols.length];
+      for (let k = 0; k < 5; k++) {
+        const a = (k / 5) * Math.PI * 2 + i;
+        g.beginPath();
+        g.arc(cx + Math.cos(a) * r * 0.6, cy + Math.sin(a) * r * 0.6, r * 0.5, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.fillStyle = '#ffd23a';
+      g.beginPath();
+      g.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+      g.fill();
+    }
+  });
+  t.wrapS = t.wrapT = RepeatWrapping;
+  t.repeat.set(2, 2);
+  return t;
+};
 const buildMats = (st: Style) => {
   const kit = st.outfit === 'kit' ? st.kit : undefined;
   const top = kit ? kit.shirt : st.outfit === 'subject' ? '#a8c2ba' : '#f3f6fb';
@@ -115,8 +147,8 @@ const buildMats = (st: Style) => {
     cheek: clay('#ff9c8f', 0.7),
     hair: clay(st.hair, 0.72),
     brow: clay(st.brow ?? st.hair, 0.72),
-    shirt: clay(top, 0.72),
-    shirtFar: clay(shade(top, 0.92), 0.75),
+    shirt: kit?.pattern ? new MeshStandardMaterial({map: patternTex(kit.pattern, top), roughness: 0.75}) : clay(top, 0.72),
+    shirtFar: kit?.pattern ? new MeshStandardMaterial({map: patternTex(kit.pattern, shade(top, 0.92)), roughness: 0.78}) : clay(shade(top, 0.92), 0.75),
     cuff: clay('#ffffff', 0.6),
     sleeve: clay(kit?.sleeve ?? top, 0.72),
     sleeveFar: clay(shade(kit?.sleeve ?? top, 0.92), 0.75),
@@ -163,21 +195,40 @@ type Mats = ReturnType<typeof buildMats>;
 const matCache = new Map<string, Mats>();
 const matsFor = (st: Style) => {
   const k = JSON.stringify(st);
-  if (!matCache.has(k)) matCache.set(k, buildMats(st));
+  if (!matCache.has(k)) {
+    const m = buildMats(st);
+    if (st.lowPoly)
+      for (const v of Object.values(m))
+        for (const x of Array.isArray(v) ? v : [v])
+          if (x && (x as Material).isMaterial) {
+            (x as MeshStandardMaterial).flatShading = true;
+            (x as Material).needsUpdate = true;
+          }
+    matCache.set(k, m);
+  }
   return matCache.get(k)!;
 };
 
 // ---------------------------------------------------------------- geometry helpers
 const Y = new Vector3(0, 1, 0);
 const sphereCache = new Map<number, SphereGeometry>();
+/** Set while a low-poly character renders: limbs and spheres use few segments (faceted). */
+export const LOW_POLY = {on: false};
+const lowSphereCache = new Map<number, SphereGeometry>();
 const sphere = (r: number) => {
+  if (LOW_POLY.on) {
+    if (!lowSphereCache.has(r)) lowSphereCache.set(r, new SphereGeometry(r, 8, 6));
+    return lowSphereCache.get(r)!;
+  }
   if (!sphereCache.has(r)) sphereCache.set(r, new SphereGeometry(r, 32, 20));
   return sphereCache.get(r)!;
 };
 const cylCache = new Map<string, CylinderGeometry>();
 const cyl = (rTop: number, rBottom: number) => {
   const k = `${rTop}-${rBottom}`;
-  if (!cylCache.has(k)) cylCache.set(k, new CylinderGeometry(rTop, rBottom, 1, 32, 1, true));
+  const kk = LOW_POLY.on ? 'lp' + k : k;
+  if (!cylCache.has(kk)) cylCache.set(kk, new CylinderGeometry(rTop, rBottom, 1, LOW_POLY.on ? 7 : 32, 1, true));
+  return cylCache.get(kk)!;
   return cylCache.get(k)!;
 };
 
@@ -751,6 +802,7 @@ export const Worker3D: React.FC<{pose: Pose; frame: number; look?: Look; carry?:
   carry = 'papers',
   style = OFFICE_STYLE,
 }) => {
+  LOW_POLY.on = !!style.lowPoly;
   const M = matsFor(style);
   return (
     <group>
