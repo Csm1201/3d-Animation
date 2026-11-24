@@ -4,9 +4,9 @@
  *
  *   0.0  HOOK: Day 7 runway night in the cave: disco ball, the bearded leader struts the rug runway, the others clap
  *   1.5  DAY 1
- *   1.9  a dusty mountain camp; pop: he spawns (pink tee, rainbow bandana, shades); four bearded men freeze and stare
- *   3.1  he takes his shades off and looks them up and down: "Okay. Who did your styling? Because we need to talk."
- *   7.4  two of them look at each other; one self-consciously strokes his beard
+ *   1.9  a dusty mountain camp; pop: he spawns (in their robe and black turban, plus shades); four bearded men freeze: "BOMBOCLAAT!"
+ *   3.85 he takes his shades off: "Oh. My. GOD. Okay... who did your styling, honey? Because we NEED to talk."
+ *  10.75 two of them look at each other; one strokes his beard: "Bomboclaat..."
  */
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame} from 'remotion';
@@ -22,7 +22,7 @@ import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const GC_FPS = 30;
 const F = (s: number) => Math.round(s * GC_FPS);
-export const GC_FRAMES = F(8.6);
+export const GC_FRAMES = F(12.4);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -46,9 +46,10 @@ const planeG = new PlaneGeometry(1, 1);
 const T_DAY1 = 1.5;
 const T_CAMP = 1.9;
 const T_SPAWN = 2.15;
-const T_SHADES = 3.1;
-const T_LINE = 3.3;
-const T_LOOK = 7.4;
+const T_SHADES = 3.85;
+const T_LINE = 4.0;
+const LINE_LEN = 6.65;
+const T_LOOK = 10.75;
 
 // ---------------------------------------------------------------- cast
 const HIM = (shades: boolean): Style => ({
@@ -58,8 +59,8 @@ const HIM = (shades: boolean): Style => ({
   skin: '#e6b48e',
   hair: '#3a2a22',
   hairStyle: 'swept',
-  kit: {shirt: '#ff5fa8', shorts: '#f2f2ee', socks: '#ffffff', trim: '#ff5fa8', trousers: true},
-  hat: {kind: 'bandana', color: '#ffffff', band: '#ffffff'},
+  kit: {shirt: '#8a7a62', shorts: '#5d5244', socks: '#3a3228', trim: '#8a7a62', longSleeves: true, trousers: true},
+  hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'},
   shades,
 });
 const fighter = (skin: string, robe: string): Style => ({lowPoly: true, realistic: true, outfit: 'kit', skin, hair: '#1b1412', hairStyle: 'short', beard: true, kit: {shirt: robe, shorts: '#5d5244', socks: '#3a3228', trim: robe, longSleeves: true, trousers: true}, hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'}});
@@ -201,9 +202,10 @@ const ShotCamp: React.FC = () => {
   const spawn = clamp01((t - T_SPAWN) / 0.18);
   const shadesOff = t >= T_SHADES;
   const reach = t > T_SHADES - 0.25 && t < T_SHADES + 0.3 ? Math.sin(((t - (T_SHADES - 0.25)) / 0.55) * Math.PI) : 0;
-  const talk = t > T_LINE && t < T_LINE + 3.85;
+  const talk = t > T_LINE && t < T_LINE + LINE_LEN;
   const sway = Math.sin(t * 2.2);
-  const himSpec: BodySpec = {...idleSpec(frame, 0.3), lean: -2, headTilt: 4 + 3 * sway, nearArm: [lerp(14, 150, reach), lerp(18, 120, reach)], farArm: [-18, 100]};
+  const flick = talk ? Math.max(0, Math.sin((t - T_LINE) * 3.2)) : 0;
+  const himSpec: BodySpec = {...idleSpec(frame, 0.3), lean: -2 + 3 * sway, headTilt: 4 + 6 * sway, nearArm: [lerp(14 + 50 * flick, 150, reach), lerp(18 + 90 * flick, 120, reach)], farArm: [-18, 100]};
   const look = (i: number): Look => {
     if (t < T_SPAWN) return {tired: 0.3, droop: 0, eyesClosed: false, brows: -0.3, mouth: 'flat', yaw: (rnd(i) - 0.5) * 40};
     if (t > T_LOOK && i < 2) return {...STARE, yaw: i === 0 ? 45 : -45};
@@ -314,10 +316,19 @@ export const GayCampExample: React.FC = () => {
         <Audio src={staticFile('gaycamp/pop.wav')} volume={0.8} />
       </Sequence>
       <Sequence from={F(T_LINE)}>
-        <Audio src={staticFile('gaycamp/him-styling.mp3')} volume={1.25} />
+        <Audio src={staticFile('gaycamp/him-styling2.mp3')} volume={1.25} />
+      </Sequence>
+      <Sequence from={F(T_SPAWN + 0.2)}>
+        <Audio src={staticFile('gaycamp/bc1.mp3')} volume={1.15} />
+      </Sequence>
+      <Sequence from={F(T_SPAWN + 0.75)}>
+        <Audio src={staticFile('gaycamp/bc2.mp3')} volume={1.0} />
       </Sequence>
       <Sequence from={F(T_LOOK + 0.1)}>
-        <Audio src={staticFile('gaycamp/ooh.wav')} volume={0.5} />
+        <Audio src={staticFile('gaycamp/ooh.wav')} volume={0.4} />
+      </Sequence>
+      <Sequence from={F(T_LOOK + 0.25)}>
+        <Audio src={staticFile('gaycamp/bc-quiet.mp3')} volume={1.1} />
       </Sequence>
     </AbsoluteFill>
   );

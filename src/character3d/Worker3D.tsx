@@ -473,8 +473,8 @@ const chainGeo = new TorusGeometry(0.105, 0.014, 8, 28);
 const turbanGeo = new SphereGeometry(0.175, 14, 9, 0, Math.PI * 2, 0, Math.PI / 1.75);
 const wrapGeo = new TorusGeometry(0.15, 0.028, 6, 18);
 const Turban: React.FC<{color: string}> = ({color}) => (
-  <group position={[-0.005, 0.03, 0]} rotation={[0, 0, -0.08]}>
-    <mesh geometry={turbanGeo} material={hatMat(color)} scale={[1.05, 1.0, 1.04]} castShadow />
+  <group position={[-0.02, 0.085, 0]} rotation={[0, 0, -0.14]}>
+    <mesh geometry={turbanGeo} material={hatMat(color)} scale={[1.02, 0.95, 1.02]} castShadow />
     {[0, 1, 2].map((k) => (
       <mesh key={k} geometry={wrapGeo} material={hatMat(color)} position={[0, 0.02 + k * 0.045, 0]} rotation={[Math.PI / 2 + (k - 1) * 0.18, 0, 0.25 * (k - 1)]} scale={[1.02 - k * 0.1, 1.02 - k * 0.1, 1]} />
     ))}
