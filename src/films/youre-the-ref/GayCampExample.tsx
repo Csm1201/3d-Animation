@@ -456,7 +456,7 @@ const ShotChase: React.FC = () => {
   const t = tc + T_CHASE;
   const me = runAlong(chasePath, tc + 0.4, 0.95);
   const hop = Math.max(0, Math.sin(clamp01((me.pos.x - (CRATE.x - 0.8)) / 1.6) * Math.PI));
-  const cam: Cam = {position: v3(me.pos.x - 1.4, 2.6, 8.6), target: v3(me.pos.x - 1.6, 0.9, 0.6), fov: 50};
+  const cam: Cam = {position: v3(me.pos.x - 0.5, 2.6, 8.6), target: v3(me.pos.x - 0.6, 0.9, 0.6), fov: 50};
   const TRIP = 3.1;
   return (
     <AbsoluteFill>
@@ -579,7 +579,7 @@ const ShotLeader: React.FC = () => {
         </Canvas3D>
       </AbsoluteFill>
       <Canvas3D cam={cam} sky="#f0a874" alpha>
-        <Actor style={{...LEADER, shades: false}} x={0} z={0} yaw={-Math.PI / 2 + 0.35} spec={{...idleSpec(frame, 0.2), headTilt: -6, nearArm: [62 + 4 * stroke, 128], farArm: [26, 58]}} frame={frame} look={{tired: 0.2, droop: 0, eyesClosed: false, brows: 0.4, browLift: 0.3, mouth: te > 0.4 && te < 1.6 ? 'open' : 'flat', mouthOpen: 0.12, noBlink: true, yaw: 25}}>
+        <Actor style={{...LEADER, shades: false}} x={0} z={0} yaw={-Math.PI / 2 + 1.1} spec={{...idleSpec(frame, 0.2), headTilt: -6, nearArm: [33 + 4 * stroke, 130], farArm: [26, 58]}} frame={frame} look={{tired: 0.2, droop: 0, eyesClosed: false, brows: 0.4, browLift: 0.3, mouth: te > 0.4 && te < 1.6 ? 'open' : 'flat', mouthOpen: 0.12, noBlink: true, yaw: 25}}>
           {(pose) => (
             <group position={handLocal(pose, true).add(v3(0, 0, 0.15))} rotation={[0, 0, -0.55]}>
               <Rifle />
