@@ -4,7 +4,7 @@
  *
  *   0.0  HOOK: Day 7 runway night in the cave: disco ball, the bearded leader struts the rug runway, the others clap
  *   1.5  DAY 1
- *   1.9  a dusty mountain camp; pop: he spawns (in their robe and black turban, plus shades); four bearded men freeze: "BOMBOCLAAT!"
+ *   0.0  HOOK: the I'M GAAAY moment (arms up, glitter), the fighters recoil: BOMBOCLAAT
  *   3.85 he takes his shades off: "Oh. My. GOD. Okay... who did your styling, honey? Because we NEED to talk."
  *  10.75 two of them look at each other; one strokes his beard: "Bomboclaat..."
  */
@@ -16,13 +16,13 @@ import {BodySpec, idleSpec} from '../../core/sportPoses';
 import {Cam, CameraRig, Daylight, Environment} from '../../character3d/stage';
 import {canvasTex} from '../../character3d/common';
 import {Look, Style} from '../../character3d/Worker3D';
-import {Actor, runAlong} from './Episode2';
+import {Actor, armsUp, runAlong} from './Episode2';
 import {FONT} from './Overlays';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const GC_FPS = 30;
 const F = (s: number) => Math.round(s * GC_FPS);
-export const GC_FRAMES = F(12.4);
+export const GC_FRAMES = F(14.4);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -46,10 +46,14 @@ const planeG = new PlaneGeometry(1, 1);
 const T_DAY1 = 1.5;
 const T_CAMP = 1.9;
 const T_SPAWN = 2.15;
-const T_SHADES = 3.85;
-const T_LINE = 4.0;
-const LINE_LEN = 6.65;
-const T_LOOK = 10.75;
+const T_DEEP = 3.2; // "Relax. I'm completely normal. Ask me anything." (forced deep voice, 3.6 s)
+const T_FAV = 7.1; // fighter: "...Favourite colour?" (1.2 s)
+const T_LILAC = 8.3; // "Lilac." (0.84 s)
+const T_SHADES = T_LILAC - 0.35;
+const T_GAY = 10.0; // "Okay FINE! I'M GAAAAAY!" (2.77 s)
+const T_ARMS = T_GAY + 0.85;
+const T_BC = 12.65; // the fighters recoil: BOMBOCLAAT
+const HOOK_AT = T_ARMS - 0.15; // the hook replays the camp from here
 
 // ---------------------------------------------------------------- cast
 const HIM = (shades: boolean): Style => ({
@@ -195,40 +199,62 @@ const ShotRunway: React.FC = () => {
   );
 };
 
-/** Day 1 in the camp. */
-const ShotCamp: React.FC = () => {
+/** Day 1 in the camp. from: global time this shot starts at (the hook replays the I'M GAY moment). */
+const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
   const frame = useCurrentFrame();
-  const t = frame / GC_FPS + T_CAMP; // global time
+  const t = frame / GC_FPS + from; // global time
   const spawn = clamp01((t - T_SPAWN) / 0.18);
   const shadesOff = t >= T_SHADES;
   const reach = t > T_SHADES - 0.25 && t < T_SHADES + 0.3 ? Math.sin(((t - (T_SHADES - 0.25)) / 0.55) * Math.PI) : 0;
-  const talk = t > T_LINE && t < T_LINE + LINE_LEN;
+  const deep = t > T_DEEP && t < T_DEEP + 3.5;
+  const talk = deep || (t > T_LILAC && t < T_LILAC + 0.7) || (t > T_GAY && t < T_GAY + 2.6);
   const sway = Math.sin(t * 2.2);
-  const flick = talk ? Math.max(0, Math.sin((t - T_LINE) * 3.2)) : 0;
-  const himSpec: BodySpec = {...idleSpec(frame, 0.3), lean: -2 + 3 * sway, headTilt: 4 + 6 * sway, nearArm: [lerp(14 + 50 * flick, 150, reach), lerp(18 + 90 * flick, 120, reach)], farArm: [-18, 100]};
+  const arms = smooth(clamp01((t - T_ARMS) / 0.18));
+  // tough-guy stance while faking the deep voice (feet wide, arms folded), then everything goes
+  const tough: BodySpec = {...idleSpec(frame, 0.3), lean: -7, headTilt: -6, near: {thigh: 15, knee: 6}, far: {thigh: -15, knee: 6}, nearArm: [16, 24], farArm: [14, 26]};
+  const sassy: BodySpec = {...idleSpec(frame, 0.3), lean: -2 + 3 * sway, headTilt: 4 + 6 * sway, nearArm: [lerp(14, 150, reach), lerp(18, 120, reach)], farArm: [-18, 100]};
+  let himSpec: BodySpec = t < T_LILAC - 0.4 ? tough : sassy;
+  if (arms > 0) himSpec = armsUp({...sassy, lean: -6, headTilt: 14}, t, arms, 1.5);
+  const recoil = smooth(clamp01((t - T_BC) / 0.2));
+  const asking = t > T_FAV - 0.2 && t < T_FAV + 1.0;
   const look = (i: number): Look => {
     if (t < T_SPAWN) return {tired: 0.3, droop: 0, eyesClosed: false, brows: -0.3, mouth: 'flat', yaw: (rnd(i) - 0.5) * 40};
-    if (t > T_LOOK && i < 2) return {...STARE, yaw: i === 0 ? 45 : -45};
-    return STARE;
+    if (recoil > 0) return {...STARE, brows: 1, browLift: 1, mouth: 'open', mouthOpen: 0.8, pupils: 0.55};
+    if (i === 0 && asking) return {tired: 0.4, droop: 2, eyesClosed: false, brows: -1, browLift: -0.4, mouth: 'open', mouthOpen: 0.15 + 0.2 * Math.abs(Math.sin(t * 12)), noBlink: true};
+    return {...STARE, brows: -0.6, browLift: -0.2, mouth: 'flat', pupils: undefined};
   };
-  const stroke = t > T_LOOK + 0.3 ? Math.sin((t - T_LOOK - 0.3) * 9) : 0;
-  const close = smooth(clamp01((t - T_LINE) / 1.2));
-  const twoShot = t > T_LOOK;
-  const cam: Cam = twoShot
-    ? {position: v3(0.75, 1.95, 2.9), target: v3(0.0, 1.45, -1.4), fov: 44}
-    : {position: v3(lerp(0.4, 0.9, close), lerp(1.5, 1.6, close), lerp(5.6, 3.4, close)), target: v3(lerp(0.2, 0.0, close), lerp(1.2, 1.5, close), lerp(-1.0, 0.2, close)), fov: 44};
+  const close = smooth(clamp01((t - T_DEEP) / 1.2));
+  const wide = smooth(clamp01((t - (T_ARMS - 0.3)) / 0.4));
+  const base: Cam = {position: v3(lerp(0.4, 0.9, close), lerp(1.5, 1.6, close), lerp(5.6, 3.4, close)), target: v3(lerp(0.2, 0.0, close), lerp(1.2, 1.5, close), lerp(-1.0, 0.2, close)), fov: 44};
+  const cam: Cam = {position: base.position.clone().lerp(v3(0.6, 1.8, 5.4), wide), target: base.target.clone().lerp(v3(0.1, 1.4, -0.6), wide), fov: 44};
+  const shake = t > T_ARMS && t < T_ARMS + 0.35 ? 0.04 * Math.sin(t * 80) : 0;
+  const camS = {...cam, position: cam.position.clone().add(v3(shake, shake, 0))};
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{filter: 'blur(2.5px)'}}>
-        <Canvas3D cam={cam} sky="#a9cbe6" fog={[25, 110]}>
+        <Canvas3D cam={camS} sky="#a9cbe6" fog={[25, 110]}>
           <Camp t={t} />
         </Canvas3D>
       </AbsoluteFill>
-      <Canvas3D cam={cam} sky="#a9cbe6" alpha>
+      <Canvas3D cam={camS} sky="#a9cbe6" alpha>
         <mesh geometry={planeG} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} scale={[40, 40, 1]} receiveShadow material={shadowCatch} />
         {spawn > 0 ? (
           <group scale={[lerp(0.2, 1, spawn), lerp(0.2, 1, spawn), lerp(0.2, 1, spawn)]} position={[0, 0, 1.2]}>
-            <Actor style={HIM(!shadesOff)} x={0} z={0} yaw={-Math.PI / 2 + 0.25 * Math.sin(t * 0.9)} spec={himSpec} frame={frame} look={{...SMUG, mouth: talk ? 'open' : 'smile', mouthOpen: talk ? 0.15 + 0.2 * Math.abs(Math.sin(t * 13)) : 0, yaw: t < T_SHADES ? 25 * Math.sin((t - T_SPAWN) * 2) : 0}} />
+            <Actor
+              style={HIM(!shadesOff)}
+              x={0}
+              z={0}
+              yaw={-Math.PI / 2 + 0.25 * Math.sin(t * 0.9)}
+              spec={himSpec}
+              frame={frame}
+              look={
+                deep
+                  ? {tired: 0, droop: 2, eyesClosed: false, brows: -0.7, browLift: -0.3, mouth: 'open', mouthOpen: 0.1 + 0.15 * Math.abs(Math.sin(t * 11)), noBlink: true}
+                  : arms > 0
+                    ? {...JOY, mouthOpen: 0.5 + 0.35 * Math.abs(Math.sin(t * 9)), eyesClosed: t > T_ARMS + 0.2 && t < T_ARMS + 1.2}
+                    : {...SMUG, mouth: talk ? 'open' : 'smile', mouthOpen: talk ? 0.15 + 0.2 * Math.abs(Math.sin(t * 13)) : 0, yaw: t < T_DEEP ? 25 * Math.sin((t - T_SPAWN) * 2) : 0}
+              }
+            />
           </group>
         ) : null}
         {spawn > 0 && spawn < 1
@@ -236,18 +262,29 @@ const ShotCamp: React.FC = () => {
               <mesh key={i} geometry={keep('spark', () => new IcosahedronGeometry(0.06, 0))} material={glowM(['#ff5fa8', '#ffe25a', '#5fd0ff'][i % 3], 2)} position={[Math.cos(i) * spawn * 1.2, 1 + Math.sin(i * 2) * spawn, 1.2 + Math.sin(i) * spawn * 0.6]} />
             ))
           : null}
-        {MEN.map((m, i) => (
-          <Actor
-            key={i}
-            style={m.st}
-            x={m.x}
-            z={m.z}
-            yaw={Math.atan2(-(1.2 - m.z), -m.x) + Math.PI / 2 - Math.PI / 2 + (t < T_SPAWN ? rnd(i) : 0)}
-            spec={i === 1 && t > T_LOOK + 0.3 ? {...idleSpec(frame, 0.2), nearArm: [60 + 6 * stroke, 120]} : {...idleSpec(frame + i * 9, 0.2), lean: t > T_SPAWN ? -4 : 2}}
-            frame={frame + i * 9}
-            look={look(i)}
-          />
-        ))}
+        {/* glitter burst when he comes out */}
+        {arms > 0 && t < T_ARMS + 1.6
+          ? Array.from({length: 26}, (_, i) => {
+              const k = t - T_ARMS;
+              return <mesh key={'g' + i} geometry={keep('spark', () => new IcosahedronGeometry(0.06, 0))} material={glowM(['#ff5fa8', '#ffe25a', '#5fd0ff', '#b46bff', '#7dff8a'][i % 5], 2)} position={[(rnd(i) - 0.5) * 3.2 * k, 1.9 + 1.2 * k * rnd(i + 3) - 2.6 * k * k, 1.2 + (rnd(i + 7) - 0.5) * 2 * k]} />;
+            })
+          : null}
+        {MEN.map((m, i) => {
+          const step = i === 0 ? smooth(clamp01((t - (T_FAV - 0.6)) / 0.5)) * 0.5 : 0;
+          const r = recoil * (0.4 + 0.15 * i);
+          return (
+            <Actor
+              key={i}
+              style={m.st}
+              x={m.x * (1 + r * 0.3) + step * 0.6}
+              z={m.z - r + step * 0.9}
+              yaw={Math.atan2(-(1.2 - m.z), -m.x) + (t < T_SPAWN ? rnd(i) : 0)}
+              spec={recoil > 0 ? {...idleSpec(frame + i * 9, 0.2), lean: -18 * recoil, headTilt: -10 * recoil, near: {thigh: 10, knee: 20}, far: {thigh: -24 * recoil, knee: 14}, nearArm: [lerp(10, 82, recoil), lerp(20, 28, recoil)], farArm: [lerp(10, 76, recoil), lerp(20, 34, recoil)]} : {...idleSpec(frame + i * 9, 0.2), lean: t > T_SPAWN ? 6 : 2, headTilt: i === 0 && asking ? -8 : 0}}
+              frame={frame + i * 9}
+              look={look(i)}
+            />
+          );
+        })}
       </Canvas3D>
     </AbsoluteFill>
   );
@@ -267,7 +304,7 @@ const Caption: React.FC<{parts: [string, boolean][]}> = ({parts}) => (
 );
 const Counter: React.FC<{n: number; day: string}> = ({n, day}) => (
   <div style={{position: 'absolute', top: 150, left: 40, fontFamily: FONT, color: '#fff', textShadow: SHADOW}}>
-    <div style={{fontWeight: 700, fontSize: 30, letterSpacing: 1.5}}>TALIBAN MAKEOVERS</div>
+    <div style={{fontWeight: 700, fontSize: 30, letterSpacing: 1.5}}>TIMES NEARLY CAUGHT</div>
     <div style={{fontWeight: 800, fontSize: 110, lineHeight: 1}}>{n}</div>
     <div style={{display: 'inline-block', marginTop: 10, background: '#ffd23a', color: '#1b1b1b', fontWeight: 800, fontSize: 30, padding: '6px 18px', borderRadius: 30}}>{day}</div>
   </div>
@@ -279,7 +316,7 @@ export const GayCampExample: React.FC = () => {
   return (
     <AbsoluteFill style={{backgroundColor: '#000'}}>
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
-        <ShotRunway />
+        <ShotCamp from={HOOK_AT} />
       </Sequence>
       <Sequence from={F(T_CAMP)}>
         <ShotCamp />
@@ -290,45 +327,52 @@ export const GayCampExample: React.FC = () => {
       <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%)'}} />
       {t < T_DAY1 ? (
         <>
-          <Counter n={4} day="DAY 7" />
+          <Counter n={1} day="DAY 1" />
           <Caption parts={[['What if a really ', false], ['gay', true], [' guy spawned in the Taliban?', false]]} />
         </>
       ) : t >= T_CAMP ? (
         <>
-          <Counter n={0} day="DAY 1" />
-          <Caption parts={t < T_LOOK ? [['Day 1. ', false], ['Blend in.', true]] : [['He did ', false], ['not', true], [' blend in.', false]]} />
+          <Counter n={t >= T_BC ? 1 : 0} day="DAY 1" />
+          <Caption parts={t < T_ARMS ? [['Day 1. ', false], ['Act straight.', true]] : [['Lasted ', false], ['8 seconds.', true]]} />
         </>
       ) : null}
-      {/* sound */}
+      {/* sound: hook */}
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
-        <Audio src={staticFile('gaycamp/disco.wav')} volume={0.8} />
-      </Sequence>
-      <Sequence from={0} durationInFrames={F(T_DAY1)}>
-        <Audio src={staticFile('gaycamp/cheer.wav')} volume={0.5} />
+        <Audio src={staticFile('gaycamp/im-gay.mp3')} startFrom={F(HOOK_AT - T_GAY)} volume={1.3} />
       </Sequence>
       <Sequence from={F(T_DAY1 - 0.15)}>
         <Audio src={staticFile('gaycamp/scratch.wav')} volume={0.5} />
       </Sequence>
+      {/* Day 1 */}
       <Sequence from={F(T_DAY1)}>
+        <Audio src={staticFile('gaycamp/wind.wav')} volume={0.6} />
+      </Sequence>
+      <Sequence from={F(T_DAY1 + 6)}>
         <Audio src={staticFile('gaycamp/wind.wav')} volume={0.6} />
       </Sequence>
       <Sequence from={F(T_SPAWN)}>
         <Audio src={staticFile('gaycamp/pop.wav')} volume={0.8} />
       </Sequence>
-      <Sequence from={F(T_LINE)}>
-        <Audio src={staticFile('gaycamp/him-styling2.mp3')} volume={1.25} />
+      <Sequence from={F(T_DEEP)}>
+        <Audio src={staticFile('gaycamp/normal-deep.mp3')} volume={1.3} />
       </Sequence>
-      <Sequence from={F(T_SPAWN + 0.2)}>
+      <Sequence from={F(T_FAV)}>
+        <Audio src={staticFile('gaycamp/fav-colour.mp3')} volume={1.3} />
+      </Sequence>
+      <Sequence from={F(T_LILAC)}>
+        <Audio src={staticFile('gaycamp/lilac.mp3')} volume={1.3} />
+      </Sequence>
+      <Sequence from={F(T_GAY)}>
+        <Audio src={staticFile('gaycamp/im-gay.mp3')} volume={1.3} />
+      </Sequence>
+      <Sequence from={F(T_ARMS)}>
+        <Audio src={staticFile('ep4/twinkle.wav')} volume={0.5} />
+      </Sequence>
+      <Sequence from={F(T_BC)}>
         <Audio src={staticFile('gaycamp/bc1.mp3')} volume={1.15} />
       </Sequence>
-      <Sequence from={F(T_SPAWN + 0.75)}>
-        <Audio src={staticFile('gaycamp/bc2.mp3')} volume={1.0} />
-      </Sequence>
-      <Sequence from={F(T_LOOK + 0.1)}>
-        <Audio src={staticFile('gaycamp/ooh.wav')} volume={0.4} />
-      </Sequence>
-      <Sequence from={F(T_LOOK + 0.25)}>
-        <Audio src={staticFile('gaycamp/bc-quiet.mp3')} volume={1.1} />
+      <Sequence from={F(T_BC + 0.45)}>
+        <Audio src={staticFile('gaycamp/bc2.mp3')} volume={1.05} />
       </Sequence>
     </AbsoluteFill>
   );
