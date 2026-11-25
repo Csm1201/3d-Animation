@@ -23,7 +23,7 @@ import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const GC_FPS = 30;
 const F = (s: number) => Math.round(s * GC_FPS);
-export const GC_FRAMES = F(16.6);
+export const GC_FRAMES = F(20.4);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -51,11 +51,11 @@ const WALK0 = T_SPAWN + 0.35; // sashay start
 const WALK1 = WALK0 + 2.3; // arrives in front of them
 const T_DEEP = 5.4; // "Relax. I'm completely normal. Ask me anything." (forced deep voice, 3.6 s)
 const T_FAV = 9.3; // fighter: "...Favourite colour?" (1.2 s)
-const T_LILAC = 10.5; // "Lilac." (0.84 s)
+const T_LILAC = 10.5; // "Lilaaac. Obviously, sweetie!" (camp voice, 3.1 s) // "Lilac." (0.84 s)
 const T_SHADES = T_LILAC - 0.35;
-const T_GAY = 12.2; // "Okay FINE! I'M GAAAAAY!" (2.77 s)
-const T_ARMS = T_GAY + 0.85;
-const T_BC = 14.85; // the fighters recoil: BOMBOCLAAT
+const T_GAY = 14.2; // "Ugh, okay FINE! I'm GAAAAAY, honeyyy!" (camp voice, 4.3 s) // "Okay FINE! I'M GAAAAAY!" (2.77 s)
+const T_ARMS = T_GAY + 1.9;
+const T_BC = 18.6; // the fighters recoil: BOMBOCLAAT
 const HOOK_AT = T_ARMS - 0.15; // the hook replays the camp from here
 
 // ---------------------------------------------------------------- cast
@@ -69,6 +69,8 @@ const HIM = (shades: boolean): Style => ({
   kit: {shirt: '#8a7a62', shorts: '#5d5244', socks: '#3a3228', trim: '#8a7a62', longSleeves: true, trousers: true, robe: true},
   hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'},
   shades,
+  shadesColor: '#ff4fa8',
+  boa: '#ff6ec7',
 });
 const fighter = (skin: string, robe: string): Style => ({lowPoly: true, realistic: true, outfit: 'kit', skin, hair: '#1b1412', hairStyle: 'short', beard: true, beardLong: true, kit: {shirt: robe, shorts: '#5d5244', socks: '#3a3228', trim: robe, longSleeves: true, trousers: true, robe: true}, hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'}});
 const MEN = [
@@ -255,12 +257,12 @@ const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
   const shadesOff = t >= T_SHADES;
   const reach = t > T_SHADES - 0.25 && t < T_SHADES + 0.3 ? Math.sin(((t - (T_SHADES - 0.25)) / 0.55) * Math.PI) : 0;
   const deep = t > T_DEEP && t < T_DEEP + 3.5;
-  const talk = deep || (t > T_LILAC && t < T_LILAC + 0.7) || (t > T_GAY && t < T_GAY + 2.6);
+  const talk = deep || (t > T_LILAC && t < T_LILAC + 2.9) || (t > T_GAY && t < T_GAY + 4.1);
   const sway = Math.sin(t * 2.2);
   const arms = smooth(clamp01((t - T_ARMS) / 0.18));
   // tough-guy stance while faking the deep voice (feet wide, arms folded), then everything goes
   const tough: BodySpec = {...idleSpec(frame, 0.3), lean: -7, headTilt: -6, near: {thigh: 15, knee: 6}, far: {thigh: -15, knee: 6}, nearArm: [16, 24], farArm: [14, 26]};
-  const sassy: BodySpec = {...idleSpec(frame, 0.3), lean: -2 + 3 * sway, headTilt: 4 + 6 * sway, nearArm: [lerp(14, 150, reach), lerp(18, 120, reach)], farArm: [-18, 100]};
+  const sassy: BodySpec = {...idleSpec(frame, 0.3), lean: -3 + 4 * sway, headTilt: 8 + 8 * sway, near: {thigh: 8 + 6 * sway, knee: 14}, far: {thigh: -10, knee: 4}, nearArm: [lerp(34 + 8 * sway, 150, reach), lerp(70, 120, reach)], farArm: [-18, 100]};
   const walking = t < WALK1 + 0.15;
   const W0 = {x: -2.6, z: 0.9};
   const wp = smooth(clamp01((t - WALK0) / (WALK1 - WALK0)));
@@ -407,12 +409,12 @@ export const GayCampExample: React.FC = () => {
       ) : t >= T_CAMP ? (
         <>
           <Counter n={t >= T_BC ? 1 : 0} day="DAY 1" />
-          <Caption parts={t < T_ARMS ? [['Day 1. ', false], ['Act straight.', true]] : [['Lasted ', false], ['8 seconds.', true]]} />
+          <Caption parts={t < T_ARMS ? [['Day 1. ', false], ['Act straight.', true]] : [['Lasted ', false], ['14 seconds.', true]]} />
         </>
       ) : null}
       {/* sound: hook */}
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
-        <Audio src={staticFile('gaycamp/im-gay.mp3')} startFrom={F(HOOK_AT - T_GAY)} volume={1.3} />
+        <Audio src={staticFile('gaycamp/gay-camp.mp3')} startFrom={F(HOOK_AT - T_GAY)} volume={1.3} />
       </Sequence>
       <Sequence from={F(T_DAY1 - 0.15)}>
         <Audio src={staticFile('gaycamp/scratch.wav')} volume={0.5} />
@@ -442,10 +444,10 @@ export const GayCampExample: React.FC = () => {
         <Audio src={staticFile('gaycamp/fav-colour.mp3')} volume={1.3} />
       </Sequence>
       <Sequence from={F(T_LILAC)}>
-        <Audio src={staticFile('gaycamp/lilac.mp3')} volume={1.3} />
+        <Audio src={staticFile('gaycamp/lilac-camp.mp3')} volume={1.3} />
       </Sequence>
       <Sequence from={F(T_GAY)}>
-        <Audio src={staticFile('gaycamp/im-gay.mp3')} volume={1.3} />
+        <Audio src={staticFile('gaycamp/gay-camp.mp3')} volume={1.3} />
       </Sequence>
       <Sequence from={F(T_ARMS)}>
         <Audio src={staticFile('ep4/twinkle.wav')} volume={0.5} />

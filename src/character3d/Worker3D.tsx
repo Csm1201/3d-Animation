@@ -59,6 +59,10 @@ export type Style = {
   hat?: {kind: 'fedora' | 'hardhat' | 'cap' | 'turban' | 'bandana'; color: string; band: string};
   /** Dark sunglasses. */
   shades?: boolean;
+  /** Lens colour for the shades (default near-black). */
+  shadesColor?: string;
+  /** A fluffy feather boa round the neck, in this colour. */
+  boa?: string;
   /** A chunky chain necklace in this colour. */
   chain?: string;
   /** Realistic proportions: a smaller head (about adult size relative to the body), no cartoon blush, less waxy skin. */
@@ -460,10 +464,10 @@ const lensDarkGeo = new SphereGeometry(0.036, 20, 12);
 const shadeMat = new MeshStandardMaterial({color: '#0c0c10', roughness: 0.08, metalness: 0.6});
 const bridgeGeo = new BoxGeometry(0.012, 0.01, 0.05);
 const armShadeGeo = new BoxGeometry(0.16, 0.01, 0.01);
-const Shades: React.FC = () => (
+const Shades: React.FC<{color?: string}> = ({color}) => (
   <group position={[0, 0.02, 0]}>
     {[-1, 1].map((sd) => (
-      <mesh key={sd} geometry={lensDarkGeo} material={shadeMat} position={[0.142, 0, 0.056 * sd]} scale={[0.35, 0.8, 1.05]} />
+      <mesh key={sd} geometry={lensDarkGeo} material={color ? hatMat(color) : shadeMat} position={[0.142, 0, 0.056 * sd]} scale={[0.35, 0.8, 1.05]} />
     ))}
     <mesh geometry={bridgeGeo} material={shadeMat} position={[0.152, 0.008, 0]} />
     {[-1, 1].map((sd) => (
@@ -560,7 +564,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
           <mesh geometry={sphere(R)} material={M.skin} scale={[1, 1.04, 0.96]} castShadow />
           <Hair st={st} M={M} />
           {st.hat ? st.hat.kind === 'turban' ? <Turban color={st.hat.color} /> : st.hat.kind === 'bandana' ? <Bandana /> : st.hat.kind === 'hardhat' ? <HardHat color={st.hat.color} /> : st.hat.kind === 'cap' ? <Cap color={st.hat.color} brim={st.hat.band} /> : <Fedora color={st.hat.color} band={st.hat.band} /> : null}
-          {st.shades ? <Shades /> : null}
+          {st.shades ? <Shades color={st.shadesColor} /> : null}
           {st.beard ? (
             // short full beard: a shell hugging the lower face from ear to ear, chin a touch fuller, moustache
             <group>
@@ -645,6 +649,26 @@ const Robe: React.FC<{pose: Pose; M: Mats}> = ({pose, M}) => {
   const top = p.y + 0.12;
   const bottom = 0.22;
   return <mesh geometry={robeGeo} material={M.shirt} position={[p.x + 0.01, (top + bottom) / 2, 0]} scale={[1, top - bottom, 1]} castShadow />;
+};
+const boaPuff = new SphereGeometry(0.05, 6, 5);
+/** Feather boa: a ring of fluffy puffs round the neck, two tails hanging down the front. */
+const Boa: React.FC<{pose: Pose; color: string}> = ({pose, color}) => {
+  const n = to3(pose.neck, 0);
+  const m = hatMat(color);
+  const j = (i: number) => Math.sin(i * 12.9898) * 0.5;
+  const ring = Array.from({length: 30}, (_, i) => {
+    const a = (i / 30) * Math.PI * 2;
+    return <mesh key={i} geometry={boaPuff} material={m} position={[n.x + Math.cos(a) * (0.11 + 0.02 * j(i)), n.y - 0.02 + 0.03 * j(i + 7), Math.sin(a) * (0.12 + 0.02 * j(i + 3))]} scale={1.15 + 0.35 * j(i + 1)} rotation={[i, i * 2, 0]} />;
+  });
+  const tails = [-1, 1].flatMap((sd) =>
+    Array.from({length: 14}, (_, k) => <mesh key={`${sd}${k}`} geometry={boaPuff} material={m} position={[n.x + 0.12 + 0.01 * (k % 3), n.y - 0.07 - k * 0.034, sd * (0.075 + 0.025 * j(k + sd * 5))]} scale={(1.15 - k * 0.035) * (1 + 0.3 * j(k + 11))} rotation={[k, k * 3, 0]} />),
+  );
+  return (
+    <group>
+      {ring}
+      {tails}
+    </group>
+  );
 };
 const Torso: React.FC<{pose: Pose; st: Style; M: Mats}> = ({pose, st, M}) => {
   const p = to3(pose.pelvis, 0);
@@ -846,6 +870,7 @@ export const Worker3D: React.FC<{pose: Pose; frame: number; look?: Look; carry?:
       <Leg leg={pose.nearLeg} z={0.095} M={M} kit={style.outfit === 'kit' && !style.kit?.trousers} bare={style.kit?.bare} fat={style.kit?.fat} />
       <Torso pose={pose} st={style} M={M} />
       {style.kit?.robe ? <Robe pose={pose} M={M} /> : null}
+      {style.boa ? <Boa pose={pose} color={style.boa} /> : null}
       <Head pose={pose} frame={frame} look={look} st={style} M={M} />
       <Arm pose={pose} carry={carry} st={style} M={M} />
       {carry === 'papers' ? <PaperStack3D pose={pose} frame={frame} /> : null}
