@@ -10,6 +10,7 @@ import React from 'react';
 import {
   BoxGeometry,
   CapsuleGeometry,
+  ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   Material,
@@ -31,7 +32,7 @@ import {ARM_Z, forearmRot, PaperStack3D} from './Paper3D';
 // ---------------------------------------------------------------- style + materials
 export type Outfit = 'office' | 'scientist' | 'subject' | 'kit';
 /** Football kit colours (outfit 'kit'). */
-export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string; /** long sleeves in a different colour from the shirt */ sleeve?: string; /** printed shirt pattern over the shirt colour */ pattern?: 'floral'};
+export type Kit = {shirt: string; shorts: string; socks: string; number?: number; numColor?: string; trim?: string; gloves?: string; longSleeves?: boolean; /** streaker: no shirt (shirt = skin colour), briefs instead of shorts, bare feet */ bare?: boolean; /** big round belly and thick legs */ fat?: boolean; /** full-length trousers and shoes instead of shorts, socks and boots */ trousers?: boolean; /** quarter-zip jumper: tall zip collar, short zip, small chest monogram (these letters) */ quarterZip?: string; /** basketball vest: no sleeves */ sleeveless?: boolean; /** wordmark across the chest (number centred under it) */ chestText?: string; /** long sleeves in a different colour from the shirt */ sleeve?: string; /** long robe from the waist to the shins, in the shirt colour */ robe?: boolean; /** printed shirt pattern over the shirt colour */ pattern?: 'floral'};
 export type HairStyle = 'short' | 'wild' | 'bun' | 'buzz' | 'swept' | 'crop';
 export type Style = {
   outfit: Outfit;
@@ -52,6 +53,8 @@ export type Style = {
   brow?: string;
   /** Full short beard and moustache, in the hair colour. */
   beard?: boolean;
+  /** A long beard hanging down to the chest (with beard). */
+  beardLong?: boolean;
   /** A hat on top of the head. */
   hat?: {kind: 'fedora' | 'hardhat' | 'cap' | 'turban' | 'bandana'; color: string; band: string};
   /** Dark sunglasses. */
@@ -566,6 +569,7 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
               <mesh geometry={burnGeoB} material={M.hair} scale={1.03} />
               <mesh geometry={sphere(1)} material={M.hair} position={surf(0.8, -0.75, 0, R * 0.95)} scale={[0.04, 0.03, 0.05]} castShadow />
               <mesh geometry={sphere(1)} material={M.hair} position={surf(1, -0.27, 0, R - 0.002)} scale={[0.012, 0.011, 0.05]} />
+              {st.beardLong ? <mesh geometry={longBeardGeo} material={M.hair} position={[0.085, -0.25, 0]} rotation={[0, 0, Math.PI - 0.12]} scale={[0.75, 1, 1.05]} castShadow /> : null}
             </group>
           ) : null}
           <mesh geometry={sphere(0.028)} material={M.skin} position={surf(1, -0.04, 0, R + 0.008)} />
@@ -633,6 +637,15 @@ const Head: React.FC<{pose: Pose; frame: number; look: Look; st: Style; M: Mats}
   );
 };
 
+const longBeardGeo = new ConeGeometry(0.1, 0.3, 7);
+const robeGeo = new CylinderGeometry(0.17, 0.27, 1, 10, 1, true);
+/** Long robe skirt from the waist to the shins. */
+const Robe: React.FC<{pose: Pose; M: Mats}> = ({pose, M}) => {
+  const p = to3(pose.pelvis, 0);
+  const top = p.y + 0.12;
+  const bottom = 0.22;
+  return <mesh geometry={robeGeo} material={M.shirt} position={[p.x + 0.01, (top + bottom) / 2, 0]} scale={[1, top - bottom, 1]} castShadow />;
+};
 const Torso: React.FC<{pose: Pose; st: Style; M: Mats}> = ({pose, st, M}) => {
   const p = to3(pose.pelvis, 0);
   const tieSwing = 3 + 2.5 * Math.sin(2 * Math.PI * 2 * (pose.phase - 0.1));
@@ -832,6 +845,7 @@ export const Worker3D: React.FC<{pose: Pose; frame: number; look?: Look; carry?:
       <Leg leg={pose.farLeg} z={-0.095} far M={M} kit={style.outfit === 'kit' && !style.kit?.trousers} bare={style.kit?.bare} fat={style.kit?.fat} />
       <Leg leg={pose.nearLeg} z={0.095} M={M} kit={style.outfit === 'kit' && !style.kit?.trousers} bare={style.kit?.bare} fat={style.kit?.fat} />
       <Torso pose={pose} st={style} M={M} />
+      {style.kit?.robe ? <Robe pose={pose} M={M} /> : null}
       <Head pose={pose} frame={frame} look={look} st={style} M={M} />
       <Arm pose={pose} carry={carry} st={style} M={M} />
       {carry === 'papers' ? <PaperStack3D pose={pose} frame={frame} /> : null}

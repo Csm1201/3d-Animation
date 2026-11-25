@@ -17,12 +17,13 @@ import {Cam, CameraRig, Daylight, Environment} from '../../character3d/stage';
 import {canvasTex} from '../../character3d/common';
 import {Look, Style} from '../../character3d/Worker3D';
 import {Actor, armsUp, runAlong} from './Episode2';
+import {handLocal} from './Episode4';
 import {FONT} from './Overlays';
 import {HEIGHT, WIDTH} from '../../core/constants';
 
 export const GC_FPS = 30;
 const F = (s: number) => Math.round(s * GC_FPS);
-export const GC_FRAMES = F(14.4);
+export const GC_FRAMES = F(16.6);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -46,13 +47,15 @@ const planeG = new PlaneGeometry(1, 1);
 const T_DAY1 = 1.5;
 const T_CAMP = 1.9;
 const T_SPAWN = 2.15;
-const T_DEEP = 3.2; // "Relax. I'm completely normal. Ask me anything." (forced deep voice, 3.6 s)
-const T_FAV = 7.1; // fighter: "...Favourite colour?" (1.2 s)
-const T_LILAC = 8.3; // "Lilac." (0.84 s)
+const WALK0 = T_SPAWN + 0.35; // sashay start
+const WALK1 = WALK0 + 2.3; // arrives in front of them
+const T_DEEP = 5.4; // "Relax. I'm completely normal. Ask me anything." (forced deep voice, 3.6 s)
+const T_FAV = 9.3; // fighter: "...Favourite colour?" (1.2 s)
+const T_LILAC = 10.5; // "Lilac." (0.84 s)
 const T_SHADES = T_LILAC - 0.35;
-const T_GAY = 10.0; // "Okay FINE! I'M GAAAAAY!" (2.77 s)
+const T_GAY = 12.2; // "Okay FINE! I'M GAAAAAY!" (2.77 s)
 const T_ARMS = T_GAY + 0.85;
-const T_BC = 12.65; // the fighters recoil: BOMBOCLAAT
+const T_BC = 14.85; // the fighters recoil: BOMBOCLAAT
 const HOOK_AT = T_ARMS - 0.15; // the hook replays the camp from here
 
 // ---------------------------------------------------------------- cast
@@ -63,11 +66,11 @@ const HIM = (shades: boolean): Style => ({
   skin: '#e6b48e',
   hair: '#3a2a22',
   hairStyle: 'swept',
-  kit: {shirt: '#8a7a62', shorts: '#5d5244', socks: '#3a3228', trim: '#8a7a62', longSleeves: true, trousers: true},
+  kit: {shirt: '#8a7a62', shorts: '#5d5244', socks: '#3a3228', trim: '#8a7a62', longSleeves: true, trousers: true, robe: true},
   hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'},
   shades,
 });
-const fighter = (skin: string, robe: string): Style => ({lowPoly: true, realistic: true, outfit: 'kit', skin, hair: '#1b1412', hairStyle: 'short', beard: true, kit: {shirt: robe, shorts: '#5d5244', socks: '#3a3228', trim: robe, longSleeves: true, trousers: true}, hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'}});
+const fighter = (skin: string, robe: string): Style => ({lowPoly: true, realistic: true, outfit: 'kit', skin, hair: '#1b1412', hairStyle: 'short', beard: true, beardLong: true, kit: {shirt: robe, shorts: '#5d5244', socks: '#3a3228', trim: robe, longSleeves: true, trousers: true, robe: true}, hat: {kind: 'turban', color: '#1a1a1c', band: '#1a1a1c'}});
 const MEN = [
   {st: fighter('#b98560', '#8a7a62'), x: -1.6, z: -1.2},
   {st: fighter('#9c6a48', '#6f6a58'), x: 1.4, z: -1.6},
@@ -78,6 +81,51 @@ const LEADER: Style = {...fighter('#b07b55', '#5e5446'), shades: true};
 const STARE: Look = {tired: 0, droop: -3, eyesClosed: false, brows: 0.6, browLift: 0.7, mouth: 'open', mouthOpen: 0.25, noBlink: true, pupils: 0.75};
 const SMUG: Look = {tired: 0.1, droop: -2, eyesClosed: false, brows: -0.2, browLift: 0.35, mouth: 'smile', noBlink: true};
 const JOY: Look = {tired: 0, droop: -6, eyesClosed: false, brows: 0.4, browLift: 0.7, mouth: 'open', mouthOpen: 0.7, noBlink: true};
+
+// ---------------------------------------------------------------- props
+const gunMetal = keep('gunMetal', () => new MeshStandardMaterial({color: '#2a2b2e', roughness: 0.45, metalness: 0.6, flatShading: true}));
+const gunWood = keep('gunWood', () => new MeshStandardMaterial({color: '#7a4a28', roughness: 0.7, flatShading: true}));
+/** A generic low-poly assault rifle, muzzle along +x, origin at the grip. */
+const Rifle: React.FC = () => (
+  <group position={[0.02, 0.06, 0]}>
+    <mesh geometry={boxG(0.34, 0.07, 0.045)} material={gunMetal} position={[0.06, 0, 0]} castShadow />
+    <mesh geometry={cylG(0.012, 0.012, 0.34, 6)} material={gunMetal} position={[0.38, 0.01, 0]} rotation={[0, 0, Math.PI / 2]} />
+    <mesh geometry={boxG(0.16, 0.05, 0.05)} material={gunWood} position={[0.27, -0.01, 0]} />
+    <mesh geometry={boxG(0.05, 0.16, 0.035)} material={gunMetal} position={[0.1, -0.1, 0]} rotation={[0, 0, -0.35]} />
+    <mesh geometry={boxG(0.22, 0.07, 0.035)} material={gunWood} position={[-0.2, -0.02, 0]} rotation={[0, 0, 0.08]} castShadow />
+    <mesh geometry={boxG(0.035, 0.08, 0.03)} material={gunWood} position={[-0.02, -0.07, 0]} />
+  </group>
+);
+const PRIDE = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#004dff', '#750787'];
+const prideTex = () =>
+  keep('prideTex', () =>
+    canvasTex(96, 64, (g) => {
+      PRIDE.forEach((c, k) => {
+        g.fillStyle = c;
+        g.fillRect(0, (k * 64) / 6, 96, 64 / 6 + 1);
+      });
+    }),
+  );
+const flagGeo = keep('flagGeo', () => new PlaneGeometry(1.1, 0.7, 8, 1));
+/** Pride flag held up between his hands, rippling. */
+const Flag: React.FC<{a: Vector3; b: Vector3; t: number}> = ({a, b, t}) => {
+  const mid = a.clone().add(b).multiplyScalar(0.5);
+  const geo = flagGeo.clone();
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    pos.setZ(i, 0.06 * Math.sin(x * 6 + t * 9) * (x + 0.55));
+  }
+  pos.needsUpdate = true;
+  return (
+    <group position={[mid.x, mid.y + 0.36, mid.z]}>
+      <mesh geometry={cylG(0.012, 0.012, 1.25, 6)} material={gunWood} position={[0, -0.36, 0]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh geometry={geo} rotation={[0, Math.PI / 2, 0]}>
+        <meshStandardMaterial map={prideTex()} side={2} roughness={0.8} flatShading />
+      </mesh>
+    </group>
+  );
+};
 
 // ---------------------------------------------------------------- sets
 const rock = keep('rock', () => new DodecahedronGeometry(1, 0));
@@ -213,20 +261,35 @@ const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
   // tough-guy stance while faking the deep voice (feet wide, arms folded), then everything goes
   const tough: BodySpec = {...idleSpec(frame, 0.3), lean: -7, headTilt: -6, near: {thigh: 15, knee: 6}, far: {thigh: -15, knee: 6}, nearArm: [16, 24], farArm: [14, 26]};
   const sassy: BodySpec = {...idleSpec(frame, 0.3), lean: -2 + 3 * sway, headTilt: 4 + 6 * sway, nearArm: [lerp(14, 150, reach), lerp(18, 120, reach)], farArm: [-18, 100]};
-  let himSpec: BodySpec = t < T_LILAC - 0.4 ? tough : sassy;
-  if (arms > 0) himSpec = armsUp({...sassy, lean: -6, headTilt: 14}, t, arms, 1.5);
+  const walking = t < WALK1 + 0.15;
+  const W0 = {x: -2.6, z: 0.9};
+  const wp = smooth(clamp01((t - WALK0) / (WALK1 - WALK0)));
+  const walk = runAlong((tt) => ({x: lerp(W0.x, 0, smooth(clamp01((tt - WALK0) / (WALK1 - WALK0)))), z: lerp(W0.z, 0, smooth(clamp01((tt - WALK0) / (WALK1 - WALK0))))}), t, 0.28);
+  const step = Math.sin((t - WALK0) * Math.PI * 2.6);
+  const strut = t > WALK0 && t < WALK1;
+  const sashay: BodySpec = strut
+    ? {...walk.spec, lean: -5, headTilt: 10 + 4 * step, nearArm: [34 + 5 * step, 70], farArm: [-34 + 28 * step, 30 + 20 * Math.abs(step)]}
+    : {...idleSpec(frame, 0.3), lean: -4, headTilt: 10, nearArm: [34, 70], farArm: [-20, 50]};
+  const wx = lerp(W0.x, 0, wp);
+  const wz = lerp(W0.z, 0, wp);
+  // turn from walking direction to face front once he arrives
+  const faceK = smooth(clamp01((t - WALK1 + 0.2) / 0.4));
+  const walkYaw = (strut || t <= WALK0 ? walk.yaw : walk.yaw) + 0.35 * step * (strut ? 1 : 0);
+  let himSpec: BodySpec = walking ? sashay : t < T_LILAC - 0.4 ? tough : sassy;
+  if (arms > 0) himSpec = armsUp({...sassy, lean: -6, headTilt: 14}, t, arms, 0.25);
   const recoil = smooth(clamp01((t - T_BC) / 0.2));
   const asking = t > T_FAV - 0.2 && t < T_FAV + 1.0;
   const look = (i: number): Look => {
     if (t < T_SPAWN) return {tired: 0.3, droop: 0, eyesClosed: false, brows: -0.3, mouth: 'flat', yaw: (rnd(i) - 0.5) * 40};
     if (recoil > 0) return {...STARE, brows: 1, browLift: 1, mouth: 'open', mouthOpen: 0.8, pupils: 0.55};
     if (i === 0 && asking) return {tired: 0.4, droop: 2, eyesClosed: false, brows: -1, browLift: -0.4, mouth: 'open', mouthOpen: 0.15 + 0.2 * Math.abs(Math.sin(t * 12)), noBlink: true};
-    return {...STARE, brows: -0.6, browLift: -0.2, mouth: 'flat', pupils: undefined};
+    return {...STARE, brows: -0.6, browLift: -0.2, mouth: walking ? 'open' : 'flat', mouthOpen: 0.25, pupils: undefined, yaw: walking ? (wx - MEN[i].x) * -9 : 0};
   };
   const close = smooth(clamp01((t - T_DEEP) / 1.2));
   const wide = smooth(clamp01((t - (T_ARMS - 0.3)) / 0.4));
-  const base: Cam = {position: v3(lerp(0.4, 0.9, close), lerp(1.5, 1.6, close), lerp(5.6, 3.4, close)), target: v3(lerp(0.2, 0.0, close), lerp(1.2, 1.5, close), lerp(-1.0, 0.2, close)), fov: 44};
-  const cam: Cam = {position: base.position.clone().lerp(v3(0.6, 1.8, 5.4), wide), target: base.target.clone().lerp(v3(0.1, 1.4, -0.6), wide), fov: 44};
+  const fol = t < WALK1 ? 1 - wp : 0;
+  const base: Cam = {position: v3(lerp(0.4, 0.9, close) + wx * 1.0 * fol, lerp(1.5, 1.6, close), lerp(5.6, 3.4, close) + 0.6 * fol), target: v3(lerp(0.2, 0.0, close) + wx * 1.05 * fol, lerp(1.2, 1.5, close), lerp(-1.0, 0.2, close) + 0.9 * fol), fov: 44};
+  const cam: Cam = {position: base.position.clone().lerp(v3(0.6, 1.9, 6.0), wide), target: base.target.clone().lerp(v3(0.1, 2.15, -0.6), wide), fov: 44};
   const shake = t > T_ARMS && t < T_ARMS + 0.35 ? 0.04 * Math.sin(t * 80) : 0;
   const camS = {...cam, position: cam.position.clone().add(v3(shake, shake, 0))};
   return (
@@ -242,9 +305,11 @@ const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
           <group scale={[lerp(0.2, 1, spawn), lerp(0.2, 1, spawn), lerp(0.2, 1, spawn)]} position={[0, 0, 1.2]}>
             <Actor
               style={HIM(!shadesOff)}
-              x={0}
-              z={0}
-              yaw={-Math.PI / 2 + 0.25 * Math.sin(t * 0.9)}
+              x={wx}
+              z={wz}
+              y={strut ? 0.03 * Math.abs(step) : 0}
+              roll={strut ? 7 * step : 0}
+              yaw={walking ? lerp(t < WALK0 ? -Math.PI / 2 : walkYaw, -Math.PI / 2, faceK) : -Math.PI / 2 + 0.25 * Math.sin(t * 0.9)}
               spec={himSpec}
               frame={frame}
               look={
@@ -254,12 +319,14 @@ const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
                     ? {...JOY, mouthOpen: 0.5 + 0.35 * Math.abs(Math.sin(t * 9)), eyesClosed: t > T_ARMS + 0.2 && t < T_ARMS + 1.2}
                     : {...SMUG, mouth: talk ? 'open' : 'smile', mouthOpen: talk ? 0.15 + 0.2 * Math.abs(Math.sin(t * 13)) : 0, yaw: t < T_DEEP ? 25 * Math.sin((t - T_SPAWN) * 2) : 0}
               }
-            />
+            >
+              {(pose) => (arms > 0.6 ? <Flag a={handLocal(pose, false)} b={handLocal(pose, true)} t={t} /> : null)}
+            </Actor>
           </group>
         ) : null}
         {spawn > 0 && spawn < 1
           ? Array.from({length: 10}, (_, i) => (
-              <mesh key={i} geometry={keep('spark', () => new IcosahedronGeometry(0.06, 0))} material={glowM(['#ff5fa8', '#ffe25a', '#5fd0ff'][i % 3], 2)} position={[Math.cos(i) * spawn * 1.2, 1 + Math.sin(i * 2) * spawn, 1.2 + Math.sin(i) * spawn * 0.6]} />
+              <mesh key={i} geometry={keep('spark', () => new IcosahedronGeometry(0.06, 0))} material={glowM(['#ff5fa8', '#ffe25a', '#5fd0ff'][i % 3], 2)} position={[-2.6 + Math.cos(i) * spawn * 1.2, 1 + Math.sin(i * 2) * spawn, 2.1 + Math.sin(i) * spawn * 0.6]} />
             ))
           : null}
         {/* glitter burst when he comes out */}
@@ -279,10 +346,17 @@ const ShotCamp: React.FC<{from?: number}> = ({from = T_CAMP}) => {
               x={m.x * (1 + r * 0.3) + step * 0.6}
               z={m.z - r + step * 0.9}
               yaw={Math.atan2(-(1.2 - m.z), -m.x) + (t < T_SPAWN ? rnd(i) : 0)}
-              spec={recoil > 0 ? {...idleSpec(frame + i * 9, 0.2), lean: -18 * recoil, headTilt: -10 * recoil, near: {thigh: 10, knee: 20}, far: {thigh: -24 * recoil, knee: 14}, nearArm: [lerp(10, 82, recoil), lerp(20, 28, recoil)], farArm: [lerp(10, 76, recoil), lerp(20, 34, recoil)]} : {...idleSpec(frame + i * 9, 0.2), lean: t > T_SPAWN ? 6 : 2, headTilt: i === 0 && asking ? -8 : 0}}
+              spec={{...idleSpec(frame + i * 9, 0.2), lean: recoil > 0 ? -18 * recoil : t > T_SPAWN ? 6 : 2, headTilt: recoil > 0 ? -10 * recoil : i === 0 && asking ? -8 : 0, near: recoil > 0 ? {thigh: 10, knee: 20} : {thigh: 4, knee: 6}, far: recoil > 0 ? {thigh: -24 * recoil, knee: 14} : {thigh: -4, knee: 6}, nearArm: [26, 58], farArm: [48, 34]}}
               frame={frame + i * 9}
               look={look(i)}
-            />
+            >
+              {(pose) => (
+                // held across the body at the hip, muzzle pointing down at the ground
+                <group position={handLocal(pose, false).add(v3(0, 0, -0.15))} rotation={[0, 0, -0.55]}>
+                  <Rifle />
+                </group>
+              )}
+            </Actor>
           );
         })}
       </Canvas3D>
@@ -352,6 +426,14 @@ export const GayCampExample: React.FC = () => {
       </Sequence>
       <Sequence from={F(T_SPAWN)}>
         <Audio src={staticFile('gaycamp/pop.wav')} volume={0.8} />
+      </Sequence>
+      {Array.from({length: 6}, (_, k) => (
+        <Sequence key={'h' + k} from={F(WALK0 + 0.12 + k * (1 / 2.6))}>
+          <Audio src={staticFile('gaycamp/heel.wav')} volume={0.7} />
+        </Sequence>
+      ))}
+      <Sequence from={F(WALK0)}>
+        <Audio src={staticFile('gaycamp/strut.wav')} volume={0.55} />
       </Sequence>
       <Sequence from={F(T_DEEP)}>
         <Audio src={staticFile('gaycamp/normal-deep.mp3')} volume={1.3} />
