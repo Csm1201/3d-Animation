@@ -731,7 +731,7 @@ export const GayCampExample: React.FC = () => {
     <AbsoluteFill style={{backgroundColor: '#000'}}>
       <AbsoluteFill style={{filter: 'contrast(1.12) saturate(1.2)'}}>
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
-        <ShotCamp from={HOOK_AT} />
+        <ShotCamp from={HOOK_AT + 0.4} />
       </Sequence>
       <Sequence from={F(T_CAMP)} durationInFrames={F(T_D3) - F(T_CAMP)}>
         <ShotCamp />

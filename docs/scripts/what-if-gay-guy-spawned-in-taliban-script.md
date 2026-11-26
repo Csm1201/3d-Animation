@@ -1,62 +1,52 @@
-# One-off Short: "What if a really gay guy spawned in the Taliban?" (script, draft 2: hostile)
+# One-off Short: "What if a really gay guy spawned in the Taliban?" (script, draft 5: as cut)
 
-About 18 s, vertical, in the **low-poly reel style**: faceted people, bright sun, a soft background blur, an italic serif caption with a yellow keyword, a counter top-left and a yellow pill (see `renders/camp-makeover-example.mp4`).
+37 s, vertical, in the **low-poly reel style** of the NPC reference:
+- a busy mud-brick village with palms, a truck, a canopy and barrels;
+- a low golden sun with a rim light, drifting dust and a warm/cool grade;
+- an italic serif caption with a yellow keyword, a counter top-left and a yellow pill.
 
-**The angle (somewhat realistic, not completely):** the Taliban really don't like gay people, so the camp is hostile from the start and he's in genuine danger. The comedy comes from him trying, and failing, to hide it, and then escaping by being quicker and funnier than them. He's never mocked for being gay and never hurt on screen. The Taliban are the ones who look stupid.
+Render: `renders/camp-makeover-example.mp4`. Score: `tools/gaycamp_music.py` (synthesized, ducked under every line).
+
+**The angle (somewhat realistic, not completely):** the camp is hostile from the start and he's in genuine danger. The comedy comes from him trying, and failing, to hide it, and then escaping by being quicker and funnier than them. He's never mocked for being gay and never hurt on screen. The Taliban are the ones who look stupid.
 
 **Guardrails:**
 - No religion: no mosque, prayer, holy book or religious phrases.
-- No violence on screen. The threat is shown through glares, shouting and a chase, with no beating, no execution and no blood. Weapons stay slung on backs, never aimed at him.
+- No violence on screen. Rifles are held low or pointed at the ground, never aimed at him.
 - He wins: he escapes, and the last laugh is his.
 - Voices are generic stock voices, with no accent impressions. His voice is flamboyant but not a lisp caricature.
 
 **Characters:**
-- **Him:** in their dusty robe and black turban, plus his shades. He's trying very hard to "act straight" and failing.
-- **The fighters:** four low-poly men with long beards and black turbans. They're suspicious, then furious. They shout "BOMBOCLAAT!" when they catch on.
+- **Him:** in their robe and black turban, plus pink shades and a pink boa.
+- **The fighters:** four men with long beards, robes and black turbans, holding rifles.
 - **The leader:** the angriest of them, until the very end.
 
 | Time | Visual | On-screen text | Voiceover / sound |
 |---|---|---|---|
-| 0.0-1.5 | **HOOK.** Mid-motion on frame 0: he sprints flat-out across the dusty camp, turban unravelling behind him like a streamer, shades on, still clutching a hair straightener, with four furious bearded men chasing him. Hard cut. | What if a really **gay** guy spawned in the Taliban? | Frame 0: angry shouting and running footsteps. Him (screaming): "NOT THE HAIR!" Record scratch on the cut. |
-| 1.5-1.9 | Black. | DAY 1 | Wind. |
-| 1.9-6.0 | *Pop*: he spawns in the middle of the camp in their robe and turban. Four bearded men turn and glare. He clears his throat, widens his stance and drops his voice very low, trying to sound tough. One fighter steps up, squinting at him. | DAY 1 · ACT STRAIGHT | Spawn pop. Silence. Him (forced deep voice): "Relax. I'm completely normal. Ask me anything." Fighter (suspicious): "...Favourite colour?" Him (instantly, his real voice): "Lilac." A long, dead silence. |
-| 6.0-10.0 | **Day 3.** Night in a tent: he's secretly doing a full skincare routine by candlelight (face mask, cucumber slices, humming). The tent flap opens. The leader is standing there. Both freeze. | DAY 3 · STAY HIDDEN | Gentle humming. Tent-flap rustle. Silence. Leader: "...BOMBOCLAAT." |
-| 10.0-14.5 | **The chase**, the hook paid off. He bolts out of the tent, mask still on, and runs through the camp with all four chasing and shouting. He hurdles a crate, slides under a tent rope, and grabs the straightener on the way. A fighter trips over the tent rope; two crash into each other. | DAY 3 · RUN | Shouting, "BOMBOCLAAT!" ×2, running feet, a comedy crash. Him: "NOT THE HAIR!" |
-| 14.5-18.0 | **ENDING.** He reaches the ridge, jumps on a dusty motorbike, and blows them a kiss over his shoulder before speeding off into the sunset. Back in camp the fighters are panting in the dust. The leader looks down at his own reflection in the straightener he dropped... and quietly smooths his beard. | WHO'S NEXT? | Motorbike roar, a smooch sound. The leader (quiet, to himself): "...Bomboclaat." Bass hit. |
-
-## Fake comments
-
-- "'LILAC.' he didn't even hesitate 💀"
-- "the leader smoothing his beard at the end 😭 he's next"
-- "NOT THE HAIR"
-- "blew them a kiss while escaping is diabolical"
+| 0.0-1.5 | **HOOK.** Mid-motion on frame 0: the pride flag is already above his head, glitter flying, as the bearded men recoil with their rifles held low. Hard cut. | What if a really **gay** guy spawned in the Taliban? (a tease question) | Frame 0: "I'M GAAAY!" over a disco stab. Record scratch on the cut. |
+| 1.5-1.9 | Black. | Day 1 | Wind. |
+| 1.9-5.4 | *Pop*: he spawns mid-camp and sashays up to the men (hip roll, limp wrist), with heels clicking. | Day 1. **Act straight.** | Spawn pop, a sassy groove, heel clicks. |
+| 5.4-10.4 | A tough wide stance and a fake deep voice. One fighter squints at him. | Day 1. **Act straight.** | Him (deep): "Relax. I'm completely normal. Ask me anything." Fighter: "...Favourite colour?" A tense pulse underneath. |
+| 10.4-14.2 | Shades on, a sassy pose. The music cuts dead. | Day 1. **Act straight.** | Him (camp): "Lilaaac! Obviously, sweetie!" Silence, then a creeping tremolo. |
+| 14.2-20.4 | The hook paid off: "fine", then the flag goes up, glitter, and the men recoil. | **Lasted 14 seconds.** (counter 0 → 1) | "Ugh, okay FINE! I'M GAAAY, honeyyy!" A disco drop, then "BOMBOCLAAT!" |
+| 20.4-20.8 | Black. | Day 3 | |
+| 20.8-27.4 | A candlelit tent: a face mask and cucumber slices on a pink pouffe. The leader opens the flap with a lantern. | Day 3. **Stay hidden.** (counter 1 → 2) | A spa pad. Him: "Ahh... seven-step skincare, darling. Glowing." Flap rustle, an orchestral hit. Leader: "BOMBOCLAAT!" |
+| 27.4-31.8 | **The chase** through the village. He hops a crate, one fighter trips flat, then a crash. | Day 3. **Run.** | A driving action cue. "GET HIM!" Him: "NOT THE HAIR!" A crash, then "BOMBOCLAAT!" |
+| 31.8-34.8 | A motorbike at sunset. He blows a kiss and speeds off in the dust. | Day 3. **Run.** | A triumphant lift, the bike roar. "Mwah! Bye, boys!" |
+| 34.8-37.0 | **ENDING.** A close-up of the leader, alone, quietly smoothing his beard. | Who's **next?** | A low drone. Leader (quiet): "...Bomboclaat." A soft final hit. |
 
 ## Voices
 
-All voices are generic stock voices, not imitations of anyone:
-- **Him:** flamboyant, bright stock voice. Lines:
-  - "NOT THE HAIR!" (used twice)
-  - "Relax. I'm completely normal. Ask me anything." (forced deep voice)
-  - "Lilac." (instantly, his real voice)
-- **Fighters:** generic, deep stock voices. Bomboclaat yells, and one line: "...Favourite colour?"
-- **Leader:** deep, older stock voice. Two bomboclaats: one shocked at the tent, one quiet at the end.
+All voices are generic stock voices (vidIQ), not imitations of anyone:
+- **Him:** Liam, pitched up for the camp voice and down for the fake deep voice.
+- **Fighters:** Callum ("Favourite colour?") and Harry ("GET HIM!" and the bomboclaats).
+- **Leader:** Harry, quiet, for the last bomboclaat.
 
-## Production notes
+## Self-review checks
 
-- **Reused from the example:** the low-poly camp, the fighters' outfits and turbans, his outfit, the reel captions, counter and pill, and the bomboclaat clips.
-- **New props:**
-  - a hair straightener (grabbed from the tent in the chase, dropped at the end);
-  - a face mask and cucumber slices;
-  - candles inside a tent interior;
-  - a tent rope and crate;
-  - a dusty motorbike;
-  - his turban unravelling into a cloth streamer.
-- **Counter top-left:** "TIMES NEARLY CAUGHT", going 0 → 1 → 2.
-- **Self-review checks:**
-  - the hook chase matches the payoff;
-  - the caption is a question;
-  - no religious imagery;
-  - weapons are never aimed at him;
-  - no on-screen violence;
-  - he escapes and wins;
-  - every line is clear over the shouting.
+- Frame 0 shows the flag up with sound.
+- The hook caption is a question.
+- No religious imagery.
+- Rifles are never aimed at him.
+- No on-screen violence.
+- He escapes.
+- Every line is clear over the music.
