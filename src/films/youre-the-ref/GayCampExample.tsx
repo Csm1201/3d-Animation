@@ -137,6 +137,78 @@ const Flag: React.FC<{a: Vector3; b: Vector3; t: number}> = ({a, b, t}) => {
   );
 };
 
+
+// ---------------------------------------------------------------- camp dressing (reference-style busy set)
+const mud = ['#b8946a', '#c4a074', '#a88660', '#bf9a6c'];
+/** A flat-roofed mud-brick house with a dark doorway, windows and a parapet. */
+const House: React.FC<{x: number; z: number; w: number; h: number; d: number; ry?: number; c: number}> = ({x, z, w, h, d, ry = 0, c}) => (
+  <group position={[x, 0, z]} rotation={[0, ry, 0]}>
+    <mesh geometry={boxG(w, h, d)} material={flat(mud[c % 4], 0.95)} position={[0, h / 2, 0]} castShadow receiveShadow />
+    <mesh geometry={boxG(w + 0.12, 0.16, d + 0.12)} material={flat(mud[(c + 1) % 4], 0.95)} position={[0, h + 0.08, 0]} castShadow />
+    <mesh geometry={boxG(0.8, 1.5, 0.05)} material={flat('#3a2a1e')} position={[-w * 0.2, 0.75, d / 2 + 0.01]} />
+    <mesh geometry={boxG(0.5, 0.45, 0.05)} material={flat('#2e231b')} position={[w * 0.22, h * 0.62, d / 2 + 0.01]} />
+    {Array.from({length: Math.floor(w / 0.9)}, (_, k) => (
+      <mesh key={k} geometry={cylG(0.05, 0.05, 0.5, 5)} material={flat('#6a4c30')} position={[-w / 2 + 0.45 + k * 0.9, h - 0.25, d / 2 + 0.15]} rotation={[Math.PI / 2, 0, 0]} />
+    ))}
+  </group>
+);
+const Palm: React.FC<{x: number; z: number; s?: number; t: number; i: number}> = ({x, z, s = 1, t, i}) => (
+  <group position={[x, 0, z]} scale={s}>
+    {[0, 1, 2, 3, 4].map((k) => (
+      <mesh key={k} geometry={cylG(0.13 - k * 0.012, 0.15 - k * 0.012, 0.95, 7)} material={flat(k % 2 ? '#7a5c3c' : '#6b4e32')} position={[k * k * 0.03, 0.47 + k * 0.9, 0]} rotation={[0, 0, -k * 0.05]} castShadow />
+    ))}
+    <group position={[0.5, 4.5, 0]}>
+      {Array.from({length: 8}, (_, k) => (
+        <mesh key={k} geometry={keep('frond', () => new ConeGeometry(0.28, 2.2, 4))} material={flat(k % 2 ? '#4f7a32' : '#5f8a3a', 0.8)} rotation={[0, (k / 8) * Math.PI * 2, 1.25 + 0.06 * Math.sin(t * 1.6 + k + i)]} position={[0, 0, 0]} castShadow>
+        </mesh>
+      ))}
+    </group>
+  </group>
+);
+const Truck: React.FC<{x: number; z: number; ry: number}> = ({x, z, ry}) => (
+  <group position={[x, 0, z]} rotation={[0, ry, 0]}>
+    <mesh geometry={boxG(3.4, 0.6, 1.6)} material={flat('#d8d2c4', 0.5, 0.2)} position={[0, 0.75, 0]} castShadow receiveShadow />
+    <mesh geometry={boxG(1.4, 0.75, 1.5)} material={flat('#d8d2c4', 0.5, 0.2)} position={[0.85, 1.4, 0]} castShadow />
+    <mesh geometry={boxG(0.05, 0.55, 1.3)} material={flat('#25313a', 0.2, 0.5)} position={[1.56, 1.42, 0]} />
+    <mesh geometry={boxG(1.9, 0.4, 1.5)} material={flat('#c9c2b2', 0.6)} position={[-0.75, 1.2, 0]} />
+    {[[-1.1, 0.8], [-1.1, -0.8], [1.1, 0.8], [1.1, -0.8]].map(([a, b], k) => (
+      <mesh key={k} geometry={cylG(0.38, 0.38, 0.28, 10)} material={flat('#1e1c1a')} position={[a, 0.38, b]} rotation={[Math.PI / 2, 0, 0]} castShadow />
+    ))}
+  </group>
+);
+const Bush: React.FC<{x: number; z: number; s: number; i: number}> = ({x, z, s, i}) => (
+  <mesh geometry={keep('bush', () => new IcosahedronGeometry(0.5, 0))} material={flat(i % 2 ? '#7d8a4a' : '#6b7a40', 0.9)} position={[x, 0.18 * s, z]} scale={[s, s * 0.6, s]} rotation={[0, i, 0]} castShadow />
+);
+const Barrel: React.FC<{x: number; z: number; c: string}> = ({x, z, c}) => (
+  <mesh geometry={cylG(0.28, 0.28, 0.85, 10)} material={flat(c, 0.6, 0.3)} position={[x, 0.42, z]} castShadow receiveShadow />
+);
+/** A striped cloth canopy on four poles. */
+const canopyTex = keep('canopyTex', () => canvasTex(64, 64, (g) => {
+  for (let k = 0; k < 8; k++) {
+    g.fillStyle = k % 2 ? '#d9c9a8' : '#8a3a2a';
+    g.fillRect(k * 8, 0, 8, 64);
+  }
+}));
+const Canopy: React.FC<{x: number; z: number; t: number}> = ({x, z, t}) => (
+  <group position={[x, 0, z]}>
+    {[[-1.3, -1], [1.3, -1], [-1.3, 1], [1.3, 1]].map(([a, b], k) => (
+      <mesh key={k} geometry={cylG(0.04, 0.04, 2.3, 5)} material={flat('#5a3e26')} position={[a, 1.15, b]} castShadow />
+    ))}
+    <mesh geometry={keep('canopyG', () => new PlaneGeometry(2.8, 2.2, 4, 4))} position={[0, 2.3 + 0.03 * Math.sin(t * 3), 0]} rotation={[-Math.PI / 2 + 0.06, 0, 0]} castShadow>
+      <meshStandardMaterial map={canopyTex} side={2} roughness={0.9} flatShading />
+    </mesh>
+  </group>
+);
+const MOTES = Array.from({length: 46}, (_, i) => ({x: (rnd(i) - 0.5) * 14, y: 0.3 + rnd(i + 9) * 3.2, z: 2 - rnd(i + 4) * 10, s: 0.015 + rnd(i + 2) * 0.03, v: 0.2 + rnd(i + 6) * 0.4}));
+/** Sunlit dust drifting through the air. */
+const Dust: React.FC<{t: number; cx?: number}> = ({t, cx = 0}) => (
+  <group>
+    {MOTES.map((m, i) => (
+      <mesh key={i} geometry={keep('mote', () => new IcosahedronGeometry(1, 0))} material={keep('moteM', () => new MeshBasicMaterial({color: '#fff2d0', transparent: true, opacity: 0.55}))} position={[cx + m.x + ((t * m.v) % 6) - 3, m.y + 0.15 * Math.sin(t * 0.8 + i), m.z]} scale={m.s} />
+    ))}
+  </group>
+);
+
 // ---------------------------------------------------------------- sets
 const rock = keep('rock', () => new DodecahedronGeometry(1, 0));
 const tentG = keep('tent', () => new ConeGeometry(1.6, 2.2, 4));
@@ -165,6 +237,30 @@ const Camp: React.FC<{t: number}> = ({t}) => (
       <mesh key={'r' + i} geometry={rock} material={flat('#a08868')} position={[-6 + i * 2.1, 0.2, 2 - rnd(i) * 6]} scale={0.25 + rnd(i + 5) * 0.35} castShadow />
     ))}
     <mesh geometry={boxG(0.8, 0.6, 0.6)} material={flat('#8a6a44')} position={[-3.2, 0.3, -2.4]} castShadow />
+    {/* far haze ridge */}
+    {Array.from({length: 7}, (_, i) => (
+      <mesh key={'far' + i} geometry={rock} material={flat('#c9a98a', 1)} position={[-34 + i * 11, 4, -40 - rnd(i + 11) * 6]} scale={[10, 9 + rnd(i + 1) * 7, 5]} rotation={[0, rnd(i) * 3, 0]} />
+    ))}
+    {/* village */}
+    <House x={-8.5} z={-9} w={4} h={2.6} d={3} ry={0.15} c={0} />
+    <House x={-3.8} z={-12} w={3.2} h={3.1} d={3} ry={-0.05} c={1} />
+    <House x={7.5} z={-10} w={4.4} h={2.5} d={3.2} ry={-0.2} c={2} />
+    <House x={12.5} z={-6} w={3.2} h={2.8} d={3} ry={-0.5} c={3} />
+    <House x={-14} z={-5} w={3.6} h={2.6} d={3} ry={0.5} c={1} />
+    <mesh geometry={boxG(9, 1.2, 0.35)} material={flat('#b08c62', 0.95)} position={[1.5, 0.6, -13.5]} castShadow receiveShadow />
+    <Palm x={-6.2} z={-7.2} s={1.05} t={t} i={0} />
+    <Palm x={3.2} z={-11} s={1.2} t={t} i={1} />
+    <Palm x={9.6} z={-7.6} s={0.95} t={t} i={2} />
+    <Palm x={-11.5} z={-11} s={1.15} t={t} i={3} />
+    <Truck x={-7.5} z={-2.8} ry={0.5} />
+    <Canopy x={5.8} z={-4.2} t={t} />
+    <Barrel x={4.6} z={-2.9} c="#3f5a6a" />
+    <Barrel x={5.2} z={-2.6} c="#7a3a2a" />
+    <Barrel x={-4.4} z={-1.2} c="#5a6a3a" />
+    {Array.from({length: 12}, (_, i) => (
+      <Bush key={'b' + i} x={-12 + i * 2.2 + rnd(i) * 1.2} z={-4 - rnd(i + 3) * 6} s={0.6 + rnd(i + 8) * 0.7} i={i} />
+    ))}
+    <Dust t={t} />
   </group>
 );
 
@@ -220,7 +316,8 @@ const Canvas3D: React.FC<{cam: Cam; sky: string; fog?: [number, number]; indoor?
     {alpha ? null : <fog attach="fog" args={[sky, fog[0], fog[1]]} />}
     <CameraRig cam={{...cam, far: 200}} />
     <Environment intensity={indoor ? 0.35 : 0.55} />
-    <Daylight center={v3(0, 0, -1)} extent={10} offset={indoor ? [-3, 10, 6] : [-10, 16, 9]} color={indoor ? '#ffd6ee' : '#fff1d8'} intensity={indoor ? 0.9 : 2.8} sky={indoor ? '#8a6aa0' : '#d6e6f6'} ground={indoor ? '#3a2a24' : '#d8bf94'} fill={indoor ? 0.6 : 1.0} />
+    <Daylight center={v3(0, 0, -1)} extent={10} offset={indoor ? [-3, 10, 6] : [-12, 10, 8]} color={indoor ? '#ffd6ee' : '#ffe2b8'} intensity={indoor ? 0.9 : 3.2} sky={indoor ? '#8a6aa0' : '#cfe0f2'} ground={indoor ? '#3a2a24' : '#d8bf94'} fill={indoor ? 0.6 : 1.0} />
+    {indoor ? null : <directionalLight position={[9, 5, -12]} intensity={1.7} color="#ffb878" />}
     {children}
   </ThreeCanvas>
 );
@@ -611,11 +708,28 @@ const Counter: React.FC<{n: number; day: string}> = ({n, day}) => (
   </div>
 );
 
+
+/** Cinematic grade over the 3D: warm low end, cool sky, soft bloom, vignette and fine grain. */
+const Grade: React.FC<{frame: number}> = ({frame}) => (
+  <>
+    <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(70,140,190,0.22) 0%, rgba(0,0,0,0) 40%, rgba(255,150,60,0.20) 100%)', mixBlendMode: 'soft-light'}} />
+    <AbsoluteFill style={{background: 'radial-gradient(ellipse at 30% 25%, rgba(255,226,170,0.20) 0%, rgba(255,226,170,0) 55%)', mixBlendMode: 'screen'}} />
+    <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 48%, rgba(0,0,0,0) 55%, rgba(10,4,0,0.42) 100%)'}} />
+    <svg width={WIDTH} height={HEIGHT} style={{position: 'absolute', inset: 0, opacity: 0.07, mixBlendMode: 'overlay'}}>
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} seed={frame % 24} />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#grain)" />
+    </svg>
+  </>
+);
+
 export const GayCampExample: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / GC_FPS;
   return (
     <AbsoluteFill style={{backgroundColor: '#000'}}>
+      <AbsoluteFill style={{filter: 'contrast(1.12) saturate(1.2)'}}>
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
         <ShotCamp from={HOOK_AT} />
       </Sequence>
@@ -634,10 +748,11 @@ export const GayCampExample: React.FC = () => {
       <Sequence from={F(T_END)}>
         <ShotLeader />
       </Sequence>
+      </AbsoluteFill>
       {(t >= T_DAY1 && t < T_CAMP) || (t >= T_D3 && t < T_TENT) ? (
         <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontStyle: 'italic', color: '#fff', fontSize: 90}}>{t < T_CAMP ? 'Day 1' : 'Day 3'}</AbsoluteFill>
       ) : null}
-      <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%)'}} />
+      <Grade frame={frame} />
       {t < T_DAY1 ? (
         <>
           <Counter n={1} day="DAY 1" />
@@ -654,6 +769,7 @@ export const GayCampExample: React.FC = () => {
           <Caption parts={t < T_CHASE ? [['Day 3. ', false], ['Stay hidden.', true]] : t < T_END ? [['Day 3. ', false], ['Run.', true]] : [["Who's ", false], ['next?', true]]} />
         </>
       ) : null}
+      <Audio src={staticFile('gaycamp/music.wav')} volume={0.6} />
       {/* sound: hook */}
       <Sequence from={0} durationInFrames={F(T_DAY1)}>
         <Audio src={staticFile('gaycamp/gay-camp.mp3')} startFrom={F(HOOK_AT - T_GAY)} volume={1.3} />

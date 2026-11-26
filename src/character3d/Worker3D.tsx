@@ -224,7 +224,7 @@ export const LOW_POLY = {on: false};
 const lowSphereCache = new Map<number, SphereGeometry>();
 const sphere = (r: number) => {
   if (LOW_POLY.on) {
-    if (!lowSphereCache.has(r)) lowSphereCache.set(r, new SphereGeometry(r, 8, 6));
+    if (!lowSphereCache.has(r)) lowSphereCache.set(r, new SphereGeometry(r, 12, 9));
     return lowSphereCache.get(r)!;
   }
   if (!sphereCache.has(r)) sphereCache.set(r, new SphereGeometry(r, 32, 20));
@@ -234,7 +234,7 @@ const cylCache = new Map<string, CylinderGeometry>();
 const cyl = (rTop: number, rBottom: number) => {
   const k = `${rTop}-${rBottom}`;
   const kk = LOW_POLY.on ? 'lp' + k : k;
-  if (!cylCache.has(kk)) cylCache.set(kk, new CylinderGeometry(rTop, rBottom, 1, LOW_POLY.on ? 7 : 32, 1, true));
+  if (!cylCache.has(kk)) cylCache.set(kk, new CylinderGeometry(rTop, rBottom, 1, LOW_POLY.on ? 10 : 32, 1, true));
   return cylCache.get(kk)!;
   return cylCache.get(k)!;
 };
